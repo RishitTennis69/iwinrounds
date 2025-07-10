@@ -2,11 +2,9 @@ import React from 'react';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice') => void;
-  freeRoundsUsed?: number;
-  isAdmin?: boolean;
 }
 
-const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode, freeRoundsUsed, isAdmin }) => {
+const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
@@ -56,8 +54,6 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode, freeRoundsU
             </div>
           </div>
         </div>
-
-        {/* Free rounds/admin info removed */}
       </div>
     </div>
   );
