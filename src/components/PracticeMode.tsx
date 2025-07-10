@@ -23,8 +23,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [feedback, setFeedback] = useState<{ [speechNum: number]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [simulatedUpTo, setSimulatedUpTo] = useState(0); // Track the last speech number simulated
   const [speechRecognition] = useState(() => new SpeechRecognitionService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '' });
@@ -59,15 +57,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     return userSpeechNums.find(num => num > after);
   };
 
-  // Helper: get the previous user speech number before a given speech
-  const getPrevUserSpeechNum = (before: number) => {
-    return [...userSpeechNums].reverse().find(num => num < before);
-  };
-
   // Generate AI speeches up to (but not including) the next user speech
   const generateAISpeechesUpTo = async (from: number, to: number) => {
     setIsLoading(true);
-    setError('');
     const aiSpeechMap = { ...aiSpeeches };
     for (let i = from + 1; i < to; i++) {
       if (!userSpeechNums.includes(i) && !aiSpeechMap[i]) {
@@ -129,7 +121,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       }
     }
     setAiSpeeches(aiSpeechMap);
-    setSimulatedUpTo(to - 1);
     setIsLoading(false);
   };
 
@@ -200,7 +191,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const practiceSession = {
     id: 'practice',
     topic,
-    speakers: debateOrder.map((sp, idx) => ({
+    speakers: debateOrder.map((sp) => ({
       ...sp,
       name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
     })),
