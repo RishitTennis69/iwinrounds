@@ -122,79 +122,79 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
           {/* Speakers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-600">Affirmative Speakers</h3>
+              <h3 className="text-lg font-semibold text-blue-600">Affirmative Team</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  1st Affirmative Speaker
+                  1st Affirmative Speaker Name
                 </label>
                 <input
                   type="text"
                   value={speakerNames.affirmative1}
                   onChange={(e) => handleSpeakerInput('affirmative1', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your name if you are 1st Affirmative"
+                  placeholder="Enter 1st Affirmative speaker's name"
                   required
                 />
                 {speakerNames.affirmative1 && (
                   <p className="text-sm text-blue-600 mt-1">
-                    ✓ You are the 1st Affirmative speaker
+                    ✓ 1st Affirmative: {speakerNames.affirmative1}
                   </p>
                 )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  2nd Affirmative Speaker
+                  2nd Affirmative Speaker Name
                 </label>
                 <input
                   type="text"
                   value={speakerNames.affirmative2}
                   onChange={(e) => handleSpeakerInput('affirmative2', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your name if you are 2nd Affirmative"
+                  placeholder="Enter 2nd Affirmative speaker's name"
                   required
                 />
                 {speakerNames.affirmative2 && (
                   <p className="text-sm text-blue-600 mt-1">
-                    ✓ You are the 2nd Affirmative speaker
+                    ✓ 2nd Affirmative: {speakerNames.affirmative2}
                   </p>
                 )}
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-red-600">Negative Speakers</h3>
+              <h3 className="text-lg font-semibold text-red-600">Negative Team</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  1st Negative Speaker
+                  1st Negative Speaker Name
                 </label>
                 <input
                   type="text"
                   value={speakerNames.negative1}
                   onChange={(e) => handleSpeakerInput('negative1', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter your name if you are 1st Negative"
+                  placeholder="Enter 1st Negative speaker's name"
                   required
                 />
                 {speakerNames.negative1 && (
                   <p className="text-sm text-red-600 mt-1">
-                    ✓ You are the 1st Negative speaker
+                    ✓ 1st Negative: {speakerNames.negative1}
                   </p>
                 )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  2nd Negative Speaker
+                  2nd Negative Speaker Name
                 </label>
                 <input
                   type="text"
                   value={speakerNames.negative2}
                   onChange={(e) => handleSpeakerInput('negative2', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter your name if you are 2nd Negative"
+                  placeholder="Enter 2nd Negative speaker's name"
                   required
                 />
                 {speakerNames.negative2 && (
                   <p className="text-sm text-red-600 mt-1">
-                    ✓ You are the 2nd Negative speaker
+                    ✓ 2nd Negative: {speakerNames.negative2}
                   </p>
                 )}
               </div>
