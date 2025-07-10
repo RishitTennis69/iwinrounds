@@ -302,7 +302,7 @@ function App() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                DebateFlowy
+                Dedicate AI - Your Debate Pal
               </h1>
               <p className="text-gray-600">
                 Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}

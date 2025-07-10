@@ -4,6 +4,37 @@ interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice') => void;
 }
 
+const features = [
+  {
+    icon: (
+      <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+    ),
+    title: 'Always-on Judge',
+    desc: 'Get instant, unbiased feedback after every speech—no more waiting for a judge.'
+  },
+  {
+    icon: (
+      <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h4" /></svg>
+    ),
+    title: 'Practice Any Speech',
+    desc: 'Rebuttal, summary, or anything in between—practice any speech, any time.'
+  },
+  {
+    icon: (
+      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9" /></svg>
+    ),
+    title: 'Personalized Feedback',
+    desc: 'AI-powered insights tailored to your arguments and speaking style.'
+  },
+  {
+    icon: (
+      <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+    ),
+    title: 'Instant Validation',
+    desc: 'Know when you’ve won the round and why—no more guessing.'
+  },
+];
+
 const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   const [showModal, setShowModal] = useState(false);
 
@@ -13,17 +44,39 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200 opacity-30 rounded-full blur-3xl -z-10 animate-pulse" style={{ top: '-6rem', left: '-6rem' }}></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-200 opacity-30 rounded-full blur-3xl -z-10 animate-pulse" style={{ bottom: '-6rem', right: '-6rem' }}></div>
       {/* Hero Section */}
-      <div className="w-full max-w-2xl text-center mb-12 mt-12">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6 drop-shadow-lg">Dedicate AI</h1>
-        <p className="text-lg md:text-xl text-gray-700 mb-6 font-medium">
-          (Incomplete judge feedback? Never got to practice your rebuttal speech? Felt like your team won but needed validation? DedicateAI swoops in for you, the dedicated debater, and makes sure the judge is always listening, that you can practice whatever speech you want whenever you want, and it gives you personalized feedback and ways to improve.)
-        </p>
-        <button
-          className="mt-8 px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
-          onClick={() => setShowModal(true)}
-        >
-          Continue
-        </button>
+      <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
+        {/* Left: Text */}
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-2 drop-shadow-lg">Dedicate AI</h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-emerald-600 mb-4">Your Debate Pal</h2>
+          <p className="text-xl text-gray-700 mb-4 font-medium">AI-powered debate feedback, practice, and validation—anytime, anywhere.</p>
+          <p className="text-md text-gray-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
+          <button
+            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+            onClick={() => setShowModal(true)}
+          >
+            Get Started
+          </button>
+        </div>
+        {/* Right: Illustration/Icon */}
+        <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
+          <div className="w-64 h-64 bg-gradient-to-br from-emerald-200 to-blue-100 rounded-3xl flex items-center justify-center shadow-xl">
+            <svg className="w-32 h-32 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+              <rect x="8" y="8" width="32" height="32" rx="8" fill="#fff" stroke="#34d399" strokeWidth="3" />
+              <path d="M16 24h16M24 16v16" stroke="#34d399" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      {/* Features Section */}
+      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        {features.map((f, i) => (
+          <div key={i} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4" style={{ borderColor: ['#34d399', '#3b82f6', '#a78bfa', '#fbbf24'][i] }}>
+            <div className="mb-4">{f.icon}</div>
+            <h3 className="text-lg font-bold mb-2 text-gray-800">{f.title}</h3>
+            <p className="text-gray-600 text-center">{f.desc}</p>
+          </div>
+        ))}
       </div>
       {/* Mode Selection Modal */}
       {showModal && (
@@ -36,7 +89,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Choose Your Mode</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use Dedicate AI?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Debate Mode Card */}
               <button
