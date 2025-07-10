@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
 import { SpeechRecognitionService } from '../utils/speechRecognition';
-import { Mic, MicOff, Square, Play, Pause } from 'lucide-react';
+import { Mic, Square } from 'lucide-react';
 
 interface RecordingPanelProps {
   currentSpeaker: Speaker | null;

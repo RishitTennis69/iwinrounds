@@ -1,5 +1,5 @@
 import React from 'react';
-import { DebateSession, DebatePoint } from '../types';
+import { DebateSession } from '../types';
 
 interface DebateFlowTableProps {
   session: DebateSession;

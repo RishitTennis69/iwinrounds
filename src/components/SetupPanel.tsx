@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DebateSession, Speaker } from '../types';
+import { Speaker } from '../types';
 
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[]) => void;
