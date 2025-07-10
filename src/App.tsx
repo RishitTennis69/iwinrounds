@@ -22,6 +22,8 @@ function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [peoplePerTeam, setPeoplePerTeam] = useState(2);
+  const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -48,13 +50,15 @@ function App() {
     }
   };
 
-  const initializeSession = (topic: string, speakers: Speaker[]) => {
+  const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number) => {
     // Check if user has free rounds or is admin
     if (freeRoundsUsed >= 1 && !isAdmin) {
       setShowPasswordModal(true);
       return;
     }
-
+    setPeoplePerTeam(people);
+    setSpeechesPerSpeaker(speeches);
+    
     const newSession: DebateSession = {
       id: Date.now().toString(),
       topic,
@@ -67,31 +71,27 @@ function App() {
     setHintsUsed(0);
     
     // Create debate order that goes through speakers in sequence
-    const debateOrder = createDebateOrder(speakers);
+    const debateOrder = createDebateOrder(speakers, speeches);
     setCurrentSpeaker(debateOrder[0]);
   };
 
-  // Create debate order that goes through speakers in sequence
-  const createDebateOrder = (speakers: Speaker[]): Speaker[] => {
-    const affirmative = speakers.filter(s => s.team === 'affirmative');
-    const negative = speakers.filter(s => s.team === 'negative');
-    
-    const debateOrder: Speaker[] = [];
-    
-    // Create the sequence: 1st Aff, 1st Neg, 2nd Aff, 2nd Neg
-    const sequence = [
-      affirmative[0], // 1st Affirmative
-      negative[0],    // 1st Negative
-      affirmative[1], // 2nd Affirmative
-      negative[1]     // 2nd Negative
-    ];
-    
-    // Repeat the sequence twice for 8 speeches
-    for (let i = 0; i < 8; i++) {
-      const speakerIndex = i % 4;
-      debateOrder.push(sequence[speakerIndex]);
+  // Create debate order based on people per team and speeches per speaker
+  const createDebateOrder = (speakers: Speaker[], speeches: number): Speaker[] => {
+    // Alternate between teams, each speaker in order, repeat for speeches per speaker
+    const aff = speakers.filter(s => s.team === 'affirmative');
+    const neg = speakers.filter(s => s.team === 'negative');
+    const sequence: Speaker[] = [];
+    for (let i = 0; i < peoplePerTeam; i++) {
+      sequence.push(aff[i]);
+      sequence.push(neg[i]);
     }
-    
+    // Repeat the sequence for speeches per speaker
+    const debateOrder: Speaker[] = [];
+    for (let i = 0; i < speeches; i++) {
+      for (let j = 0; j < sequence.length; j++) {
+        debateOrder.push(sequence[j]);
+      }
+    }
     return debateOrder;
   };
 
@@ -139,7 +139,7 @@ function App() {
       setSession(updatedSession);
       
       // Get the debate order and move to next speaker
-      const debateOrder = createDebateOrder(session.speakers);
+      const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker);
       console.log('Debate order:', debateOrder);
       console.log('Looking for speaker at index:', speechNumber);
       const nextSpeaker = debateOrder[speechNumber]; // speechNumber is 1-indexed, but we want the next speaker
@@ -149,7 +149,7 @@ function App() {
       setSpeechNumber(speechNumber + 1);
       
       // If we've completed all 8 speeches, analyze the winner
-      if (speechNumber >= 8) {
+      if (speechNumber >= peoplePerTeam * 2 * speechesPerSpeaker) {
         await analyzeWinner(updatedSession);
       }
     } catch (error) {
@@ -273,7 +273,7 @@ function App() {
             DebateFlowy
           </h1>
           <p className="text-gray-600">
-            Topic: {session.topic} | Speech {speechNumber}/8
+            Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
           </p>
         </header>
 
@@ -300,7 +300,7 @@ function App() {
 
           {/* Debate Flow Table */}
           <div className="lg:col-span-3">
-            <DebateFlowTable session={session} />
+            <DebateFlowTable session={session} peoplePerTeam={peoplePerTeam} speechesPerSpeaker={speechesPerSpeaker} />
           </div>
         </div>
 

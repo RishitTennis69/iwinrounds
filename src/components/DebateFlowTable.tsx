@@ -3,9 +3,11 @@ import { DebateSession } from '../types';
 
 interface DebateFlowTableProps {
   session: DebateSession;
+  peoplePerTeam: number;
+  speechesPerSpeaker: number;
 }
 
-const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
+const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTeam, speechesPerSpeaker }) => {
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -14,32 +16,27 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
   };
 
   // Create debate order that matches the App.tsx logic
-  const createDebateOrder = (speakers: any[]): any[] => {
-    const affirmative = speakers.filter(s => s.team === 'affirmative');
-    const negative = speakers.filter(s => s.team === 'negative');
-    
-    const debateOrder: any[] = [];
-    
-    // Create the sequence: 1st Aff, 1st Neg, 2nd Aff, 2nd Neg
-    const sequence = [
-      affirmative[0], // 1st Affirmative
-      negative[0],    // 1st Negative
-      affirmative[1], // 2nd Affirmative
-      negative[1]     // 2nd Negative
-    ];
-    
-    // Repeat the sequence twice for 8 speeches
-    for (let i = 0; i < 8; i++) {
-      const speakerIndex = i % 4;
-      debateOrder.push(sequence[speakerIndex]);
+  const createDebateOrder = (speakers: any[], speeches: number, people: number): any[] => {
+    const aff = speakers.filter(s => s.team === 'affirmative');
+    const neg = speakers.filter(s => s.team === 'negative');
+    const sequence: any[] = [];
+    for (let i = 0; i < people; i++) {
+      sequence.push(aff[i]);
+      sequence.push(neg[i]);
     }
-    
+    const debateOrder: any[] = [];
+    for (let i = 0; i < speeches; i++) {
+      for (let j = 0; j < sequence.length; j++) {
+        debateOrder.push(sequence[j]);
+      }
+    }
     return debateOrder;
   };
 
-  // Create columns for each speech (1-8)
-  const speechColumns = Array.from({ length: 8 }, (_, i) => i + 1);
-  const debateOrder = createDebateOrder(session.speakers);
+  // Create columns for each speech
+  const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
+  const speechColumns = Array.from({ length: totalSpeeches }, (_, i) => i + 1);
+  const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker, peoplePerTeam);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -51,7 +48,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
           AI-generated analysis of each speech - follow the debate flow horizontally
         </p>
       </div>
-
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -61,9 +57,8 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
               </th>
               {speechColumns.map((speechNum) => {
                 const speech = session.points.find(p => p.speechNumber === speechNum);
-                const expectedSpeaker = debateOrder[speechNum - 1]; // speechNum is 1-indexed, array is 0-indexed
+                const expectedSpeaker = debateOrder[speechNum - 1];
                 const speaker = speech || expectedSpeaker;
-                
                 return (
                   <th key={speechNum} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 min-w-[200px]">
                     <div className="space-y-1">
@@ -108,7 +103,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.mainPoints.map((point, index) => (
+                        {speech.mainPoints.map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-blue-50 rounded p-2">
                             {point}
                           </div>
@@ -123,7 +118,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                 );
               })}
             </tr>
-
             {/* Counter Points Row */}
             <tr>
               <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-orange-50 border-r border-gray-200">
@@ -138,7 +132,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.counterPoints.map((point, index) => (
+                        {speech.counterPoints.map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-orange-50 rounded p-2">
                             {point}
                           </div>
@@ -153,7 +147,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                 );
               })}
             </tr>
-
             {/* Counter-Counter Points Row */}
             <tr>
               <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-purple-50 border-r border-gray-200">
@@ -168,7 +161,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.counterCounterPoints.map((point, index) => (
+                        {speech.counterCounterPoints.map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-purple-50 rounded p-2">
                             {point}
                           </div>
@@ -183,7 +176,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
                 );
               })}
             </tr>
-
             {/* Impact Weighing Row */}
             <tr>
               <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-yellow-50 border-r border-gray-200">
@@ -212,14 +204,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session }) => {
           </tbody>
         </table>
       </div>
-
-      {session.points.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-sm">
-            No speeches recorded yet. Start recording to see the analysis here.
-          </div>
-        </div>
-      )}
     </div>
   );
 };
