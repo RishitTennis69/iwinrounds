@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Speaker, DebatePoint } from '../types';
+import { Speaker, DebatePoint, DebateSession } from '../types';
 import { SpeechRecognitionService } from '../utils/speechRecognition';
 import { AIService } from '../utils/aiService';
 import { Mic, Square, ArrowLeft, Target } from 'lucide-react';
@@ -11,7 +11,7 @@ interface PracticeModeProps {
 }
 
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0, isAdmin = false }) => {
-  const [step, setStep] = useState<'setup' | 'practice'>('setup');
+  const [step, setStep] = useState<'setup' | 'practice' | 'generating'>('setup');
   const [topic, setTopic] = useState('');
   const [userName, setUserName] = useState('');
   const [userTeam, setUserTeam] = useState<'affirmative' | 'negative'>('affirmative');
@@ -22,62 +22,36 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
   const [duration, setDuration] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [practiceSession, setPracticeSession] = useState<any>(null);
+  const [practiceSession, setPracticeSession] = useState<DebateSession | null>(null);
   const [speechRecognition] = useState(() => new SpeechRecognitionService());
 
   const handleStartPractice = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!topic || !userName) {
-      alert('Please fill in all fields');
+    if (!topic.trim() || !userName.trim()) {
+      setError('Please fill in all fields');
       return;
     }
 
-    // Create practice session with user and AI opponents
-    const userSpeaker: Speaker = {
-      id: 'user',
-      name: userName,
-      team: userTeam,
-      points: 0,
-      speakerNumber: userSpeakerNumber
-    };
-
-    const aiSpeakers: Speaker[] = [
-      {
-        id: 'ai1',
-        name: `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 1st`,
-        team: userTeam === 'affirmative' ? 'negative' : 'affirmative',
-        points: 0,
-        speakerNumber: 1
-      },
-      {
-        id: 'ai2',
-        name: `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 2nd`,
-        team: userTeam === 'affirmative' ? 'negative' : 'affirmative',
-        points: 0,
-        speakerNumber: 2
-      },
-      {
-        id: 'ai3',
-        name: `AI ${userTeam} ${userSpeakerNumber === 1 ? '2nd' : '1st'}`,
-        team: userTeam,
-        points: 0,
-        speakerNumber: userSpeakerNumber === 1 ? 2 : 1
-      }
-    ];
-
-    const session = {
+    const newSession: DebateSession = {
       id: Date.now().toString(),
       topic,
-      speakers: [userSpeaker, ...aiSpeakers],
+      speakers: [
+        { id: 'user', name: userName, team: userTeam, points: 0 }
+      ],
       points: [],
       startTime: new Date(),
-      hintsUsed: 0,
-      mode: 'practice'
+      hintsUsed: 0
     };
 
-    setPracticeSession(session);
-    setStep('practice');
+    setPracticeSession(newSession);
+    
+    // If user is not 1st speaker, generate previous speeches first
+    if (userSpeakerNumber === 2) {
+      setStep('generating');
+      generatePreviousSpeeches();
+    } else {
+      setStep('practice');
+    }
   };
 
   const startRecording = async () => {
@@ -130,26 +104,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
         transcript,
       };
 
-      // Generate AI opponent speech based on topic and user's speech
-      const aiSpeech = await generateAIOpponentSpeech(currentSpeech, userPoint);
-      
-      const aiPoint: DebatePoint = {
-        id: (Date.now() + 1).toString(),
-        speakerId: currentSpeech === 1 ? 'ai1' : 'ai2',
-        speakerName: currentSpeech === 1 ? `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 1st` : `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 2nd`,
-        team: userTeam === 'affirmative' ? 'negative' : 'affirmative',
-        speechNumber: currentSpeech + 1,
-        mainPoints: aiSpeech.mainPoints,
-        counterPoints: aiSpeech.counterPoints,
-        counterCounterPoints: aiSpeech.counterCounterPoints,
-        impactWeighing: aiSpeech.impactWeighing,
-        timestamp: new Date(),
-        transcript: aiSpeech.transcript,
-      };
-
       const updatedSession = {
         ...practiceSession,
-        points: [...practiceSession.points, userPoint, aiPoint],
+        points: [...practiceSession.points, userPoint],
       };
       
       setPracticeSession(updatedSession);
@@ -157,7 +114,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
       setDuration(0);
       
       if (currentSpeech < 2) {
-        setCurrentSpeech(currentSpeech + 2); // Move to next user speech
+        setCurrentSpeech(currentSpeech + 1); // Move to next user speech
       } else {
         // Practice session complete - generate personalized feedback
         await generatePersonalizedFeedback(updatedSession);
@@ -170,19 +127,83 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
     }
   };
 
-  const generateAIOpponentSpeech = async (speechNumber: number, userSpeech: DebatePoint) => {
-    const prompt = `You are an expert debater giving the ${speechNumber === 1 ? '1st' : '2nd'} ${userTeam === 'affirmative' ? 'negative' : 'affirmative'} speech in a practice debate.
+  const generatePreviousSpeeches = async () => {
+    if (!practiceSession) return;
+    
+    setIsAnalyzing(true);
+    
+    try {
+      // Generate speeches that come before the user's position
+      const speechesToGenerate = [];
+      
+      if (userSpeakerNumber === 1) {
+        // If user is 1st speaker, no previous speeches needed
+        setStep('practice');
+        setIsAnalyzing(false);
+        return;
+      } else if (userSpeakerNumber === 2) {
+        // If user is 2nd speaker, generate 1st affirmative and 1st negative
+        speechesToGenerate.push(
+          { speechNumber: 1, team: 'affirmative', speakerName: `AI ${userTeam === 'affirmative' ? 'Affirmative' : 'Negative'} 1st` },
+          { speechNumber: 2, team: 'negative', speakerName: `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 1st` }
+        );
+      }
+
+      const generatedPoints: DebatePoint[] = [];
+
+      for (const speechInfo of speechesToGenerate) {
+        const aiSpeech = await generateAISpeech(speechInfo.speechNumber, speechInfo.team as 'affirmative' | 'negative', speechInfo.speakerName);
+        
+        const aiPoint: DebatePoint = {
+          id: (Date.now() + speechInfo.speechNumber).toString(),
+          speakerId: `ai${speechInfo.speechNumber}`,
+          speakerName: speechInfo.speakerName,
+          team: speechInfo.team as 'affirmative' | 'negative',
+          speechNumber: speechInfo.speechNumber,
+          mainPoints: aiSpeech.mainPoints,
+          counterPoints: aiSpeech.counterPoints,
+          counterCounterPoints: aiSpeech.counterCounterPoints,
+          impactWeighing: aiSpeech.impactWeighing,
+          timestamp: new Date(),
+          transcript: aiSpeech.transcript,
+        };
+        
+        generatedPoints.push(aiPoint);
+      }
+
+      const sessionWithPreviousSpeeches: DebateSession = {
+        ...practiceSession,
+        points: [...practiceSession.points, ...generatedPoints],
+      };
+      
+      setPracticeSession(sessionWithPreviousSpeeches);
+      setStep('practice');
+    } catch (error) {
+      console.error('Error generating previous speeches:', error);
+      setError('Error generating previous speeches. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const generateAISpeech = async (speechNumber: number, team: 'affirmative' | 'negative', speakerName: string) => {
+    const prompt = `You are an expert debater giving the ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech in a practice debate.
 
 Debate Topic: ${topic}
 
-The user just gave their ${userTeam} speech with these main points:
-${userSpeech.mainPoints.join(', ')}
-
-Generate a realistic opponent speech that:
-1. Responds to the user's arguments
-2. Presents strong counter-arguments
-3. Maintains debate flow and structure
+Generate a realistic ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech that:
+1. Presents strong arguments for the ${team} position
+2. Establishes clear contentions and evidence
+3. Maintains proper debate structure and flow
 4. Is appropriate for a ${speechNumber === 1 ? '1st' : '2nd'} speaker
+5. Provides arguments that a ${userSpeakerNumber === 1 ? '1st' : '2nd'} ${userTeam} speaker would need to respond to
+6. ${userSpeakerNumber === 2 ? `Since the user is a 2nd ${userTeam} speaker, make sure this speech provides clear arguments they can rebut and extend` : ''}
+
+The speech should be approximately 3-4 minutes long when spoken and include:
+- Clear thesis and roadmap
+- 2-3 main contentions with supporting evidence
+- Impact analysis for each argument
+- Proper debate terminology and structure
 
 Respond in this exact JSON format:
 {
@@ -203,7 +224,7 @@ Respond in this exact JSON format:
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1000,
+          max_tokens: 1500,
           temperature: 0.7
         })
       });
@@ -234,16 +255,16 @@ Respond in this exact JSON format:
       console.error('Error generating AI speech:', error);
       // Return fallback speech
       return {
-        transcript: "This is a sample opponent speech. The AI speech generation encountered an error.",
-        mainPoints: ["Sample argument 1", "Sample argument 2"],
-        counterPoints: ["Sample counter-argument"],
+        transcript: `This is a sample ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech. The AI speech generation encountered an error.`,
+        mainPoints: [`Sample ${team} argument 1`, `Sample ${team} argument 2`],
+        counterPoints: [`Sample counter-argument`],
         counterCounterPoints: [],
-        impactWeighing: "Sample impact analysis"
+        impactWeighing: `Sample impact analysis for ${team} position`
       };
     }
   };
 
-  const generatePersonalizedFeedback = async (session: any) => {
+  const generatePersonalizedFeedback = async (session: DebateSession) => {
     try {
       const userSpeeches = session.points.filter((point: DebatePoint) => point.speakerId === 'user');
       
@@ -433,6 +454,44 @@ Provide personalized feedback in this exact JSON format:
     );
   }
 
+  // Generating step
+  if (step === 'generating') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl text-center">
+          <div className="flex items-center justify-center mb-6">
+            <Target className="w-12 h-12 text-green-600 mr-3" />
+            <h1 className="text-3xl font-bold text-gray-800">Generating Previous Speeches</h1>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="text-blue-800 text-lg font-medium">AI is generating previous speeches...</span>
+              </div>
+              <p className="text-blue-700">
+                Since you're a {userSpeakerNumber === 1 ? '1st' : '2nd'} speaker, we're generating the speeches that come before your position so you can see what arguments to rebut and extend.
+              </p>
+            </div>
+            
+            <div className="text-left bg-gray-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-2">What's being generated:</h3>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {userSpeakerNumber === 2 && (
+                  <>
+                    <li>• 1st Affirmative speech</li>
+                    <li>• 1st Negative speech</li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Practice step
   return (
     <div className="min-h-screen bg-gray-50">
@@ -480,6 +539,13 @@ Provide personalized feedback in this exact JSON format:
                 <p className="text-sm text-gray-500">
                   {userSpeakerNumber === 1 ? 'First' : 'Second'} {userTeam} speaker
                 </p>
+                {userSpeakerNumber === 2 && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-700">
+                      💡 Check the table to see previous speeches you can rebut and extend
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -563,7 +629,10 @@ Provide personalized feedback in this exact JSON format:
                   Practice Session Flow
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Your speeches and AI opponent responses
+                  {userSpeakerNumber === 2 
+                    ? `Previous speeches (for context) and your ${userTeam} speeches`
+                    : `Your ${userTeam} speeches and AI opponent responses`
+                  }
                 </p>
               </div>
 

@@ -33,6 +33,13 @@ export interface DebateSession {
   };
   summary?: string;
   hintsUsed: number; // Track hints used per round
+  feedback?: {
+    strengths: string[];
+    areasForImprovement: string[];
+    specificAdvice: string;
+    overallScore: number;
+    summary: string;
+  };
 }
 
 export interface RecordingState {
