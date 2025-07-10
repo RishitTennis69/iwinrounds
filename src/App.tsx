@@ -7,6 +7,7 @@ import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import SetupPanel from './components/SetupPanel';
 import HintPanel from './components/HintPanel';
+import ModeSelection from './components/ModeSelection';
 
 const ADMIN_PASSWORD = 'RomeAcademy111!';
 
@@ -22,6 +23,7 @@ function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [selectedMode, setSelectedMode] = useState<'debate' | 'practice' | null>(null);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -46,6 +48,24 @@ function App() {
     } else {
       setPasswordError('Incorrect password');
     }
+  };
+
+  const handleModeSelection = (mode: 'debate' | 'practice') => {
+    setSelectedMode(mode);
+    
+    if (mode === 'practice') {
+      // For now, just show an alert. You can implement practice mode later
+      alert('Practice mode is coming soon! This feature will be implemented in a future update.');
+      setSelectedMode(null); // Reset to show mode selection again
+    }
+  };
+
+  const handleBackToModeSelection = () => {
+    setSelectedMode(null);
+    setSession(null);
+    setCurrentSpeaker(null);
+    setSpeechNumber(1);
+    setHintsUsed(0);
   };
 
   const initializeSession = (topic: string, speakers: Speaker[]) => {
@@ -215,11 +235,23 @@ function App() {
   if (!session) {
     return (
       <div>
-        <SetupPanel 
-          onInitialize={initializeSession} 
-          freeRoundsUsed={freeRoundsUsed}
-          isAdmin={isAdmin}
-        />
+        {!selectedMode ? (
+          <ModeSelection 
+            onSelectMode={handleModeSelection}
+            freeRoundsUsed={freeRoundsUsed}
+            isAdmin={isAdmin}
+          />
+        ) : selectedMode === 'debate' ? (
+          <div>
+            <SetupPanel 
+              onInitialize={initializeSession} 
+              freeRoundsUsed={freeRoundsUsed}
+              isAdmin={isAdmin}
+              onBack={handleBackToModeSelection}
+            />
+          </div>
+        ) : null}
+        
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">

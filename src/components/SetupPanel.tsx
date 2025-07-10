@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Speaker } from '../types';
+import { ArrowLeft } from 'lucide-react';
 
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[]) => void;
+  onBack: () => void;
   freeRoundsUsed?: number;
   isAdmin?: boolean;
 }
 
-const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, freeRoundsUsed = 0, isAdmin = false }) => {
+const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRoundsUsed = 0, isAdmin = false }) => {
   const [topic, setTopic] = useState('');
   const [speakerNames, setSpeakerNames] = useState({
     affirmative1: '',
@@ -67,10 +69,20 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, freeRoundsUsed = 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
+        {/* Back Button */}
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back to Mode Selection</span>
+        </button>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">DebateFlowy</h1>
           <p className="text-gray-600">AI-Powered Debate Analysis & Flow Tracking</p>
+          <p className="text-blue-600 font-medium mt-2">Debate Mode Setup</p>
           
           {/* Free Rounds Status */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
