@@ -3,6 +3,7 @@ export interface Speaker {
   name: string;
   team: 'affirmative' | 'negative';
   points: number;
+  speakerNumber?: number; // 1st or 2nd speaker
 }
 
 export interface DebatePoint {
@@ -31,6 +32,7 @@ export interface DebateSession {
     reasoning: string;
   };
   summary?: string;
+  hintsUsed: number; // Track hints used per round
 }
 
 export interface RecordingState {
@@ -39,4 +41,10 @@ export interface RecordingState {
   duration: number;
   audioBlob?: Blob;
   transcript: string;
+}
+
+export interface HintResponse {
+  type: 'cross-examination' | 'rebuttal';
+  content: string;
+  targetArgument?: string;
 } 

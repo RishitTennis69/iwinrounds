@@ -223,4 +223,162 @@ Respond in this exact JSON format:
       throw error;
     }
   }
+
+  static async generateCrossExaminationQuestions(targetArgument: string, topic: string): Promise<string[]> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    const prompt = `You are an expert debate coach. Generate 3-5 effective cross-examination questions to challenge the following argument.
+
+Debate Topic: ${topic}
+Target Argument: "${targetArgument}"
+
+Generate questions that:
+1. Expose logical flaws or assumptions
+2. Challenge evidence or examples
+3. Force the speaker to clarify their position
+4. Set up potential rebuttals
+
+Respond in this exact JSON format:
+{
+  "questions": [
+    "Question 1",
+    "Question 2", 
+    "Question 3",
+    "Question 4"
+  ]
+}`;
+
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        let jsonContent = content;
+        
+        // Handle responses wrapped in markdown code blocks
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const analysis = JSON.parse(jsonContent);
+        return analysis.questions || [];
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError);
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      throw error;
+    }
+  }
+
+  static async generateRebuttalHint(opponentArgument: string, topic: string, team: 'affirmative' | 'negative'): Promise<string> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    const prompt = `You are an expert debate coach helping the ${team} team. Generate a strategic rebuttal hint for the following opponent argument.
+
+Debate Topic: ${topic}
+Opponent Argument: "${opponentArgument}"
+Your Team: ${team}
+
+Provide a concise but strategic hint that:
+1. Identifies the weakest point in the opponent's argument
+2. Suggests a specific rebuttal approach
+3. Mentions potential evidence or examples to use
+4. Keeps it brief and actionable
+
+Respond in this exact JSON format:
+{
+  "hint": "Your strategic rebuttal hint here"
+}`;
+
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 300,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        let jsonContent = content;
+        
+        // Handle responses wrapped in markdown code blocks
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const analysis = JSON.parse(jsonContent);
+        return analysis.hint || 'No hint available';
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError);
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      throw error;
+    }
+  }
 } 

@@ -6,6 +6,7 @@ import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import SetupPanel from './components/SetupPanel';
+import HintPanel from './components/HintPanel';
 
 const ADMIN_PASSWORD = 'RomeAcademy111!';
 
@@ -20,6 +21,7 @@ function App() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [hintsUsed, setHintsUsed] = useState(0);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -59,8 +61,10 @@ function App() {
       speakers,
       points: [],
       startTime: new Date(),
+      hintsUsed: 0
     };
     setSession(newSession);
+    setHintsUsed(0);
     
     // Create debate order that goes through speakers in sequence
     const debateOrder = createDebateOrder(speakers);
@@ -192,6 +196,21 @@ function App() {
     }
   };
 
+  const handleHintUsed = () => {
+    setHintsUsed(prev => prev + 1);
+    if (session) {
+      setSession(prev => prev ? { ...prev, hintsUsed: prev.hintsUsed + 1 } : null);
+    }
+  };
+
+  // Reset hints when moving to next speech
+  useEffect(() => {
+    if (session && speechNumber > 1) {
+      setHintsUsed(0);
+      setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null);
+    }
+  }, [speechNumber, session]);
+
   // Show setup panel if no session
   if (!session) {
     return (
@@ -259,8 +278,8 @@ function App() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Recording Panel */}
-          <div className="lg:col-span-1">
+          {/* Recording Panel and Hint Panel */}
+          <div className="lg:col-span-1 space-y-6">
             <RecordingPanel
               currentSpeaker={currentSpeaker}
               speechNumber={speechNumber}
@@ -268,6 +287,15 @@ function App() {
               speechRecognition={speechRecognition}
               isAnalyzing={isAnalyzing}
             />
+            
+            {currentSpeaker && (
+              <HintPanel
+                currentSpeaker={currentSpeaker}
+                session={session}
+                hintsUsed={hintsUsed}
+                onHintUsed={handleHintUsed}
+              />
+            )}
           </div>
 
           {/* Debate Flow Table */}
