@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DebateSession, Speaker, DebatePoint } from './types';
 import { SpeechRecognitionService } from './utils/speechRecognition';
 import { AIService } from './utils/aiService';
@@ -8,8 +8,6 @@ import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
-
-const ADMIN_PASSWORD = 'RomeAcademy111!';
 
 function App() {
   const [mode, setMode] = useState<'selection' | 'debate' | 'practice'>('selection');
