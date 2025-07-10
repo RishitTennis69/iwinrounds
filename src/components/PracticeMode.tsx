@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Speaker, DebatePoint, DebateSession } from '../types';
+import { DebatePoint, DebateSession } from '../types';
 import { SpeechRecognitionService } from '../utils/speechRecognition';
 import { AIService } from '../utils/aiService';
 import { Mic, Square, ArrowLeft, Target } from 'lucide-react';
@@ -152,7 +152,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
       const generatedPoints: DebatePoint[] = [];
 
       for (const speechInfo of speechesToGenerate) {
-        const aiSpeech = await generateAISpeech(speechInfo.speechNumber, speechInfo.team as 'affirmative' | 'negative', speechInfo.speakerName);
+        const aiSpeech = await generateAISpeech(speechInfo.speechNumber, speechInfo.team as 'affirmative' | 'negative');
         
         const aiPoint: DebatePoint = {
           id: (Date.now() + speechInfo.speechNumber).toString(),
@@ -186,7 +186,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
     }
   };
 
-  const generateAISpeech = async (speechNumber: number, team: 'affirmative' | 'negative', speakerName: string) => {
+  const generateAISpeech = async (speechNumber: number, team: 'affirmative' | 'negative') => {
     const prompt = `You are an expert debater giving the ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech in a practice debate.
 
 Debate Topic: ${topic}
