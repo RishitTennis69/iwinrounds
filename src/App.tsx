@@ -8,6 +8,7 @@ import FinalAnalysis from './components/FinalAnalysis';
 import SetupPanel from './components/SetupPanel';
 import HintPanel from './components/HintPanel';
 import ModeSelection from './components/ModeSelection';
+import PracticeMode from './components/PracticeMode';
 
 const ADMIN_PASSWORD = 'RomeAcademy111!';
 
@@ -250,6 +251,12 @@ function App() {
               onBack={handleBackToModeSelection}
             />
           </div>
+        ) : selectedMode === 'practice' ? (
+          <PracticeMode
+            onBack={handleBackToModeSelection}
+            freeRoundsUsed={freeRoundsUsed}
+            isAdmin={isAdmin}
+          />
         ) : null}
         
         {showPasswordModal && (
