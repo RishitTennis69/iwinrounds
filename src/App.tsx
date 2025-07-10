@@ -7,10 +7,13 @@ import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import HintPanel from './components/HintPanel';
+import ModeSelection from './components/ModeSelection';
+import PracticeMode from './components/PracticeMode';
 
 const ADMIN_PASSWORD = 'RomeAcademy111!';
 
 function App() {
+  const [mode, setMode] = useState<'selection' | 'debate' | 'practice'>('selection');
   const [session, setSession] = useState<DebateSession | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
@@ -36,6 +39,19 @@ function App() {
       setIsAdmin(true);
     }
   }, []);
+
+  const handleModeSelect = (selectedMode: 'debate' | 'practice') => {
+    setMode(selectedMode);
+  };
+
+  const handleBackToModeSelection = () => {
+    setMode('selection');
+    setSession(null);
+    setCurrentSpeaker(null);
+    setSpeechNumber(1);
+    setIsAnalyzing(false);
+    setHintsUsed(0);
+  };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,6 +248,28 @@ function App() {
     }
   }, [speechNumber, session]);
 
+  // Show mode selection if no mode selected
+  if (mode === 'selection') {
+    return (
+      <ModeSelection 
+        onSelectMode={handleModeSelect}
+        freeRoundsUsed={freeRoundsUsed}
+        isAdmin={isAdmin}
+      />
+    );
+  }
+
+  // Show practice mode
+  if (mode === 'practice') {
+    return (
+      <PracticeMode 
+        onBack={handleBackToModeSelection}
+        freeRoundsUsed={freeRoundsUsed}
+        isAdmin={isAdmin}
+      />
+    );
+  }
+
   // Show setup panel if no session
   if (!session) {
     return (
@@ -290,12 +328,22 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            DebateFlowy
-          </h1>
-          <p className="text-gray-600">
-            Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                DebateFlowy
+              </h1>
+              <p className="text-gray-600">
+                Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
+              </p>
+            </div>
+            <button
+              onClick={handleBackToModeSelection}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+            >
+              Back to Mode Selection
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
