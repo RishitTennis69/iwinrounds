@@ -10,6 +10,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">Dedicate AI</h1>
+          <p className="text-lg text-gray-600 mb-4">(Incomplete judge feedback? Never got to practice your rebuttal speech? Felt like your team won but needed validation? DedicateAI swoops in for you, the dedicated debater, and makes sure the judge is always listening, that you can practice whatever speech you want whenever you want, and it gives you personalized feedback and ways to improve.)</p>
           <p className="text-xl text-gray-600">Choose your debate experience</p>
         </div>
 
