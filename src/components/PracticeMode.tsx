@@ -278,6 +278,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                   <option value={1}>1 Speech</option>
                   <option value={2}>2 Speeches</option>
                   <option value={3}>3 Speeches</option>
+                  <option value={4}>4 Speeches</option>
                 </select>
               </div>
               <div>
