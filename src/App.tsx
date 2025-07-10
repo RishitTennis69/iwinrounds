@@ -347,7 +347,7 @@ function App() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Recording Panel and Hint Panel */}
+          {/* Recording Panel only (no Hint Panel) */}
           <div className="lg:col-span-1 space-y-6">
             <RecordingPanel
               currentSpeaker={currentSpeaker}
@@ -356,15 +356,6 @@ function App() {
               speechRecognition={speechRecognition}
               isAnalyzing={isAnalyzing}
             />
-            
-            {currentSpeaker && (
-              <HintPanel
-                currentSpeaker={currentSpeaker}
-                session={session}
-                hintsUsed={hintsUsed}
-                onHintUsed={handleHintUsed}
-              />
-            )}
           </div>
 
           {/* Debate Flow Table */}
