@@ -5,6 +5,7 @@ import DebateFlowTable from './DebateFlowTable';
 import RecordingPanel from './RecordingPanel';
 import HintPanel from './HintPanel';
 import { SpeechRecognitionService } from '../utils/speechRecognition';
+import { useEffect } from 'react';
 
 interface PracticeModeProps {
   onBack: () => void;
@@ -17,7 +18,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [topic, setTopic] = useState('');
   const [userName, setUserName] = useState('');
   const [userTeam, setUserTeam] = useState<'affirmative' | 'negative'>('affirmative');
-  const [userSpeakerNumber, setUserSpeakerNumber] = useState<1 | 2>(1);
+  const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
+  const [peoplePerTeam, setPeoplePerTeam] = useState(2);
+  const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
@@ -29,9 +32,14 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
 
-  // Debate structure for 2v2, 2 speeches per speaker
-  const peoplePerTeam = 2;
-  const speechesPerSpeaker = 2;
+  // Reset userSpeakerNumber when peoplePerTeam changes
+  useEffect(() => {
+    if (userSpeakerNumber > peoplePerTeam) {
+      setUserSpeakerNumber(1);
+    }
+  }, [peoplePerTeam, userSpeakerNumber]);
+
+  // Debate structure - now configurable
   const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
   // Debate order: [Aff1, Neg1, Aff2, Neg2] repeated
   const speakerOrder: Speaker[] = [];
@@ -256,10 +264,30 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Speakers per Team</label>
+                <select value={peoplePerTeam} onChange={e => setPeoplePerTeam(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  <option value={1}>1 Speaker</option>
+                  <option value={2}>2 Speakers</option>
+                  <option value={3}>3 Speakers</option>
+                  <option value={4}>4 Speakers</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Speeches per Speaker</label>
+                <select value={speechesPerSpeaker} onChange={e => setSpeechesPerSpeaker(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  <option value={1}>1 Speech</option>
+                  <option value={2}>2 Speeches</option>
+                  <option value={3}>3 Speeches</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Speaker Position</label>
-                <select value={userSpeakerNumber} onChange={e => setUserSpeakerNumber(Number(e.target.value) as 1 | 2)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value={1}>1st Speaker</option>
-                  <option value={2}>2nd Speaker</option>
+                <select value={userSpeakerNumber} onChange={e => setUserSpeakerNumber(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  {Array.from({ length: peoplePerTeam }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Speaker
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
