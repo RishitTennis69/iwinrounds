@@ -129,20 +129,17 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
 
   const generatePreviousSpeeches = async () => {
     if (!practiceSession) return;
-    
     setIsAnalyzing(true);
-    
+    console.log('Starting generatePreviousSpeeches');
     try {
       // Generate speeches that come before the user's position
       const speechesToGenerate = [];
       
       if (userSpeakerNumber === 1) {
-        // If user is 1st speaker, no previous speeches needed
         setStep('practice');
         setIsAnalyzing(false);
         return;
       } else if (userSpeakerNumber === 2) {
-        // If user is 2nd speaker, generate 1st affirmative and 1st negative
         speechesToGenerate.push(
           { speechNumber: 1, team: 'affirmative', speakerName: `AI ${userTeam === 'affirmative' ? 'Affirmative' : 'Negative'} 1st` },
           { speechNumber: 2, team: 'negative', speakerName: `AI ${userTeam === 'affirmative' ? 'Negative' : 'Affirmative'} 1st` }
@@ -152,41 +149,57 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, freeRoundsUsed = 0,
       const generatedPoints: DebatePoint[] = [];
 
       for (const speechInfo of speechesToGenerate) {
-        const aiSpeech = await generateAISpeech(speechInfo.speechNumber, speechInfo.team as 'affirmative' | 'negative');
-        
-        const aiPoint: DebatePoint = {
-          id: (Date.now() + speechInfo.speechNumber).toString(),
-          speakerId: `ai${speechInfo.speechNumber}`,
-          speakerName: speechInfo.speakerName,
-          team: speechInfo.team as 'affirmative' | 'negative',
-          speechNumber: speechInfo.speechNumber,
-          mainPoints: aiSpeech.mainPoints,
-          counterPoints: aiSpeech.counterPoints,
-          counterCounterPoints: aiSpeech.counterCounterPoints,
-          impactWeighing: aiSpeech.impactWeighing,
-          timestamp: new Date(),
-          transcript: aiSpeech.transcript,
-        };
-        
-        generatedPoints.push(aiPoint);
+        try {
+          console.log('Generating AI speech for', speechInfo);
+          const aiSpeech = await generateAISpeech(speechInfo.speechNumber, speechInfo.team as 'affirmative' | 'negative');
+          const aiPoint: DebatePoint = {
+            id: (Date.now() + speechInfo.speechNumber).toString(),
+            speakerId: `ai${speechInfo.speechNumber}`,
+            speakerName: speechInfo.speakerName,
+            team: speechInfo.team as 'affirmative' | 'negative',
+            speechNumber: speechInfo.speechNumber,
+            mainPoints: aiSpeech.mainPoints,
+            counterPoints: aiSpeech.counterPoints,
+            counterCounterPoints: aiSpeech.counterCounterPoints,
+            impactWeighing: aiSpeech.impactWeighing,
+            timestamp: new Date(),
+            transcript: aiSpeech.transcript,
+          };
+          generatedPoints.push(aiPoint);
+        } catch (err) {
+          console.error('AI speech generation failed:', err);
+          generatedPoints.push({
+            id: (Date.now() + speechInfo.speechNumber).toString(),
+            speakerId: `ai${speechInfo.speechNumber}`,
+            speakerName: speechInfo.speakerName,
+            team: speechInfo.team as 'affirmative' | 'negative',
+            speechNumber: speechInfo.speechNumber,
+            mainPoints: ['[Error generating speech]'],
+            counterPoints: [],
+            counterCounterPoints: [],
+            impactWeighing: '[Error generating impact weighing]',
+            timestamp: new Date(),
+            transcript: '[Error generating transcript]'
+          });
+        }
       }
 
       const sessionWithPreviousSpeeches: DebateSession = {
         ...practiceSession,
         points: [...practiceSession.points, ...generatedPoints],
       };
-      
       setPracticeSession(sessionWithPreviousSpeeches);
-      setStep('practice');
     } catch (error) {
       console.error('Error generating previous speeches:', error);
       setError('Error generating previous speeches. Please try again.');
     } finally {
       setIsAnalyzing(false);
+      setStep('practice');
     }
   };
 
   const generateAISpeech = async (speechNumber: number, team: 'affirmative' | 'negative') => {
+    console.log('Calling OpenAI for', speechNumber, team);
     const prompt = `You are an expert debater giving the ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech in a practice debate.
 
 Debate Topic: ${topic}
@@ -228,15 +241,14 @@ Respond in this exact JSON format:
           temperature: 0.7
         })
       });
-
+      console.log('OpenAI response status:', response.status);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenAI API error:', response.status, errorText);
         throw new Error('Failed to generate AI speech');
       }
-
       const data = await response.json();
       const content = data.choices[0].message.content;
-      
-      // Parse JSON response
       let jsonContent = content;
       if (content.includes('```json')) {
         const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
@@ -249,18 +261,10 @@ Respond in this exact JSON format:
           jsonContent = codeMatch[1];
         }
       }
-      
       return JSON.parse(jsonContent);
     } catch (error) {
       console.error('Error generating AI speech:', error);
-      // Return fallback speech
-      return {
-        transcript: `This is a sample ${speechNumber === 1 ? '1st' : '2nd'} ${team} speech. The AI speech generation encountered an error.`,
-        mainPoints: [`Sample ${team} argument 1`, `Sample ${team} argument 2`],
-        counterPoints: [`Sample counter-argument`],
-        counterCounterPoints: [],
-        impactWeighing: `Sample impact analysis for ${team} position`
-      };
+      throw error;
     }
   };
 
