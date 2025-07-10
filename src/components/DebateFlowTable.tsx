@@ -103,7 +103,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.mainPoints.map((point: string, index: number) => (
+                        {(speech.mainPoints || []).map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-blue-50 rounded p-2">
                             {point}
                           </div>
@@ -132,7 +132,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.evidence.map((evidence: string, index: number) => (
+                        {(speech.evidence || []).map((evidence: string, index: number) => (
                           <div key={index} className="text-sm bg-green-50 rounded p-2">
                             {evidence}
                           </div>
@@ -161,7 +161,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.counterPoints.map((point: string, index: number) => (
+                        {(speech.counterPoints || []).map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-orange-50 rounded p-2">
                             {point}
                           </div>
@@ -190,7 +190,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                   <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
                     {speech ? (
                       <div className="space-y-2">
-                        {speech.counterCounterPoints.map((point: string, index: number) => (
+                        {(speech.counterCounterPoints || []).map((point: string, index: number) => (
                           <div key={index} className="text-sm bg-purple-50 rounded p-2">
                             {point}
                           </div>

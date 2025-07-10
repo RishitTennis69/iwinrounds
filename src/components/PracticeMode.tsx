@@ -72,7 +72,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     for (let i = from + 1; i < to; i++) {
       if (!userSpeechNums.includes(i) && !aiSpeechMap[i]) {
         const sp = debateOrder[i - 1];
-        const prompt = `You are an expert debater. Write a realistic ${sp.team} speech for a practice debate.\nDebate Topic: ${topic}\nSpeaker: ${sp.team} ${sp.speakerNumber}\n\nRespond in this exact JSON format:\n{\n  "transcript": "Full speech transcript here...",\n  "mainPoints": ["point 1", "point 2", "point 3"],\n  "counterPoints": ["counter point 1", "counter point 2"],\n  "counterCounterPoints": ["response to counter 1"],\n  "impactWeighing": "Analysis of argument significance and weight"\n}`;
+        const prompt = `You are an expert debater. Write a realistic ${sp.team} speech for a practice debate.\nDebate Topic: ${topic}\nSpeaker: ${sp.team} ${sp.speakerNumber}\n\nRespond in this exact JSON format:\n{\n  "transcript": "Full speech transcript here...",\n  "mainPoints": ["point 1", "point 2", "point 3"],\n  "counterPoints": ["counter point 1", "counter point 2"],\n  "counterCounterPoints": ["response to counter 1"],\n  "impactWeighing": "Analysis of argument significance and weight",\n  "evidence": ["fact/statistic/quote with source", "another piece of evidence"]\n}`;
         try {
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -104,13 +104,13 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
             speakerName: `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
             team: sp.team,
             speechNumber: i,
-            mainPoints: aiSpeech.mainPoints,
-            counterPoints: aiSpeech.counterPoints,
-            counterCounterPoints: aiSpeech.counterCounterPoints,
-            impactWeighing: aiSpeech.impactWeighing,
-            evidence: aiSpeech.evidence,
+            mainPoints: aiSpeech.mainPoints || [],
+            counterPoints: aiSpeech.counterPoints || [],
+            counterCounterPoints: aiSpeech.counterCounterPoints || [],
+            impactWeighing: aiSpeech.impactWeighing || 'No impact weighing provided',
+            evidence: aiSpeech.evidence || [],
             timestamp: new Date(),
-            transcript: aiSpeech.transcript,
+            transcript: aiSpeech.transcript || '[No transcript provided]',
           };
         } catch (err) {
           aiSpeechMap[i] = {
