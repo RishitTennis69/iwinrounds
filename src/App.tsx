@@ -46,19 +46,6 @@ function App() {
     // setHintsUsed(0); // Removed
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === ADMIN_PASSWORD) {
-      // setIsAdmin(true); // Removed
-      localStorage.setItem('debateflowy_admin', 'true');
-      setShowPasswordModal(false);
-      setPasswordInput('');
-      setPasswordError('');
-    } else {
-      setPasswordError('Incorrect password');
-    }
-  };
-
   const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number) => {
     // Check if user has free rounds or is admin // Removed
     // if (freeRoundsUsed >= 1 && !isAdmin) { // Removed
