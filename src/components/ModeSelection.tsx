@@ -89,7 +89,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({
               <Target className="w-16 h-16 mx-auto mb-6 text-white" />
               <h2 className="text-3xl font-bold mb-4">Practice Mode</h2>
               <p className="text-green-100 text-lg mb-6">
-                Individual practice sessions with AI coaching and skill development
+                Individual practice sessions with AI opponents and personalized coaching
               </p>
               <div className="space-y-3 text-left">
                 <div className="flex items-center">
@@ -98,23 +98,23 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                  <span>AI coaching feedback</span>
+                  <span>AI opponent generation</span>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                  <span>Skill development</span>
+                  <span>Personalized feedback</span>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                  <span>Coming soon...</span>
+                  <span>Real-time speech analysis</span>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                  <span>More features planned</span>
+                  <span>Position-specific coaching</span>
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                  <span>Stay tuned!</span>
+                  <span>Performance scoring</span>
                 </div>
               </div>
             </div>

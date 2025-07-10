@@ -53,12 +53,6 @@ function App() {
 
   const handleModeSelection = (mode: 'debate' | 'practice') => {
     setSelectedMode(mode);
-    
-    if (mode === 'practice') {
-      // For now, just show an alert. You can implement practice mode later
-      alert('Practice mode is coming soon! This feature will be implemented in a future update.');
-      setSelectedMode(null); // Reset to show mode selection again
-    }
   };
 
   const handleBackToModeSelection = () => {
