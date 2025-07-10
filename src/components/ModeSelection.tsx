@@ -14,14 +14,16 @@ const features = [
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h4" /></svg>
+      // Microphone icon from Heroicons (solid)
+      <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.25a3.75 3.75 0 00-3.75 3.75v6a3.75 3.75 0 007.5 0v-6A3.75 3.75 0 0012 2.25z" /><path d="M19.5 10.5a.75.75 0 01.75.75 7.5 7.5 0 01-7.5 7.5 7.5 7.5 0 01-7.5-7.5.75.75 0 01.75-.75.75.75 0 01.75.75 6 6 0 0012 0 .75.75 0 01.75-.75z" /><path d="M12 21.75a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75z" /></svg>
     ),
     title: 'Practice Any Speech',
     desc: 'Rebuttal, summary, or anything in between—practice any speech, any time.'
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9" /></svg>
+      // Chat bubble left-right icon from Heroicons (solid)
+      <svg className="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M2.25 12c0-4.556 4.694-8.25 9.75-8.25s9.75 3.694 9.75 8.25-4.694 8.25-9.75 8.25a10.7 10.7 0 01-3.1-.44c-.37-.11-.77-.04-1.06.19l-2.12 1.7a.75.75 0 01-1.2-.6v-2.13c0-.32-.13-.63-.36-.86A7.48 7.48 0 012.25 12zm7.5-2.25a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75z" clipRule="evenodd" /></svg>
     ),
     title: 'Personalized Feedback',
     desc: 'AI-powered insights tailored to your arguments and speaking style.'
@@ -44,8 +46,8 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
         {/* Left: Text */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-2 drop-shadow-lg">Dedicate AI</h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-emerald-600 mb-4">Your Debate Pal</h2>
+          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-2 drop-shadow-lg">Dedicate AI</h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-blue-400 mb-4">Your Debate Pal</h2>
           <p className="text-xl text-gray-700 mb-4 font-medium">AI-powered debate feedback, practice, and validation—anytime, anywhere.</p>
           <p className="text-md text-gray-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
           <button
