@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import debateIllustration from '../assets/image-removebg-preview.png';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice') => void;
@@ -62,7 +61,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
         <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
           <div className="w-80 h-80 bg-white rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible">
             <img
-              src={debateIllustration}
+              src="/image-removebg-preview.png"
               alt="Debate illustration"
               className="w-72 h-72 object-contain rounded-2xl bg-white"
             />
