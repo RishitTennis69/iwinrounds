@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import debateIllustration from '../assets/image-removebg-preview.png';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice') => void;
@@ -59,11 +60,12 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
         </div>
         {/* Right: Illustration/Icon */}
         <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-          <div className="w-64 h-64 bg-gradient-to-br from-emerald-100 to-blue-50 rounded-3xl flex items-center justify-center shadow-xl">
-            <svg className="w-32 h-32 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-              <rect x="8" y="8" width="32" height="32" rx="8" fill="#fff" stroke="#34d399" strokeWidth="3" />
-              <path d="M16 24h16M24 16v16" stroke="#34d399" strokeWidth="3" strokeLinecap="round" />
-            </svg>
+          <div className="w-80 h-80 bg-white rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible">
+            <img
+              src={debateIllustration}
+              alt="Debate illustration"
+              className="w-72 h-72 object-contain rounded-2xl bg-white"
+            />
           </div>
         </div>
       </div>
