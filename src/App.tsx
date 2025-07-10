@@ -6,7 +6,6 @@ import SetupPanel from './components/SetupPanel';
 import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
-import HintPanel from './components/HintPanel';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
 
@@ -19,12 +18,6 @@ function App() {
   const [speechNumber, setSpeechNumber] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [speechRecognition] = useState(() => new SpeechRecognitionService());
-  const [freeRoundsUsed, setFreeRoundsUsed] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [hintsUsed, setHintsUsed] = useState(0);
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
 
@@ -33,10 +26,10 @@ function App() {
     const savedRounds = localStorage.getItem('debateflowy_free_rounds');
     const savedAdmin = localStorage.getItem('debateflowy_admin');
     if (savedRounds) {
-      setFreeRoundsUsed(parseInt(savedRounds));
+      // setFreeRoundsUsed(parseInt(savedRounds)); // Removed
     }
     if (savedAdmin === 'true') {
-      setIsAdmin(true);
+      // setIsAdmin(true); // Removed
     }
   }, []);
 
@@ -50,13 +43,13 @@ function App() {
     setCurrentSpeaker(null);
     setSpeechNumber(1);
     setIsAnalyzing(false);
-    setHintsUsed(0);
+    // setHintsUsed(0); // Removed
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordInput === ADMIN_PASSWORD) {
-      setIsAdmin(true);
+      // setIsAdmin(true); // Removed
       localStorage.setItem('debateflowy_admin', 'true');
       setShowPasswordModal(false);
       setPasswordInput('');
@@ -67,11 +60,11 @@ function App() {
   };
 
   const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number) => {
-    // Check if user has free rounds or is admin
-    if (freeRoundsUsed >= 1 && !isAdmin) {
-      setShowPasswordModal(true);
-      return;
-    }
+    // Check if user has free rounds or is admin // Removed
+    // if (freeRoundsUsed >= 1 && !isAdmin) { // Removed
+    //   setShowPasswordModal(true); // Removed
+    //   return; // Removed
+    // } // Removed
     setPeoplePerTeam(people);
     setSpeechesPerSpeaker(speeches);
     
@@ -81,10 +74,10 @@ function App() {
       speakers,
       points: [],
       startTime: new Date(),
-      hintsUsed: 0
+      hintsUsed: 0 // Keep this for now, as it's part of DebateSession
     };
     setSession(newSession);
-    setHintsUsed(0);
+    // setHintsUsed(0); // Removed
     
     // Create debate order that goes through speakers in sequence
     const debateOrder = createDebateOrder(speakers, speeches);
@@ -225,36 +218,29 @@ function App() {
   };
 
   const handleDebateComplete = () => {
-    // Increment free rounds count when debate is completed
-    if (!isAdmin) {
-      const newCount = freeRoundsUsed + 1;
-      setFreeRoundsUsed(newCount);
-      localStorage.setItem('debateflowy_free_rounds', newCount.toString());
-    }
+    // Increment free rounds count when debate is completed // Removed
+    // if (!isAdmin) { // Removed
+    //   const newCount = freeRoundsUsed + 1; // Removed
+    //   setFreeRoundsUsed(newCount); // Removed
+    //   localStorage.setItem('debateflowy_free_rounds', newCount.toString()); // Removed
+    // } // Removed
   };
 
-  const handleHintUsed = () => {
-    setHintsUsed(prev => prev + 1);
-    if (session) {
-      setSession(prev => prev ? { ...prev, hintsUsed: prev.hintsUsed + 1 } : null);
-    }
-  };
-
-  // Reset hints when moving to next speech
-  useEffect(() => {
-    if (session && speechNumber > 1) {
-      setHintsUsed(0);
-      setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null);
-    }
-  }, [speechNumber, session]);
+  // Reset hints when moving to next speech // Removed
+  // useEffect(() => { // Removed
+  //   if (session && speechNumber > 1) { // Removed
+  //     setHintsUsed(0); // Removed
+  //     setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null); // Removed
+  //   } // Removed
+  // }, [speechNumber, session]); // Removed
 
   // Show mode selection if no mode selected
   if (mode === 'selection') {
     return (
       <ModeSelection 
         onSelectMode={handleModeSelect}
-        freeRoundsUsed={freeRoundsUsed}
-        isAdmin={isAdmin}
+        // freeRoundsUsed={freeRoundsUsed} // Removed
+        // isAdmin={isAdmin} // Removed
       />
     );
   }
@@ -264,8 +250,8 @@ function App() {
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}
-        freeRoundsUsed={freeRoundsUsed}
-        isAdmin={isAdmin}
+        // freeRoundsUsed={freeRoundsUsed} // Removed
+        // isAdmin={isAdmin} // Removed
       />
     );
   }
@@ -276,50 +262,50 @@ function App() {
       <div>
         <SetupPanel 
           onInitialize={initializeSession} 
-          freeRoundsUsed={freeRoundsUsed}
-          isAdmin={isAdmin}
+          // freeRoundsUsed={freeRoundsUsed} // Removed
+          // isAdmin={isAdmin} // Removed
         />
-        {showPasswordModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
-              <h2 className="text-2xl font-bold mb-4">Admin Password Required</h2>
-              <p className="text-gray-700 mb-4">
-                You have used your free round. Please enter the admin password to continue.
-              </p>
-              <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password:
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter admin password"
-                  />
-                  {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Submit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswordModal(false)}
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        {/* {showPasswordModal && ( // Removed
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"> // Removed
+            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4"> // Removed
+              <h2 className="text-2xl font-bold mb-4">Admin Password Required</h2> // Removed
+              <p className="text-gray-700 mb-4"> // Removed
+                You have used your free round. Please enter the admin password to continue. // Removed
+              </p> // Removed
+              <form onSubmit={handlePasswordSubmit} className="space-y-4"> // Removed
+                <div> // Removed
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700"> // Removed
+                    Password: // Removed
+                  </label> // Removed
+                  <input // Removed
+                    type="password" // Removed
+                    id="password" // Removed
+                    value={passwordInput} // Removed
+                    onChange={(e) => setPasswordInput(e.target.value)} // Removed
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent" // Removed
+                    placeholder="Enter admin password" // Removed
+                  /> // Removed
+                  {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>} // Removed
+                </div> // Removed
+                <div className="flex space-x-3"> // Removed
+                  <button // Removed
+                    type="submit" // Removed
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors" // Removed
+                  > // Removed
+                    Submit // Removed
+                  </button> // Removed
+                  <button // Removed
+                    type="button" // Removed
+                    onClick={() => setShowPasswordModal(false)} // Removed
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors" // Removed
+                  > // Removed
+                    Cancel // Removed
+                  </button> // Removed
+                </div> // Removed
+              </form> // Removed
+            </div> // Removed
+          </div> // Removed
+        )} */}
       </div>
     );
   }

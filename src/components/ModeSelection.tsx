@@ -2,8 +2,8 @@ import React from 'react';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice') => void;
-  freeRoundsUsed: number;
-  isAdmin: boolean;
+  freeRoundsUsed?: number;
+  isAdmin?: boolean;
 }
 
 const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode, freeRoundsUsed, isAdmin }) => {
@@ -57,14 +57,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode, freeRoundsU
           </div>
         </div>
 
-        {/* Free rounds info */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2">
-            <span className="text-sm text-gray-600">
-              {isAdmin ? 'Admin Mode - Unlimited Rounds' : `Free Rounds Used: ${freeRoundsUsed}/1`}
-            </span>
-          </div>
-        </div>
+        {/* Free rounds/admin info removed */}
       </div>
     </div>
   );
