@@ -7,28 +7,28 @@ interface ModeSelectionProps {
 const features = [
   {
     icon: (
-      <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+      <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
     ),
     title: 'Always-on Judge',
     desc: 'Get instant, unbiased feedback after every speech—no more waiting for a judge.'
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h4" /></svg>
+      <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h4" /></svg>
     ),
     title: 'Practice Any Speech',
     desc: 'Rebuttal, summary, or anything in between—practice any speech, any time.'
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9" /></svg>
+      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9" /></svg>
     ),
     title: 'Personalized Feedback',
     desc: 'AI-powered insights tailored to your arguments and speaking style.'
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+      <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
     ),
     title: 'Instant Validation',
     desc: 'Know when you’ve won the round and why—no more guessing.'
@@ -39,10 +39,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-100 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative background shapes */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200 opacity-30 rounded-full blur-3xl -z-10 animate-pulse" style={{ top: '-6rem', left: '-6rem' }}></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-200 opacity-30 rounded-full blur-3xl -z-10 animate-pulse" style={{ bottom: '-6rem', right: '-6rem' }}></div>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Hero Section */}
       <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
         {/* Left: Text */}
@@ -60,7 +57,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
         </div>
         {/* Right: Illustration/Icon */}
         <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-          <div className="w-64 h-64 bg-gradient-to-br from-emerald-200 to-blue-100 rounded-3xl flex items-center justify-center shadow-xl">
+          <div className="w-64 h-64 bg-gradient-to-br from-emerald-100 to-blue-50 rounded-3xl flex items-center justify-center shadow-xl">
             <svg className="w-32 h-32 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 48 48">
               <rect x="8" y="8" width="32" height="32" rx="8" fill="#fff" stroke="#34d399" strokeWidth="3" />
               <path d="M16 24h16M24 16v16" stroke="#34d399" strokeWidth="3" strokeLinecap="round" />
@@ -98,6 +95,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               >
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="20" height="20" rx="6" strokeWidth="2" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                   </svg>
                 </div>
@@ -118,6 +116,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               >
                 <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="20" height="20" rx="6" strokeWidth="2" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
