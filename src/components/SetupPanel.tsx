@@ -15,7 +15,6 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, freeRoundsUsed = 
     negative1: '',
     negative2: ''
   });
-  const [currentSpeaker, setCurrentSpeaker] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,15 +63,6 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, freeRoundsUsed = 
 
   const handleSpeakerInput = (field: keyof typeof speakerNames, value: string) => {
     setSpeakerNames({...speakerNames, [field]: value});
-    
-    // Ask which speaker this is
-    let speakerType = '';
-    if (field === 'affirmative1') speakerType = '1st Affirmative';
-    else if (field === 'affirmative2') speakerType = '2nd Affirmative';
-    else if (field === 'negative1') speakerType = '1st Negative';
-    else if (field === 'negative2') speakerType = '2nd Negative';
-    
-    setCurrentSpeaker(speakerType);
   };
 
   return (
