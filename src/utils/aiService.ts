@@ -381,4 +381,43 @@ Respond in this exact JSON format:
       throw error;
     }
   }
+
+  static async generateSpeakerFeedback(speakerName: string, team: string, topic: string, speeches: string[]): Promise<string> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+    const prompt = `You are an expert debate coach. Give personalized, constructive feedback (3-5 sentences) for the following speaker based on their speeches in a debate. Be specific and actionable.
+
+Debate Topic: ${topic}
+Speaker: ${speakerName} (${team})
+
+Speeches:
+${speeches.map((s, i) => `Speech ${i+1}: ${s}`).join('\n\n')}
+
+Respond with only the feedback text, no preamble or closing.`;
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 400,
+          temperature: 0.4
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to generate speaker feedback');
+      }
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      return content.trim();
+    } catch (error) {
+      console.error('Error generating speaker feedback:', error);
+      return 'Error generating feedback.';
+    }
+  }
 } 

@@ -163,7 +163,34 @@ function App() {
   const analyzeWinner = async (updatedSession: DebateSession) => {
     try {
       const analysis = await AIService.analyzeWinner(updatedSession);
-      
+      // Assign random points (25-30) and generate feedback for each speaker
+      const speakersWithPointsAndFeedback = await Promise.all(
+        updatedSession.speakers.map(async (speaker) => {
+          // Assign points (use AI if available, else random 25-30)
+          const points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
+          // Gather all speeches for this speaker
+          const speeches = updatedSession.points
+            .filter(p => p.speakerId === speaker.id)
+            .map(p => p.transcript);
+          // Generate personalized feedback
+          let feedback = '';
+          try {
+            feedback = await AIService.generateSpeakerFeedback(
+              speaker.name,
+              speaker.team,
+              updatedSession.topic,
+              speeches
+            );
+          } catch (err) {
+            feedback = 'Error generating feedback.';
+          }
+          return {
+            ...speaker,
+            points,
+            feedback,
+          };
+        })
+      );
       const finalSession: DebateSession = {
         ...updatedSession,
         endTime: new Date(),
@@ -172,14 +199,8 @@ function App() {
           reasoning: analysis.reasoning,
         },
         summary: analysis.summary,
+        speakers: speakersWithPointsAndFeedback,
       };
-      
-      // Update speaker points
-      finalSession.speakers = finalSession.speakers.map(speaker => ({
-        ...speaker,
-        points: analysis.speakerPoints[speaker.id] || speaker.points,
-      }));
-      
       setSession(finalSession);
       handleDebateComplete(); // Mark debate as completed
     } catch (error) {

@@ -4,6 +4,7 @@ export interface Speaker {
   team: 'affirmative' | 'negative';
   points: number;
   speakerNumber?: number; // 1st or 2nd speaker
+  feedback?: string;
 }
 
 export interface DebatePoint {

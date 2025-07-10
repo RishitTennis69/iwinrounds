@@ -52,12 +52,19 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
             </h5>
             <div className="space-y-3">
               {affirmativeSpeakers.map((speaker) => (
-                <div key={speaker.id} className="flex justify-between items-center bg-white rounded-lg p-3">
-                  <span className="font-medium text-gray-900">{speaker.name}</span>
-                  <div className="flex items-center space-x-2">
-                    <Award className="w-4 h-4 text-yellow-500" />
-                    <span className="font-semibold text-gray-900">{speaker.points}</span>
+                <div key={speaker.id} className="bg-white rounded-lg p-3 mb-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-gray-900">{speaker.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <Award className="w-4 h-4 text-yellow-500" />
+                      <span className="font-semibold text-gray-900">{speaker.points}</span>
+                    </div>
                   </div>
+                  {speaker.feedback && (
+                    <div className="mt-2 text-sm text-blue-700 bg-blue-50 rounded p-2">
+                      <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -71,12 +78,19 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
             </h5>
             <div className="space-y-3">
               {negativeSpeakers.map((speaker) => (
-                <div key={speaker.id} className="flex justify-between items-center bg-white rounded-lg p-3">
-                  <span className="font-medium text-gray-900">{speaker.name}</span>
-                  <div className="flex items-center space-x-2">
-                    <Award className="w-4 h-4 text-yellow-500" />
-                    <span className="font-semibold text-gray-900">{speaker.points}</span>
+                <div key={speaker.id} className="bg-white rounded-lg p-3 mb-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-gray-900">{speaker.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <Award className="w-4 h-4 text-yellow-500" />
+                      <span className="font-semibold text-gray-900">{speaker.points}</span>
+                    </div>
                   </div>
+                  {speaker.feedback && (
+                    <div className="mt-2 text-sm text-red-700 bg-red-50 rounded p-2">
+                      <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
