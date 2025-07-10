@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[]) => void;
-  onBack: () => void;
+  onBack?: () => void;
   freeRoundsUsed?: number;
   isAdmin?: boolean;
 }
@@ -71,13 +71,15 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
         {/* Back Button */}
-        <button
-          onClick={onBack}
-          className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Mode Selection</span>
-        </button>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Mode Selection</span>
+          </button>
+        )}
 
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">DebateFlowy</h1>

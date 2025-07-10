@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { DebateSession, Speaker, DebatePoint } from './types';
 import { SpeechRecognitionService } from './utils/speechRecognition';
 import { AIService } from './utils/aiService';
+import SetupPanel from './components/SetupPanel';
 import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
-import SetupPanel from './components/SetupPanel';
 import HintPanel from './components/HintPanel';
-import ModeSelection from './components/ModeSelection';
-import PracticeMode from './components/PracticeMode';
 
 const ADMIN_PASSWORD = 'RomeAcademy111!';
 
@@ -24,7 +22,6 @@ function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [selectedMode, setSelectedMode] = useState<'debate' | 'practice' | null>(null);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -49,18 +46,6 @@ function App() {
     } else {
       setPasswordError('Incorrect password');
     }
-  };
-
-  const handleModeSelection = (mode: 'debate' | 'practice') => {
-    setSelectedMode(mode);
-  };
-
-  const handleBackToModeSelection = () => {
-    setSelectedMode(null);
-    setSession(null);
-    setCurrentSpeaker(null);
-    setSpeechNumber(1);
-    setHintsUsed(0);
   };
 
   const initializeSession = (topic: string, speakers: Speaker[]) => {
@@ -230,29 +215,11 @@ function App() {
   if (!session) {
     return (
       <div>
-        {!selectedMode ? (
-          <ModeSelection 
-            onSelectMode={handleModeSelection}
-            freeRoundsUsed={freeRoundsUsed}
-            isAdmin={isAdmin}
-          />
-        ) : selectedMode === 'debate' ? (
-          <div>
-            <SetupPanel 
-              onInitialize={initializeSession} 
-              freeRoundsUsed={freeRoundsUsed}
-              isAdmin={isAdmin}
-              onBack={handleBackToModeSelection}
-            />
-          </div>
-        ) : selectedMode === 'practice' ? (
-          <PracticeMode
-            onBack={handleBackToModeSelection}
-            freeRoundsUsed={freeRoundsUsed}
-            isAdmin={isAdmin}
-          />
-        ) : null}
-        
+        <SetupPanel 
+          onInitialize={initializeSession} 
+          freeRoundsUsed={freeRoundsUsed}
+          isAdmin={isAdmin}
+        />
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
