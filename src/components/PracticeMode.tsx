@@ -25,7 +25,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [speechRecognition] = useState(() => new SpeechRecognitionService());
   const [currentTranscript, setCurrentTranscript] = useState('');
-  const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '' });
+  const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
 
@@ -100,6 +100,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
             counterPoints: aiSpeech.counterPoints,
             counterCounterPoints: aiSpeech.counterCounterPoints,
             impactWeighing: aiSpeech.impactWeighing,
+            evidence: aiSpeech.evidence,
             timestamp: new Date(),
             transcript: aiSpeech.transcript,
           };
@@ -114,6 +115,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
             counterPoints: [],
             counterCounterPoints: [],
             impactWeighing: '[Error generating impact weighing]',
+            evidence: [],
             timestamp: new Date(),
             transcript: '[Error generating transcript]'
           };
@@ -141,7 +143,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       const summary = await AIService.summarizeSpeech(transcript);
       setCurrentSummary(summary);
     } catch (err) {
-      setCurrentSummary({ mainPoints: ['[Error summarizing]'], counterPoints: [], counterCounterPoints: [], impactWeighing: '' });
+      setCurrentSummary({ mainPoints: ['[Error summarizing]'], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
     } finally {
       setIsSummarizing(false);
     }
@@ -167,7 +169,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       setStep('generating');
       await generateAISpeechesUpTo(speechNum, nextSimulateTo);
       setCurrentTranscript('');
-      setCurrentSummary({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '' });
+      setCurrentSummary({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
       if (currentSpeechIdx < userSpeechNums.length - 1) {
         setCurrentSpeechIdx(currentSpeechIdx + 1);
         setStep('practice');
@@ -210,6 +212,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
               counterPoints: [],
               counterCounterPoints: [],
               impactWeighing: '',
+              evidence: [],
               timestamp: new Date(),
               transcript: userSpeeches[num],
             }
@@ -332,6 +335,16 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                   rows={5}
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Edit Evidence (facts, statistics, sources - one per line)</label>
+                <textarea
+                  value={currentSummary.evidence.join('\n')}
+                  onChange={e => setCurrentSummary({ ...currentSummary, evidence: e.target.value.split('\n') })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                  rows={3}
+                  placeholder="e.g., 67% of students support this policy (Pew Research, 2023)"
                 />
               </div>
               <button type="submit" className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-green-700 transition-all duration-200" disabled={isLoading}>{isLoading ? 'Analyzing...' : 'Submit for Feedback'}</button>

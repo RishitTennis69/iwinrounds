@@ -14,6 +14,7 @@ export class AIService {
     counterPoints: string[];
     counterCounterPoints: string[];
     impactWeighing: string;
+    evidence: string[];
   }> {
     if (!isAPIKeyConfigured()) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
@@ -25,6 +26,7 @@ export class AIService {
 2. Counter Points: Any counter-arguments or rebuttals to previous speakers
 3. Counter-Counter Points: Responses to counter-arguments from opponents
 4. Impact Weighing: Analysis of the significance and weight of the arguments
+5. Evidence: Any facts, statistics, expert quotes, studies, or sources mentioned to support arguments
 
 Speech Transcript:
 "${transcript}"
@@ -34,10 +36,11 @@ Please respond in this exact JSON format:
   "mainPoints": ["point 1", "point 2", "point 3"],
   "counterPoints": ["counter point 1", "counter point 2"],
   "counterCounterPoints": ["response to counter 1"],
-  "impactWeighing": "Analysis of argument significance and weight"
+  "impactWeighing": "Analysis of argument significance and weight",
+  "evidence": ["fact/statistic/quote with source", "another piece of evidence"]
 }
 
-Keep each point concise but informative. If a category doesn't apply, use an empty array or brief description.`;
+Keep each point concise but informative. If a category doesn't apply, use an empty array or brief description. For evidence, include both the fact/statistic/quote and its source when mentioned.`;
 
     try {
       const response = await fetch(OPENAI_API_URL, {
@@ -108,7 +111,8 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
           mainPoints: analysis.mainPoints || [],
           counterPoints: analysis.counterPoints || [],
           counterCounterPoints: analysis.counterCounterPoints || [],
-          impactWeighing: analysis.impactWeighing || 'No impact weighing provided'
+          impactWeighing: analysis.impactWeighing || 'No impact weighing provided',
+          evidence: analysis.evidence || []
         };
       } catch (parseError) {
         console.error('Failed to parse API response:', parseError);

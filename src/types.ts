@@ -17,6 +17,7 @@ export interface DebatePoint {
   counterPoints: string[];
   counterCounterPoints: string[];
   impactWeighing: string;
+  evidence: string[]; // New field for evidence and sources
   timestamp: Date;
   transcript: string;
 }

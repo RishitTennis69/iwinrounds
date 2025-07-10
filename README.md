@@ -140,5 +140,3 @@ MIT License - see LICENSE file for details
 For issues and questions, please open an issue on GitHub.
 
 ---
-
-**Note**: This application currently uses mock AI analysis. For production use, integrate with a real AI service for accurate debate analysis. 

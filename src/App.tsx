@@ -118,6 +118,7 @@ function App() {
         counterPoints: analysis.counterPoints,
         counterCounterPoints: analysis.counterCounterPoints,
         impactWeighing: analysis.impactWeighing,
+        evidence: analysis.evidence,
         timestamp: new Date(),
         transcript,
       };

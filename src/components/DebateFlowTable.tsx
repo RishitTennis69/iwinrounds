@@ -118,6 +118,35 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                 );
               })}
             </tr>
+            {/* Evidence Row */}
+            <tr>
+              <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-green-50 border-r border-gray-200">
+                <div className="flex items-center">
+                  <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                  Evidence
+                </div>
+              </td>
+              {speechColumns.map((speechNum) => {
+                const speech = session.points.find(p => p.speechNumber === speechNum);
+                return (
+                  <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
+                    {speech ? (
+                      <div className="space-y-2">
+                        {speech.evidence.map((evidence: string, index: number) => (
+                          <div key={index} className="text-sm bg-green-50 rounded p-2">
+                            {evidence}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-gray-400 text-sm italic">
+                        Not recorded yet
+                      </div>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
             {/* Counter Points Row */}
             <tr>
               <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-orange-50 border-r border-gray-200">
