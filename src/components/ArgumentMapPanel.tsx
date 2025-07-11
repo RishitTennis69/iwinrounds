@@ -114,10 +114,6 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
       }));
   };
 
-  const handleNodeClick = (node: ArgumentNode) => {
-    // setSelectedNode(node); // This line was removed as per the edit hint
-  };
-
   if (isLoading) {
     return (
       <div className={`bg-white rounded-lg border p-6 ${className}`}>
