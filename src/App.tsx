@@ -9,12 +9,11 @@ import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
 import ArgumentMapPanel from './components/ArgumentMapPanel';
-import ArgumentMapDemo from './components/ArgumentMapDemo';
 import ArgumentMappingMode from './components/ArgumentMappingMode';
 import HintPanel from './components/HintPanel';
 
 function App() {
-  const [mode, setMode] = useState<'selection' | 'debate' | 'practice' | 'demo' | 'argument-mapping'>('selection');
+  const [mode, setMode] = useState<'selection' | 'debate' | 'practice' | 'argument-mapping'>('selection');
   const [session, setSession] = useState<DebateSession | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
@@ -37,7 +36,7 @@ function App() {
     }
   }, []);
 
-  const handleModeSelect = (selectedMode: 'debate' | 'practice' | 'demo' | 'argument-mapping') => {
+  const handleModeSelect = (selectedMode: 'debate' | 'practice' | 'argument-mapping') => {
     setMode(selectedMode);
   };
 
@@ -274,35 +273,6 @@ function App() {
       <ArgumentMappingMode 
         onBack={handleBackToModeSelection}
       />
-    );
-  }
-
-  // Show demo mode
-  if (mode === 'demo') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <header className="mb-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Argument Map Demo
-                </h1>
-                <p className="text-gray-600">
-                  Explore the interactive argument mapping feature with sample data
-                </p>
-              </div>
-              <button
-                onClick={handleBackToModeSelection}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
-              >
-                Back to Mode Selection
-              </button>
-            </div>
-          </header>
-          <ArgumentMapDemo />
-        </div>
-      </div>
     );
   }
 

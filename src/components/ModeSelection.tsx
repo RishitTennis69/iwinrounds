@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Map } from 'lucide-react';
 
 interface ModeSelectionProps {
-  onSelectMode: (mode: 'debate' | 'practice' | 'demo' | 'argument-mapping') => void;
+  onSelectMode: (mode: 'debate' | 'practice' | 'argument-mapping') => void;
 }
 
 const features = [
@@ -150,24 +150,6 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   <li>• Full debate context</li>
                   <li>• Personalized feedback</li>
                   <li>• No round limitations</li>
-                </ul>
-              </button>
-              {/* Demo Mode Card */}
-              <button
-                className="bg-gradient-to-br from-amber-50 to-orange-100 rounded-xl p-6 border-2 border-amber-200 hover:border-amber-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-amber-400"
-                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('demo'), 200); }}
-              >
-                <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mb-4">
-                  <Map className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-amber-800 mb-2">Argument Map Demo</h3>
-                <p className="text-amber-700 mb-2 text-center">Explore the interactive argument mapping feature</p>
-                <ul className="text-sm text-amber-600 space-y-1 text-left mx-auto">
-                  <li>• Visual argument flow</li>
-                  <li>• Logical fallacy detection</li>
-                  <li>• Strength analysis</li>
-                  <li>• Interactive timeline</li>
-                  <li>• Team analytics</li>
                 </ul>
               </button>
             </div>
