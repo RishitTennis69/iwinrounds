@@ -4,11 +4,10 @@ import { ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff, AlertTriangle, CheckCircle, XC
 
 interface ArgumentMapProps {
   argumentMap: ArgumentMapType;
-  onNodeClick?: (node: ArgumentNode) => void;
   className?: string;
 }
 
-const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, className = '' }) => {
+const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, className = '' }) => {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selectedNode, setSelectedNode] = useState<ArgumentNode | null>(null);
