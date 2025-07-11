@@ -27,7 +27,6 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
 
   const layoutNodes = () => {
     const nodes = [...argumentMap.nodes];
-    const connections = [...argumentMap.connections];
     
     // Find root nodes (nodes without parents)
     const rootNodes = nodes.filter(node => !node.parentId);
@@ -91,11 +90,6 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
     return 2 + (connection.strength / 10) * 4;
   };
 
-  const handleNodeClick = (node: ArgumentNode) => {
-    setSelectedNode(node);
-    onNodeClick?.(node);
-  };
-
   const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.2, 3));
   const handleZoomOut = () => setZoom(prev => Math.max(prev / 1.2, 0.3));
   const handleReset = () => {
@@ -127,11 +121,6 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
     if (strength >= 8) return <CheckCircle className="w-4 h-4 text-green-500" />;
     if (strength >= 6) return <CheckCircle className="w-4 h-4 text-yellow-500" />;
     return <XCircle className="w-4 h-4 text-red-500" />;
-  };
-
-  const getFallacyIcon = (fallacies: string[]) => {
-    if (fallacies.length === 0) return null;
-    return <AlertTriangle className="w-4 h-4 text-red-500" />;
   };
 
   return (
@@ -212,13 +201,105 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
         onMouseLeave={handleMouseUp}
       >
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-          {/* Connections */}
+          {/* Custom Grouped Connections: Claim-Evidence-Reasoning */}
+          {argumentMap.nodes.filter(n => n.type === 'claim').map(claimNode => {
+            // Find evidence and reasoning children
+            const evidenceNodes = argumentMap.nodes.filter(n => n.parentId === claimNode.id && n.type === 'evidence');
+            const reasoningNodes = argumentMap.nodes.filter(n => n.parentId === claimNode.id && n.type === 'reasoning');
+            // Draw lines: claim → evidence, claim → reasoning
+            return (
+              <g key={`group-${claimNode.id}`}>
+                {evidenceNodes.map(evidenceNode => (
+                  <line
+                    key={`claim-evidence-${claimNode.id}-${evidenceNode.id}`}
+                    x1={claimNode.position.x}
+                    y1={claimNode.position.y}
+                    x2={evidenceNode.position.x}
+                    y2={evidenceNode.position.y}
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                  />
+                ))}
+                {reasoningNodes.map(reasoningNode => (
+                  <line
+                    key={`claim-reasoning-${claimNode.id}-${reasoningNode.id}`}
+                    x1={claimNode.position.x}
+                    y1={claimNode.position.y}
+                    x2={reasoningNode.position.x}
+                    y2={reasoningNode.position.y}
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                  />
+                ))}
+                {/* Connect evidence to reasoning if both exist */}
+                {evidenceNodes.length > 0 && reasoningNodes.length > 0 && evidenceNodes.map(evidenceNode => (
+                  reasoningNodes.map(reasoningNode => (
+                    <line
+                      key={`evidence-reasoning-${evidenceNode.id}-${reasoningNode.id}`}
+                      x1={evidenceNode.position.x}
+                      y1={evidenceNode.position.y}
+                      x2={reasoningNode.position.x}
+                      y2={reasoningNode.position.y}
+                      stroke="#6366F1"
+                      strokeWidth={2}
+                      strokeDasharray="4,2"
+                    />
+                  ))
+                ))}
+                {/* Arrow from reasoning (or evidence if no reasoning) to rebuttal(s) */}
+                {(() => {
+                  // Find the last node in the group (prefer reasoning, else evidence, else claim)
+                  const lastNode = reasoningNodes[0] || evidenceNodes[0] || claimNode;
+                  // Find rebuttal nodes that target this group
+                  const rebuttalNodes = argumentMap.nodes.filter(n => n.parentId === lastNode.id && n.type === 'rebuttal');
+                  return rebuttalNodes.map(rebuttalNode => (
+                    <line
+                      key={`to-rebuttal-${lastNode.id}-${rebuttalNode.id}`}
+                      x1={lastNode.position.x}
+                      y1={lastNode.position.y}
+                      x2={rebuttalNode.position.x}
+                      y2={rebuttalNode.position.y}
+                      stroke="#F59E0B"
+                      strokeWidth={3}
+                      markerEnd="url(#arrowhead)"
+                    />
+                  ));
+                })()}
+              </g>
+            );
+          })}
+
+          {/* Frontline: Connect rebuttals in a chain */}
+          {argumentMap.nodes.filter(n => n.type === 'rebuttal').map(rebuttalNode => {
+            // Find rebuttal children (frontline)
+            const nextRebuttals = argumentMap.nodes.filter(n => n.parentId === rebuttalNode.id && n.type === 'rebuttal');
+            return nextRebuttals.map(nextNode => (
+              <line
+                key={`frontline-${rebuttalNode.id}-${nextNode.id}`}
+                x1={rebuttalNode.position.x}
+                y1={rebuttalNode.position.y}
+                x2={nextNode.position.x}
+                y2={nextNode.position.y}
+                stroke="#F59E0B"
+                strokeWidth={2}
+                markerEnd="url(#arrowhead)"
+                strokeDasharray="2,2"
+              />
+            ));
+          })}
+
+          {/* Default Connections (for any other types) */}
           {argumentMap.connections.map(connection => {
             const fromNode = argumentMap.nodes.find(n => n.id === connection.fromNodeId);
             const toNode = argumentMap.nodes.find(n => n.id === connection.toNodeId);
-            
             if (!fromNode || !toNode) return null;
-            
+            // Skip if already drawn by custom logic above
+            if ((fromNode.type === 'claim' && (toNode.type === 'evidence' || toNode.type === 'reasoning')) ||
+                (fromNode.type === 'evidence' && toNode.type === 'reasoning') ||
+                (fromNode.type === 'reasoning' && toNode.type === 'rebuttal') ||
+                (fromNode.type === 'rebuttal' && toNode.type === 'rebuttal')) {
+              return null;
+            }
             return (
               <line
                 key={connection.id}
@@ -238,7 +319,8 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
           {argumentMap.nodes.map(node => {
             const size = getNodeSize(node);
             const color = getNodeColor(node);
-            
+            // Use node.summary if available, else a short truncated content
+            const summary = node.summary || (node.content.length > 30 ? node.content.substring(0, 30) + '...' : node.content);
             return (
               <g key={node.id}>
                 <circle
@@ -249,10 +331,8 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
                   stroke="#374151"
                   strokeWidth="2"
                   className="cursor-pointer hover:stroke-2 hover:stroke-blue-500"
-                  onClick={() => handleNodeClick(node)}
                 />
-                
-                {/* Node content */}
+                {/* Node summary content always visible */}
                 <foreignObject
                   x={node.position.x - size / 2}
                   y={node.position.y - size / 2}
@@ -261,19 +341,7 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, onNodeClick, cla
                   className="pointer-events-none"
                 >
                   <div className="w-full h-full flex flex-col items-center justify-center text-white text-xs font-medium p-1 text-center">
-                    <div className="truncate w-full">{node.content.substring(0, 30)}...</div>
-                    {showStrength && (
-                      <div className="flex items-center gap-1 mt-1">
-                        {getStrengthIcon(node.strength)}
-                        <span>{node.strength}/10</span>
-                      </div>
-                    )}
-                    {showFallacies && node.logicalFallacies && node.logicalFallacies.length > 0 && (
-                      <div className="flex items-center gap-1 mt-1">
-                        {getFallacyIcon(node.logicalFallacies)}
-                        <span>{node.logicalFallacies.length}</span>
-                      </div>
-                    )}
+                    <div className="truncate w-full">{summary}</div>
                   </div>
                 </foreignObject>
               </g>
