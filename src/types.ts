@@ -41,6 +41,7 @@ export interface ArgumentNode {
     x: number;
     y: number;
   };
+  summary?: string; // Short AI-generated summary for display
 }
 
 export interface ArgumentMap {

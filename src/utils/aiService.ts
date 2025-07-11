@@ -470,6 +470,7 @@ For each node, provide:
 - Strength: 1-10 scale based on argument quality
 - Evidence quality: 1-10 scale for evidence nodes
 - Parent relationship: which argument this supports or counters
+- Summary: a very short phrase (not a full sentence) that captures the core idea (e.g., 'high cost justified by pay')
 
 Respond in this exact JSON format:
 {
@@ -479,14 +480,16 @@ Respond in this exact JSON format:
       "content": "We should ban fast food in schools",
       "strength": 8,
       "evidenceQuality": null,
-      "parentId": null
+      "parentId": null,
+      "summary": "ban fast food in schools"
     },
     {
       "type": "evidence", 
       "content": "Studies show 60% of school lunches exceed calorie limits",
       "strength": 7,
       "evidenceQuality": 8,
-      "parentId": "claim_1"
+      "parentId": "claim_1",
+      "summary": "school lunches exceed calories"
     }
   ],
   "connections": [
@@ -499,7 +502,7 @@ Respond in this exact JSON format:
   ]
 }
 
-Keep arguments concise but complete. Focus on the most important points.`;
+Keep arguments concise but complete. For the summary, use a short phrase, not a full sentence. Focus on the most important points.`;
 
     try {
       const response = await fetch(OPENAI_API_URL, {
