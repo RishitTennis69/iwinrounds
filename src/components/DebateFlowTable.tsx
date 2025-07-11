@@ -1,13 +1,15 @@
 import React from 'react';
 import { DebateSession } from '../types';
+import { Map } from 'lucide-react';
 
 interface DebateFlowTableProps {
   session: DebateSession;
   peoplePerTeam: number;
   speechesPerSpeaker: number;
+  onShowArgumentMap?: () => void;
 }
 
-const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTeam, speechesPerSpeaker }) => {
+const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTeam, speechesPerSpeaker, onShowArgumentMap }) => {
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -41,12 +43,25 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Debate Flow Analysis
-        </h3>
-        <p className="text-sm text-gray-600">
-          AI-generated analysis of each speech - follow the debate flow horizontally
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Debate Flow Analysis
+            </h3>
+            <p className="text-sm text-gray-600">
+              AI-generated analysis of each speech - follow the debate flow horizontally
+            </p>
+          </div>
+          {onShowArgumentMap && (
+            <button
+              onClick={onShowArgumentMap}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Map className="w-4 h-4" />
+              View Argument Map
+            </button>
+          )}
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

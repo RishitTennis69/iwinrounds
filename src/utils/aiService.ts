@@ -50,7 +50,7 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4.1-nano',
           messages: [
             {
               role: 'user',
@@ -173,7 +173,7 @@ Respond in this exact JSON format:
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4.1-nano',
           messages: [
             {
               role: 'user',
@@ -262,7 +262,7 @@ Respond in this exact JSON format:
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4.1-nano',
           messages: [
             {
               role: 'user',
@@ -339,7 +339,7 @@ Respond in this exact JSON format:
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4.1-nano',
           messages: [
             {
               role: 'user',
@@ -390,15 +390,25 @@ Respond in this exact JSON format:
     if (!isAPIKeyConfigured()) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
     }
-    const prompt = `You are an expert debate coach. Give personalized, constructive feedback (3-5 sentences) for the following speaker based on their speeches in a debate. Be specific and actionable.
 
-Debate Topic: ${topic}
-Speaker: ${speakerName} (${team})
+    const combinedSpeeches = speeches.join('\n\n');
+
+    const prompt = `You are an expert debate coach. Provide personalized feedback for a debater based on their speeches.
+
+Speaker: ${speakerName}
+Team: ${team}
+Topic: ${topic}
 
 Speeches:
-${speeches.map((s, i) => `Speech ${i+1}: ${s}`).join('\n\n')}
+${combinedSpeeches}
 
-Respond with only the feedback text, no preamble or closing.`;
+Please provide constructive feedback in 2-3 paragraphs covering:
+1. Strengths and effective techniques used
+2. Areas for improvement
+3. Specific advice for future debates
+
+Keep the tone encouraging but honest. Focus on actionable advice.`;
+
     try {
       const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
@@ -407,21 +417,266 @@ Respond with only the feedback text, no preamble or closing.`;
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 400,
-          temperature: 0.4
+          model: 'gpt-4.1-nano',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7
         })
       });
+
       if (!response.ok) {
-        throw new Error('Failed to generate speaker feedback');
+        const errorText = await response.text();
+        console.error('API Response:', response.status, errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('API error:', error);
+      throw error;
+    }
+  }
+
+  // New methods for argument mapping
+  static async extractArgumentNodes(transcript: string, speakerId: string, speakerName: string, team: 'affirmative' | 'negative', speechNumber: number): Promise<{
+    nodes: any[];
+    connections: any[];
+  }> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    const prompt = `You are an expert debate analyst specializing in argument mapping. Analyze the following speech and extract argument nodes and their relationships.
+
+Speech Transcript:
+"${transcript}"
+
+Extract all arguments and organize them into a logical structure. For each argument, identify:
+1. Main claims (the core arguments)
+2. Supporting evidence (facts, statistics, quotes)
+3. Reasoning (logical connections)
+4. Counter-claims (responses to opponents)
+5. Rebuttals (responses to counter-arguments)
+
+For each node, provide:
+- Type: claim, evidence, reasoning, counter-claim, or rebuttal
+- Content: the actual text/argument
+- Strength: 1-10 scale based on argument quality
+- Evidence quality: 1-10 scale for evidence nodes
+- Parent relationship: which argument this supports or counters
+
+Respond in this exact JSON format:
+{
+  "nodes": [
+    {
+      "type": "claim",
+      "content": "We should ban fast food in schools",
+      "strength": 8,
+      "evidenceQuality": null,
+      "parentId": null
+    },
+    {
+      "type": "evidence", 
+      "content": "Studies show 60% of school lunches exceed calorie limits",
+      "strength": 7,
+      "evidenceQuality": 8,
+      "parentId": "claim_1"
+    }
+  ],
+  "connections": [
+    {
+      "fromNodeId": "evidence_1",
+      "toNodeId": "claim_1", 
+      "type": "supports",
+      "strength": 8
+    }
+  ]
+}
+
+Keep arguments concise but complete. Focus on the most important points.`;
+
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-nano',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Response:', response.status, errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
       const content = data.choices[0].message.content;
-      return content.trim();
+      
+      try {
+        let jsonContent = content;
+        
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const analysis = JSON.parse(jsonContent);
+        
+        // Add metadata to nodes
+        const nodes = (analysis.nodes || []).map((node: any, index: number) => ({
+          id: `${speakerId}_${speechNumber}_${index}`,
+          ...node,
+          speakerId,
+          speakerName,
+          team,
+          speechNumber,
+          timestamp: new Date(),
+          childrenIds: [],
+          position: { x: 0, y: 0 } // Will be calculated by the visual component
+        }));
+
+        const connections = (analysis.connections || []).map((conn: any, index: number) => ({
+          id: `conn_${speakerId}_${speechNumber}_${index}`,
+          ...conn
+        }));
+
+        return { nodes, connections };
+      } catch (parseError) {
+        console.error('Failed to parse argument mapping response:', parseError);
+        console.error('Raw content:', content);
+        throw new Error('Invalid response format from API');
+      }
     } catch (error) {
-      console.error('Error generating speaker feedback:', error);
-      return 'Error generating feedback.';
+      console.error('API error:', error);
+      throw error;
+    }
+  }
+
+  static async detectLogicalFallacies(argument: string): Promise<{
+    fallacies: any[];
+    overallStrength: number;
+  }> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    const prompt = `You are an expert in logical reasoning and fallacy detection. Analyze the following argument for logical fallacies.
+
+Argument: "${argument}"
+
+Identify any logical fallacies present and assess the overall argument strength. Common fallacies include:
+- Ad hominem (attacking the person)
+- Straw man (misrepresenting opponent's argument)
+- Appeal to authority (without proper justification)
+- False dichotomy (presenting only two options)
+- Hasty generalization (jumping to conclusions)
+- Appeal to emotion (without logical support)
+- Circular reasoning
+- Post hoc ergo propter hoc (correlation vs causation)
+
+For each fallacy found, provide:
+- Type of fallacy
+- Description of why it's a fallacy
+- Severity (low, medium, high)
+- Suggestion for improvement
+
+Respond in this exact JSON format:
+{
+  "fallacies": [
+    {
+      "type": "Ad hominem",
+      "description": "Attacking the person instead of the argument",
+      "severity": "medium",
+      "suggestion": "Focus on the argument itself, not the speaker"
+    }
+  ],
+  "overallStrength": 6
+}
+
+If no fallacies are found, return empty array for fallacies and high strength score.`;
+
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-nano',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Response:', response.status, errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        let jsonContent = content;
+        
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const analysis = JSON.parse(jsonContent);
+        return {
+          fallacies: analysis.fallacies || [],
+          overallStrength: analysis.overallStrength || 8
+        };
+      } catch (parseError) {
+        console.error('Failed to parse fallacy detection response:', parseError);
+        console.error('Raw content:', content);
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      throw error;
     }
   }
 } 

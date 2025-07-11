@@ -22,6 +22,50 @@ export interface DebatePoint {
   transcript: string;
 }
 
+// New types for argument mapping
+export interface ArgumentNode {
+  id: string;
+  type: 'claim' | 'evidence' | 'reasoning' | 'counter-claim' | 'rebuttal';
+  content: string;
+  speakerId: string;
+  speakerName: string;
+  team: 'affirmative' | 'negative';
+  speechNumber: number;
+  timestamp: Date;
+  strength: number; // 1-10 scale
+  evidenceQuality?: number; // 1-10 scale for evidence nodes
+  logicalFallacies?: string[]; // List of detected fallacies
+  parentId?: string; // ID of parent argument this supports or counters
+  childrenIds: string[]; // IDs of arguments that support or counter this
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface ArgumentMap {
+  id: string;
+  sessionId: string;
+  nodes: ArgumentNode[];
+  connections: ArgumentConnection[];
+  lastUpdated: Date;
+}
+
+export interface ArgumentConnection {
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+  type: 'supports' | 'counters' | 'rebuts';
+  strength: number; // 1-10 scale
+}
+
+export interface LogicalFallacy {
+  type: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  suggestion: string;
+}
+
 export interface DebateSession {
   id: string;
   topic: string;
@@ -35,6 +79,7 @@ export interface DebateSession {
   };
   summary?: string;
   hintsUsed: number; // Track hints used per round
+  firstSpeaker: 'affirmative' | 'negative'; // Track which team speaks first
   feedback?: {
     strengths: string[];
     areasForImprovement: string[];
@@ -42,6 +87,7 @@ export interface DebateSession {
     overallScore: number;
     summary: string;
   };
+  argumentMap?: ArgumentMap; // New field for argument mapping
 }
 
 export interface RecordingState {

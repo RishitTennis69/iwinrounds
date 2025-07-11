@@ -81,7 +81,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
               'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'gpt-4.1-nano',
               messages: [{ role: 'user', content: prompt }],
               max_tokens: 1000,
               temperature: 0.7

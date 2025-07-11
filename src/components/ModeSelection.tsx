@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Map } from 'lucide-react';
 
 interface ModeSelectionProps {
-  onSelectMode: (mode: 'debate' | 'practice') => void;
+  onSelectMode: (mode: 'debate' | 'practice' | 'demo' | 'argument-mapping') => void;
 }
 
 const features = [
@@ -30,10 +31,10 @@ const features = [
   },
   {
     icon: (
-      <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+      <Map className="w-8 h-8 text-amber-500" />
     ),
-    title: 'Instant Validation',
-    desc: 'Know when you’ve won the round and why—no more guessing.'
+    title: 'Argument Mapping',
+    desc: 'Visual argument flow with logical fallacy detection and strength analysis.'
   },
 ];
 
@@ -71,7 +72,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       {/* Features Section */}
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
         {features.map((f, i) => (
-          <div key={i} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4" style={{ borderColor: ['#34d399', '#3b82f6', '#a78bfa', '#fbbf24'][i] }}>
+          <div key={i} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4" style={{ borderColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
             <div className="mb-4">{f.icon}</div>
             <h3 className="text-lg font-bold mb-2 text-gray-800">{f.title}</h3>
             <p className="text-gray-600 text-center">{f.desc}</p>
@@ -81,7 +82,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       {/* Mode Selection Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-6xl relative animate-fade-in">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
               onClick={() => setShowModal(false)}
@@ -90,7 +91,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               ×
             </button>
             <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use Dedicate AI?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Debate Mode Card */}
               <button
                 className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -108,7 +109,25 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   <li>• Real-time speech recording</li>
                   <li>• AI-powered analysis</li>
                   <li>• Live debate flow tracking</li>
-                  <li>• Personalized speaker feedback</li>
+                  <li>• Argument mapping</li>
+                  <li>• Winner determination</li>
+                </ul>
+              </button>
+              {/* Argument Mapping Mode Card */}
+              <button
+                className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-purple-400"
+                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('argument-mapping'), 200); }}
+              >
+                <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mb-4">
+                  <Map className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-purple-800 mb-2">Argument Mapping Mode</h3>
+                <p className="text-purple-700 mb-2 text-center">Debate with live argument mapping instead of table flow</p>
+                <ul className="text-sm text-purple-600 space-y-1 text-left mx-auto">
+                  <li>• Real-time speech recording</li>
+                  <li>• Live argument mapping</li>
+                  <li>• Logical fallacy detection</li>
+                  <li>• Visual argument flow</li>
                   <li>• Winner determination</li>
                 </ul>
               </button>
@@ -131,6 +150,24 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   <li>• Full debate context</li>
                   <li>• Personalized feedback</li>
                   <li>• No round limitations</li>
+                </ul>
+              </button>
+              {/* Demo Mode Card */}
+              <button
+                className="bg-gradient-to-br from-amber-50 to-orange-100 rounded-xl p-6 border-2 border-amber-200 hover:border-amber-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-amber-400"
+                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('demo'), 200); }}
+              >
+                <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mb-4">
+                  <Map className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-amber-800 mb-2">Argument Map Demo</h3>
+                <p className="text-amber-700 mb-2 text-center">Explore the interactive argument mapping feature</p>
+                <ul className="text-sm text-amber-600 space-y-1 text-left mx-auto">
+                  <li>• Visual argument flow</li>
+                  <li>• Logical fallacy detection</li>
+                  <li>• Strength analysis</li>
+                  <li>• Interactive timeline</li>
+                  <li>• Team analytics</li>
                 </ul>
               </button>
             </div>

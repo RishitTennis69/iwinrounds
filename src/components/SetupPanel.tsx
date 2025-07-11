@@ -3,7 +3,7 @@ import { Speaker } from '../types';
 import { ArrowLeft } from 'lucide-react';
 
 interface SetupPanelProps {
-  onInitialize: (topic: string, speakers: Speaker[], peoplePerTeam: number, speechesPerSpeaker: number) => void;
+  onInitialize: (topic: string, speakers: Speaker[], peoplePerTeam: number, speechesPerSpeaker: number, firstSpeaker: 'affirmative' | 'negative') => void;
   onBack?: () => void;
   freeRoundsUsed?: number;
   isAdmin?: boolean;
@@ -13,6 +13,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
   const [topic, setTopic] = useState('');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
+  const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [speakerNames, setSpeakerNames] = useState<{ [key: string]: string }>({});
 
   // Generate speaker keys
@@ -76,7 +77,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
         speakerNumber: i+1
       });
     }
-    onInitialize(topic, speakers, peoplePerTeam, speechesPerSpeaker);
+    onInitialize(topic, speakers, peoplePerTeam, speechesPerSpeaker, firstSpeaker);
   };
 
   return (
@@ -130,7 +131,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             />
           </div>
           {/* Customization fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Number of People per Team</label>
               <input
@@ -155,6 +156,17 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
                 required
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">First Speaker</label>
+              <select
+                value={firstSpeaker}
+                onChange={e => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="affirmative">Affirmative</option>
+                <option value="negative">Negative</option>
+              </select>
+            </div>
           </div>
           {/* Speakers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -172,9 +184,15 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Debate Order</h3>
             <div className="grid grid-cols-{peoplePerTeam * 2} gap-2 text-sm">
               {Array.from({ length: peoplePerTeam * 2 }).map((_, idx) => {
-                const team = idx % 2 === 0 ? 'affirmative' : 'negative';
+                // Determine team based on first speaker
+                let team: 'affirmative' | 'negative';
+                if (firstSpeaker === 'affirmative') {
+                  team = idx % 2 === 0 ? 'affirmative' : 'negative';
+                } else {
+                  team = idx % 2 === 0 ? 'negative' : 'affirmative';
+                }
                 const speakerIdx = Math.floor(idx / 2);
-                const key = getSpeakerKey(team as 'affirmative' | 'negative', speakerIdx);
+                const key = getSpeakerKey(team, speakerIdx);
                 return (
                   <div className="text-center" key={key}>
                     <div className={`font-medium text-${team === 'affirmative' ? 'blue' : 'red'}-600`}>
@@ -187,6 +205,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             </div>
             <div className="text-xs text-gray-500 mt-2 text-center">
               This order repeats for a total of {peoplePerTeam * 2 * speechesPerSpeaker} speeches
+            </div>
+            <div className="text-xs text-green-600 mt-2 text-center font-medium">
+              {firstSpeaker.charAt(0).toUpperCase() + firstSpeaker.slice(1)} team speaks first
             </div>
           </div>
           <button

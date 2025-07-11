@@ -8,9 +8,13 @@ import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
+import ArgumentMapPanel from './components/ArgumentMapPanel';
+import ArgumentMapDemo from './components/ArgumentMapDemo';
+import ArgumentMappingMode from './components/ArgumentMappingMode';
+import HintPanel from './components/HintPanel';
 
 function App() {
-  const [mode, setMode] = useState<'selection' | 'debate' | 'practice'>('selection');
+  const [mode, setMode] = useState<'selection' | 'debate' | 'practice' | 'demo' | 'argument-mapping'>('selection');
   const [session, setSession] = useState<DebateSession | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
@@ -18,6 +22,8 @@ function App() {
   const [speechRecognition] = useState(() => new SpeechRecognitionService());
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
+  const [showArgumentMap, setShowArgumentMap] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -31,7 +37,7 @@ function App() {
     }
   }, []);
 
-  const handleModeSelect = (selectedMode: 'debate' | 'practice') => {
+  const handleModeSelect = (selectedMode: 'debate' | 'practice' | 'demo' | 'argument-mapping') => {
     setMode(selectedMode);
   };
 
@@ -41,10 +47,19 @@ function App() {
     setCurrentSpeaker(null);
     setSpeechNumber(1);
     setIsAnalyzing(false);
-    // setHintsUsed(0); // Removed
+    setShowArgumentMap(false);
+    setHintsUsed(0);
   };
 
-  const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number) => {
+  const handleHintUsed = () => {
+    setHintsUsed(prev => prev + 1);
+    // Update session hints used
+    if (session) {
+      setSession(prev => prev ? { ...prev, hintsUsed: prev.hintsUsed + 1 } : null);
+    }
+  };
+
+  const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number, firstSpeaker: 'affirmative' | 'negative') => {
     // Check if user has free rounds or is admin // Removed
     // if (freeRoundsUsed >= 1 && !isAdmin) { // Removed
     //   setShowPasswordModal(true); // Removed
@@ -52,6 +67,7 @@ function App() {
     // } // Removed
     setPeoplePerTeam(people);
     setSpeechesPerSpeaker(speeches);
+    setHintsUsed(0);
     
     const newSession: DebateSession = {
       id: Date.now().toString(),
@@ -59,26 +75,36 @@ function App() {
       speakers,
       points: [],
       startTime: new Date(),
-      hintsUsed: 0 // Keep this for now, as it's part of DebateSession
+      hintsUsed: 0, // Keep this for now, as it's part of DebateSession
+      firstSpeaker: firstSpeaker
     };
     setSession(newSession);
-    // setHintsUsed(0); // Removed
     
     // Create debate order that goes through speakers in sequence
-    const debateOrder = createDebateOrder(speakers, speeches);
+    const debateOrder = createDebateOrder(speakers, speeches, firstSpeaker);
     setCurrentSpeaker(debateOrder[0]);
   };
 
   // Create debate order based on people per team and speeches per speaker
-  const createDebateOrder = (speakers: Speaker[], speeches: number): Speaker[] => {
+  const createDebateOrder = (speakers: Speaker[], speeches: number, firstSpeaker: 'affirmative' | 'negative'): Speaker[] => {
     // Alternate between teams, each speaker in order, repeat for speeches per speaker
     const aff = speakers.filter(s => s.team === 'affirmative');
     const neg = speakers.filter(s => s.team === 'negative');
     const sequence: Speaker[] = [];
-    for (let i = 0; i < peoplePerTeam; i++) {
-      sequence.push(aff[i]);
-      sequence.push(neg[i]);
+    
+    // Create sequence based on first speaker
+    if (firstSpeaker === 'affirmative') {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(aff[i]);
+        sequence.push(neg[i]);
+      }
+    } else {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(neg[i]);
+        sequence.push(aff[i]);
+      }
     }
+    
     // Repeat the sequence for speeches per speaker
     const debateOrder: Speaker[] = [];
     for (let i = 0; i < speeches; i++) {
@@ -134,7 +160,7 @@ function App() {
       setSession(updatedSession);
       
       // Get the debate order and move to next speaker
-      const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker);
+      const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker, session.firstSpeaker);
       console.log('Debate order:', debateOrder);
       console.log('Looking for speaker at index:', speechNumber);
       const nextSpeaker = debateOrder[speechNumber]; // speechNumber is 1-indexed, but we want the next speaker
@@ -212,13 +238,13 @@ function App() {
     // } // Removed
   };
 
-  // Reset hints when moving to next speech // Removed
-  // useEffect(() => { // Removed
-  //   if (session && speechNumber > 1) { // Removed
-  //     setHintsUsed(0); // Removed
-  //     setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null); // Removed
-  //   } // Removed
-  // }, [speechNumber, session]); // Removed
+  // Reset hints when moving to next speech
+  useEffect(() => {
+    if (session && speechNumber > 1) {
+      setHintsUsed(0);
+      setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null);
+    }
+  }, [speechNumber, session]);
 
   // Show mode selection if no mode selected
   if (mode === 'selection') {
@@ -239,6 +265,44 @@ function App() {
         // freeRoundsUsed={freeRoundsUsed} // Removed
         // isAdmin={isAdmin} // Removed
       />
+    );
+  }
+
+  // Show argument mapping mode
+  if (mode === 'argument-mapping') {
+    return (
+      <ArgumentMappingMode 
+        onBack={handleBackToModeSelection}
+      />
+    );
+  }
+
+  // Show demo mode
+  if (mode === 'demo') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <header className="mb-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Argument Map Demo
+                </h1>
+                <p className="text-gray-600">
+                  Explore the interactive argument mapping feature with sample data
+                </p>
+              </div>
+              <button
+                onClick={handleBackToModeSelection}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Back to Mode Selection
+              </button>
+            </div>
+          </header>
+          <ArgumentMapDemo />
+        </div>
+      </div>
     );
   }
 
@@ -319,7 +383,7 @@ function App() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Recording Panel only (no Hint Panel) */}
+          {/* Recording Panel and Hint Panel */}
           <div className="lg:col-span-1 space-y-6">
             <RecordingPanel
               currentSpeaker={currentSpeaker}
@@ -328,13 +392,36 @@ function App() {
               speechRecognition={speechRecognition}
               isAnalyzing={isAnalyzing}
             />
+            {session && currentSpeaker && (
+              <HintPanel
+                currentSpeaker={currentSpeaker}
+                session={session}
+                hintsUsed={hintsUsed}
+                onHintUsed={handleHintUsed}
+              />
+            )}
           </div>
 
           {/* Debate Flow Table */}
           <div className="lg:col-span-3">
-            <DebateFlowTable session={session} peoplePerTeam={peoplePerTeam} speechesPerSpeaker={speechesPerSpeaker} />
+            <DebateFlowTable 
+              session={session} 
+              peoplePerTeam={peoplePerTeam} 
+              speechesPerSpeaker={speechesPerSpeaker}
+              onShowArgumentMap={() => setShowArgumentMap(true)}
+            />
           </div>
         </div>
+
+        {/* Argument Map Panel */}
+        {showArgumentMap && (
+          <div className="mt-8">
+            <ArgumentMapPanel
+              session={session}
+              onClose={() => setShowArgumentMap(false)}
+            />
+          </div>
+        )}
 
         {/* Final Analysis */}
         {session.winner && (
