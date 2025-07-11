@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArgumentMap as ArgumentMapType, ArgumentNode, DebateSession } from '../types';
+import { ArgumentMap as ArgumentMapType, DebateSession } from '../types';
 import { AIService } from '../utils/aiService';
 import ArgumentMap from './ArgumentMap';
 import { Map, BarChart3, Clock, Users } from 'lucide-react';
