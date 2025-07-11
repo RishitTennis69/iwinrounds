@@ -76,29 +76,17 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
     }
   };
 
+  // Remove strength from team stats
   const getTeamStats = () => {
-    if (!argumentMap) return { affirmative: { nodes: 0, strength: 0 }, negative: { nodes: 0, strength: 0 } };
-
-    const teamStats = { affirmative: { nodes: 0, strength: 0 }, negative: { nodes: 0, strength: 0 } };
-    
+    if (!argumentMap) return { affirmative: { nodes: 0 }, negative: { nodes: 0 } };
+    const teamStats = { affirmative: { nodes: 0 }, negative: { nodes: 0 } };
     argumentMap.nodes.forEach(node => {
       if (node.team === 'affirmative') {
         teamStats.affirmative.nodes++;
-        teamStats.affirmative.strength += node.strength;
       } else {
         teamStats.negative.nodes++;
-        teamStats.negative.strength += node.strength;
       }
     });
-
-    // Calculate averages
-    if (teamStats.affirmative.nodes > 0) {
-      teamStats.affirmative.strength = Math.round(teamStats.affirmative.strength / teamStats.affirmative.nodes);
-    }
-    if (teamStats.negative.nodes > 0) {
-      teamStats.negative.strength = Math.round(teamStats.negative.strength / teamStats.negative.nodes);
-    }
-
     return teamStats;
   };
 
@@ -113,9 +101,9 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
     return typeStats;
   };
 
+  // Remove strength from timeline data
   const getTimelineData = () => {
     if (!argumentMap) return [];
-
     return argumentMap.nodes
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
       .map(node => ({
@@ -123,7 +111,6 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
         speaker: node.speakerName,
         team: node.team,
         type: node.type,
-        strength: node.strength,
         content: node.content.substring(0, 50) + '...'
       }));
   };
@@ -233,15 +220,10 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
                         <span>Arguments:</span>
                         <span className="font-medium">{stats.affirmative.nodes}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Avg Strength:</span>
-                        <span className="font-medium">{stats.affirmative.strength}/10</span>
-                      </div>
                     </div>
                   );
                 })()}
               </div>
-              
               <div className="bg-red-50 rounded-lg p-4">
                 <h3 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -255,16 +237,11 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
                         <span>Arguments:</span>
                         <span className="font-medium">{stats.negative.nodes}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Avg Strength:</span>
-                        <span className="font-medium">{stats.negative.strength}/10</span>
-                      </div>
                     </div>
                   );
                 })()}
               </div>
             </div>
-
             {/* Argument Types */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-semibold mb-3">Argument Types Distribution</h3>
@@ -282,37 +259,9 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
                 );
               })()}
             </div>
-
-            {/* Strength Distribution */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Argument Strength Distribution
-              </h3>
-              {(() => {
-                const strengthRanges = { '8-10': 0, '6-7': 0, '4-5': 0, '1-3': 0 };
-                argumentMap.nodes.forEach(node => {
-                  if (node.strength >= 8) strengthRanges['8-10']++;
-                  else if (node.strength >= 6) strengthRanges['6-7']++;
-                  else if (node.strength >= 4) strengthRanges['4-5']++;
-                  else strengthRanges['1-3']++;
-                });
-
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(strengthRanges).map(([range, count]) => (
-                      <div key={range} className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{count}</div>
-                        <div className="text-sm text-gray-600">{range} strength</div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
+            {/* Remove strength distribution section */}
           </div>
         )}
-
         {activeTab === 'timeline' && (
           <div className="space-y-4">
             <h3 className="font-semibold mb-3">Argument Timeline</h3>
@@ -334,10 +283,6 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
                           <span className="text-xs text-gray-500 capitalize">{item.type}</span>
                         </div>
                         <div className="text-sm text-gray-700">{item.content}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">Strength:</span>
-                          <span className="text-xs font-medium">{item.strength}/10</span>
-                        </div>
                       </div>
                     </div>
                   ))}
