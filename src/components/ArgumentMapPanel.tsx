@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArgumentMap as ArgumentMapType, ArgumentNode, DebateSession } from '../types';
 import { AIService } from '../utils/aiService';
 import ArgumentMap from './ArgumentMap';
-import { Map, BarChart3, TrendingUp, AlertTriangle, Clock, Users } from 'lucide-react';
+import { Map, BarChart3, Clock, Users } from 'lucide-react';
 
 interface ArgumentMapPanelProps {
   session: DebateSession;
@@ -14,7 +14,6 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
   const [argumentMap, setArgumentMap] = useState<ArgumentMapType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'map' | 'analytics' | 'timeline'>('map');
-  const [selectedNode, setSelectedNode] = useState<ArgumentNode | null>(null);
 
   // Initialize argument map when session changes
   useEffect(() => {
@@ -116,7 +115,7 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
   };
 
   const handleNodeClick = (node: ArgumentNode) => {
-    setSelectedNode(node);
+    // setSelectedNode(node); // This line was removed as per the edit hint
   };
 
   if (isLoading) {
@@ -197,7 +196,6 @@ const ArgumentMapPanel: React.FC<ArgumentMapPanelProps> = ({ session, onClose, c
           <div className="h-96">
             <ArgumentMap
               argumentMap={argumentMap}
-              onNodeClick={handleNodeClick}
               className="h-full"
             />
           </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ArgumentMap as ArgumentMapType, ArgumentNode, ArgumentConnection } from '../types';
+import { ArgumentMap as ArgumentMapType } from '../types';
 import ArgumentMap from './ArgumentMap';
-import { Map, BarChart3, TrendingUp, AlertTriangle, Clock, Users, Play } from 'lucide-react';
+import { Map, BarChart3, TrendingUp, Clock, Users, Play } from 'lucide-react';
 
 const ArgumentMapDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'map' | 'analytics' | 'timeline'>('map');
