@@ -82,7 +82,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       {/* Mode Selection Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-6xl relative animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-2xl relative animate-fade-in">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
               onClick={() => setShowModal(false)}
@@ -91,7 +91,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               ×
             </button>
             <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use Dedicate AI?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Debate Mode Card */}
               <button
                 className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-green-400"
