@@ -450,7 +450,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left Column - AI Speeches */}
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-white rounded-lg shadow-md p-4">
@@ -572,6 +572,16 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
             hintsUsed={hintsUsed}
           />
         </div>
+      </div>
+
+      {/* Debate Flow Table Summary */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Debate Flow Summary</h3>
+        <DebateFlowTable 
+          session={composeSession()} 
+          peoplePerTeam={peoplePerTeam}
+          speechesPerSpeaker={speechesPerSpeaker}
+        />
       </div>
     </div>
   );
