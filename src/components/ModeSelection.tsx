@@ -82,7 +82,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       {/* Mode Selection Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-2xl relative animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-5xl relative animate-fade-in">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
               onClick={() => setShowModal(false)}
@@ -94,7 +94,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
             <div className="flex flex-row gap-6 flex-wrap justify-center items-stretch">
               {/* Debate Mode Card */}
               <button
-                className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-green-400"
+                className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-green-400 min-w-[320px]"
                 onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('debate'), 200); }}
               >
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
@@ -115,7 +115,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               </button>
               {/* Argument Mapping Mode Card */}
               <button
-                className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[320px]"
                 onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('argument-mapping'), 200); }}
               >
                 <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mb-4">
@@ -133,7 +133,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               </button>
               {/* Practice Mode Card */}
               <button
-                className="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-[320px]"
                 onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('practice'), 200); }}
               >
                 <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
