@@ -91,7 +91,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               ×
             </button>
             <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use Dedicate AI?</h2>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="flex flex-row gap-6 flex-wrap justify-center items-stretch">
               {/* Debate Mode Card */}
               <button
                 className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-green-400"
