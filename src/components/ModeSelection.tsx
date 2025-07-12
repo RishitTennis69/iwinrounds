@@ -113,24 +113,6 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   <li>• Winner determination</li>
                 </ul>
               </button>
-              {/* Argument Mapping Mode Card */}
-              <button
-                className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-purple-400 min-w-[320px]"
-                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('argument-mapping'), 200); }}
-              >
-                <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mb-4">
-                  <Map className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-purple-800 mb-2">Argument Mapping Mode</h3>
-                <p className="text-purple-700 mb-2 text-center">Debate with live argument mapping instead of table flow</p>
-                <ul className="text-sm text-purple-600 space-y-1 text-left mx-auto">
-                  <li>• Real-time speech recording</li>
-                  <li>• Live argument mapping</li>
-                  <li>• Logical fallacy detection</li>
-                  <li>• Visual argument flow</li>
-                  <li>• Winner determination</li>
-                </ul>
-              </button>
               {/* Practice Mode Card */}
               <button
                 className="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-[320px]"
