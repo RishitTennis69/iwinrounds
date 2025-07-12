@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DebateSession, Speaker, DebatePoint } from './types';
-import { SpeechRecognitionService } from './utils/speechRecognition';
+import { WhisperService } from './utils/whisperService';
 import { AIService } from './utils/aiService';
 import SetupPanel from './components/SetupPanel';
 import RecordingPanel from './components/RecordingPanel';
@@ -18,7 +18,7 @@ function App() {
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [speechRecognition] = useState(() => new SpeechRecognitionService());
+  const [whisperService] = useState(() => new WhisperService());
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [showArgumentMap, setShowArgumentMap] = useState(false);
@@ -358,8 +358,9 @@ function App() {
             <RecordingPanel
               currentSpeaker={currentSpeaker}
               speechNumber={speechNumber}
+              totalSpeeches={peoplePerTeam * 2 * speechesPerSpeaker}
               onSpeechComplete={handleSpeechComplete}
-              speechRecognition={speechRecognition}
+              speechRecognition={whisperService}
               isAnalyzing={isAnalyzing}
             />
             {session && currentSpeaker && (

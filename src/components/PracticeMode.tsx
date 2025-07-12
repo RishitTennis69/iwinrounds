@@ -4,7 +4,8 @@ import { AIService } from '../utils/aiService';
 import DebateFlowTable from './DebateFlowTable';
 import RecordingPanel from './RecordingPanel';
 import HintPanel from './HintPanel';
-import { SpeechRecognitionService } from '../utils/speechRecognition';
+import { WhisperService } from '../utils/whisperService';
+import { TTSService } from '../utils/ttsService';
 import { useEffect } from 'react';
 
 interface PracticeModeProps {
@@ -24,13 +25,15 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
-  const [feedback, setFeedback] = useState<{ [speechNum: number]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [speechRecognition] = useState(() => new SpeechRecognitionService());
+  const [whisperService] = useState(() => new WhisperService());
+  const [ttsService] = useState(() => new TTSService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [isPlayingAI, setIsPlayingAI] = useState(false);
+  const [currentPlayingSpeech, setCurrentPlayingSpeech] = useState<number | null>(null);
 
   // Reset userSpeakerNumber when peoplePerTeam changes
   useEffect(() => {
@@ -134,6 +137,34 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     setIsLoading(false);
   };
 
+  // Play AI speech using TTS
+  const playAISpeech = async (speechNum: number) => {
+    const speech = aiSpeeches[speechNum];
+    if (!speech || !speech.transcript) return;
+
+    try {
+      setIsPlayingAI(true);
+      setCurrentPlayingSpeech(speechNum);
+      
+      // Choose voice based on team (male voices for affirmative, female for negative)
+      const voice = speech.team === 'affirmative' ? 'echo' : 'nova';
+      
+      await ttsService.speak(speech.transcript, { voice, speed: 0.9 });
+    } catch (error) {
+      console.error('Error playing AI speech:', error);
+    } finally {
+      setIsPlayingAI(false);
+      setCurrentPlayingSpeech(null);
+    }
+  };
+
+  // Stop AI speech
+  const stopAISpeech = () => {
+    ttsService.stop();
+    setIsPlayingAI(false);
+    setCurrentPlayingSpeech(null);
+  };
+
   // On start, simulate up to the user's first speech
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,13 +194,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     setIsLoading(true);
     const speechNum = userSpeechNums[currentSpeechIdx];
     try {
-      const feedbackText = await AIService.generateSpeakerFeedback(
-        userName,
-        userTeam,
-        topic,
-        [currentTranscript]
-      );
-      setFeedback((prev) => ({ ...prev, [speechNum]: feedbackText }));
       setUserSpeeches({ ...userSpeeches, [speechNum]: currentSummary.mainPoints.join('\n') });
       // After user speech, simulate up to next user speech or end
       const nextUserSpeech = getNextUserSpeechNum(speechNum);
@@ -185,7 +209,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
         setStep('complete');
       }
     } catch (err) {
-      setFeedback((prev) => ({ ...prev, [speechNum]: 'Error generating feedback.' }));
+      setUserSpeeches((prev) => ({ ...prev, [speechNum]: 'Error generating feedback.' }));
       setStep('practice');
     } finally {
       setIsLoading(false);
@@ -198,101 +222,191 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   };
 
   // Compose a DebateSession for the table
-  const practiceSession = {
-    id: 'practice',
-    topic,
-    speakers: debateOrder.map((sp) => ({
+  const composeSession = () => {
+    const points: DebatePoint[] = [];
+    
+    // Add user speeches
+    Object.entries(userSpeeches).forEach(([speechNum, summary]) => {
+      const num = parseInt(speechNum);
+      points.push({
+        id: `user-${num}`,
+        speakerId: `user-${num}`,
+        speakerName: userName,
+        team: userTeam,
+        speechNumber: num,
+        mainPoints: summary.split('\n'),
+        counterPoints: [],
+        counterCounterPoints: [],
+        impactWeighing: '',
+        evidence: [],
+        timestamp: new Date(),
+        transcript: currentTranscript
+      });
+    });
+    
+    // Add AI speeches
+    Object.values(aiSpeeches).forEach(speech => {
+      points.push(speech);
+    });
+    
+    // Create speakers array
+    const speakers: Speaker[] = debateOrder.map((sp) => ({
       ...sp,
       name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
-    })),
-    points: Array.from({ length: totalSpeeches }, (_, i) => {
-      const num = i + 1;
-      if (userSpeechNums.includes(num)) {
-        // User speech: show summary if submitted, else empty
-        return userSpeeches[num]
-          ? {
-              id: `user-${num}`,
-              speakerId: `user-${num}`,
-              speakerName: userName,
-              team: userTeam,
-              speechNumber: num,
-              mainPoints: userSpeeches[num].split('\n').filter(Boolean),
-              counterPoints: [],
-              counterCounterPoints: [],
-              impactWeighing: '',
-              evidence: [],
-              timestamp: new Date(),
-              transcript: userSpeeches[num],
-            }
-          : undefined;
-      } else {
-        // AI speech
-        return aiSpeeches[num];
-      }
-    }).filter(Boolean),
-    startTime: new Date(),
-    hintsUsed: hintsUsed,
+    }));
+    
+    return {
+      id: 'practice-session',
+      topic,
+      speakers,
+      points: points.sort((a, b) => a.speechNumber - b.speechNumber),
+      startTime: new Date(),
+      hintsUsed,
+      firstSpeaker: 'affirmative' as const
+    };
   };
 
-  // Render setup
+  // Get current speaker for recording
+  const getCurrentSpeaker = (): Speaker | null => {
+    const speechNum = userSpeechNums[currentSpeechIdx];
+    if (!speechNum) return null;
+    
+    const sp = debateOrder[speechNum - 1];
+    return {
+      ...sp,
+      name: userName
+    };
+  };
+
+  // Get AI speeches to display
+  const getAISpeechesToShow = () => {
+    const currentUserSpeech = userSpeechNums[currentSpeechIdx];
+    if (!currentUserSpeech) return [];
+    
+    return Object.values(aiSpeeches)
+      .filter(speech => speech.speechNumber < currentUserSpeech)
+      .sort((a, b) => a.speechNumber - b.speechNumber);
+  };
+
+  // Create a mock session for HintPanel
+  const createMockSession = () => {
+    return {
+      topic,
+      points: Object.values(aiSpeeches).sort((a, b) => a.speechNumber - b.speechNumber)
+    };
+  };
+
   if (step === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
-          <button onClick={onBack} className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
-            Back
-          </button>
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800">Practice Mode</h1>
-            <p className="text-gray-600">Practice with AI-generated notes for previous speeches</p>
-          </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Practice Mode Setup</h2>
+          
           <form onSubmit={handleStart} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Debate Topic</label>
-              <textarea value={topic} onChange={e => setTopic(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" rows={3} required />
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Debate Topic
+              </label>
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="Enter the debate topic..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                <input type="text" value={userName} onChange={e => setUserName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Team</label>
-                <select value={userTeam} onChange={e => setUserTeam(e.target.value as 'affirmative' | 'negative')} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="affirmative">Affirmative</option>
-                  <option value="negative">Negative</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Speakers per Team</label>
-                <select value={peoplePerTeam} onChange={e => setPeoplePerTeam(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value={1}>1 Speaker</option>
-                  <option value={2}>2 Speakers</option>
-                  <option value={3}>3 Speakers</option>
-                  <option value={4}>4 Speakers</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Speeches per Speaker</label>
-                <select value={speechesPerSpeaker} onChange={e => setSpeechesPerSpeaker(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value={1}>1 Speech</option>
-                  <option value={2}>2 Speeches</option>
-                  <option value={3}>3 Speeches</option>
-                  <option value={4}>4 Speeches</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Speaker Position</label>
-                <select value={userSpeakerNumber} onChange={e => setUserSpeakerNumber(Number(e.target.value))} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  {Array.from({ length: peoplePerTeam }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} Speaker
-                    </option>
-                  ))}
-                </select>
-              </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Enter your name..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
             </div>
-            <button type="submit" className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105">Start Practice</button>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Team
+              </label>
+              <select
+                value={userTeam}
+                onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="affirmative">Affirmative</option>
+                <option value="negative">Negative</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                People per Team
+              </label>
+              <select
+                value={peoplePerTeam}
+                onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={2}>2 people per team</option>
+                <option value={3}>3 people per team</option>
+                <option value={4}>4 people per team</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Speaker Number
+              </label>
+              <select
+                value={userSpeakerNumber}
+                onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {Array.from({ length: peoplePerTeam }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    Speaker {i + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Speeches per Speaker
+              </label>
+              <select
+                value={speechesPerSpeaker}
+                onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={1}>1 speech per speaker</option>
+                <option value={2}>2 speeches per speaker</option>
+                <option value={3}>3 speeches per speaker</option>
+              </select>
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Start Practice
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -301,109 +415,166 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   if (step === 'generating') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <div className="text-lg text-green-700">Generating AI speeches for the round...</div>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating AI Speeches</h2>
+          <p className="text-gray-600">Please wait while the AI generates speeches for the other debaters...</p>
         </div>
       </div>
     );
   }
 
-  // Practice step
-  if (step === 'practice') {
-    const speechNum = userSpeechNums[currentSpeechIdx];
-    const currentSpeaker = {
-      id: `user-${speechNum}`,
-      name: userName,
-      team: userTeam,
-      points: 0,
-      speakerNumber: userSpeakerNumber,
-    };
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl">
-          <button onClick={onBack} className="mb-4 text-gray-600 hover:text-gray-800">Back</button>
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Practice Speech {currentSpeechIdx + 1} of {userSpeechNums.length}</h2>
-            <p className="text-gray-600 mb-2">Topic: <span className="font-semibold">{topic}</span></p>
-            <p className="text-gray-600 mb-2">Your Position: <span className="font-semibold">{userSpeakerNumber === 1 ? '1st' : '2nd'} {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)}</span></p>
-          </div>
-          {/* Debate Flow Table (summary only) */}
-          <div className="mb-8">
-            <DebateFlowTable session={practiceSession as any} peoplePerTeam={peoplePerTeam} speechesPerSpeaker={speechesPerSpeaker} />
-          </div>
-          {/* Recording and Hints */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="md:col-span-2">
-              <RecordingPanel
-                currentSpeaker={currentSpeaker}
-                speechNumber={speechNum}
-                onSpeechComplete={handleSpeechComplete}
-                speechRecognition={speechRecognition}
-                isAnalyzing={isSummarizing}
-              />
-            </div>
-            <div>
-              <HintPanel
-                currentSpeaker={currentSpeaker}
-                session={practiceSession as any}
-                hintsUsed={hintsUsed}
-                onHintUsed={handleHintUsed}
-              />
-            </div>
-          </div>
-          {/* After recording, show summary editor */}
-          {currentTranscript && (
-            <form onSubmit={handleSubmitSummary} className="space-y-4 max-w-2xl mx-auto">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Edit AI Summary (main points, one per line)</label>
-                <textarea
-                  value={currentSummary.mainPoints.join('\n')}
-                  onChange={e => setCurrentSummary({ ...currentSummary, mainPoints: e.target.value.split('\n') })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                  rows={5}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Edit Evidence (facts, statistics, sources - one per line)</label>
-                <textarea
-                  value={currentSummary.evidence.join('\n')}
-                  onChange={e => setCurrentSummary({ ...currentSummary, evidence: e.target.value.split('\n') })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                  rows={3}
-                  placeholder="e.g., 67% of students support this policy (Pew Research, 2023)"
-                />
-              </div>
-              <button type="submit" className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-green-700 transition-all duration-200" disabled={isLoading}>{isLoading ? 'Analyzing...' : 'Submit for Feedback'}</button>
-              {feedback[speechNum] && (
-                <div className="mt-6 bg-green-50 rounded-lg p-4 text-green-800">
-                  <h4 className="font-semibold mb-2">Personalized Feedback</h4>
-                  <div>{feedback[speechNum]}</div>
-                </div>
-              )}
-            </form>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Complete step
   if (step === 'complete') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Practice Complete!</h2>
-          <p className="text-green-700 mb-6">You have completed your practice speeches. Review your feedback above and try again to improve!</p>
-          <button onClick={onBack} className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">Back to Mode Selection</button>
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Practice Complete!</h2>
+          <DebateFlowTable 
+            session={composeSession()} 
+            peoplePerTeam={peoplePerTeam}
+            speechesPerSpeaker={speechesPerSpeaker}
+          />
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={onBack}
+              className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Back to Menu
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  return null;
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - AI Speeches */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Previous Speeches</h3>
+            <div className="space-y-3">
+              {getAISpeechesToShow().map((speech) => (
+                <div key={speech.id} className="border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      speech.team === 'affirmative' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {speech.team}
+                    </span>
+                    <span className="text-sm text-gray-500">Speech {speech.speechNumber}</span>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                    {speech.transcript.substring(0, 100)}...
+                  </p>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => playAISpeech(speech.speechNumber)}
+                      disabled={isPlayingAI}
+                      className="flex-1 bg-blue-600 text-white py-1 px-2 rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {currentPlayingSpeech === speech.speechNumber ? 'Playing...' : 'Listen'}
+                    </button>
+                    {isPlayingAI && currentPlayingSpeech === speech.speechNumber && (
+                      <button
+                        onClick={stopAISpeech}
+                        className="bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"
+                      >
+                        Stop
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center Column - Recording */}
+        <div className="lg:col-span-1">
+          <RecordingPanel
+            currentSpeaker={getCurrentSpeaker()}
+            speechNumber={userSpeechNums[currentSpeechIdx]}
+            totalSpeeches={totalSpeeches}
+            onSpeechComplete={handleSpeechComplete}
+            speechRecognition={whisperService}
+            isAnalyzing={isSummarizing}
+          />
+        </div>
+
+        {/* Right Column - Analysis & Hints */}
+        <div className="lg:col-span-1 space-y-4">
+          {currentTranscript && (
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Speech Analysis</h3>
+              {isSummarizing ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">Analyzing speech...</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {currentSummary.mainPoints.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Main Points:</h4>
+                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        {currentSummary.mainPoints.map((point, idx) => (
+                          <li key={idx}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {currentSummary.counterPoints.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Counter Points:</h4>
+                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        {currentSummary.counterPoints.map((point, idx) => (
+                          <li key={idx}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {currentSummary.evidence.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Evidence:</h4>
+                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        {currentSummary.evidence.map((evidence, idx) => (
+                          <li key={idx}>{evidence}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  <form onSubmit={handleSubmitSummary}>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? 'Processing...' : 'Submit & Continue'}
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          <HintPanel
+            currentSpeaker={getCurrentSpeaker()!}
+            session={createMockSession()}
+            onHintUsed={handleHintUsed}
+            hintsUsed={hintsUsed}
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default PracticeMode; 

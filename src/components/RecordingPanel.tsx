@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
-import { SpeechRecognitionService } from '../utils/speechRecognition';
+import { WhisperService } from '../utils/whisperService';
 import { Mic, Square, Pause, Play, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface RecordingPanelProps {
   currentSpeaker: Speaker | null;
   speechNumber: number;
+  totalSpeeches: number;
   onSpeechComplete: (transcript: string) => void;
-  speechRecognition: SpeechRecognitionService;
+  speechRecognition: WhisperService;
   isAnalyzing: boolean;
 }
 
 const RecordingPanel: React.FC<RecordingPanelProps> = ({
   currentSpeaker,
   speechNumber,
+  totalSpeeches,
   onSpeechComplete,
   speechRecognition,
   isAnalyzing
@@ -23,11 +25,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
   const [transcript, setTranscript] = useState('');
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [sessionDuration, setSessionDuration] = useState(0);
-  const [autoRestartCount, setAutoRestartCount] = useState(0);
-  const [restartAttempts, setRestartAttempts] = useState(0);
-  const [timeSinceActivity, setTimeSinceActivity] = useState(0);
-  const [isSessionActive, setIsSessionActive] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const maxSpeechDuration = 4 * 60; // 4 minutes in seconds
 
@@ -49,38 +47,15 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     return () => clearInterval(interval);
   }, [isRecording, isPaused]);
 
-  // Track session duration and activity
-  useEffect(() => {
-    let sessionInterval: number;
-    if (isRecording) {
-      sessionInterval = setInterval(() => {
-        const sessionTime = speechRecognition.getSessionDuration();
-        const restartCount = speechRecognition.getRestartAttempts();
-        const timeSinceLastActivity = speechRecognition.getTimeSinceLastActivity();
-        const sessionActive = speechRecognition.isSessionActive();
-        
-        setSessionDuration(sessionTime);
-        setRestartAttempts(restartCount);
-        setTimeSinceActivity(timeSinceLastActivity);
-        setIsSessionActive(sessionActive);
-      }, 1000);
-    }
-    return () => clearInterval(sessionInterval);
-  }, [isRecording, speechRecognition]);
-
   const startRecording = async () => {
     if (!currentSpeaker) return;
     
     setError(null);
     setTranscript('');
     setDuration(0);
-    setSessionDuration(0);
-    setAutoRestartCount(0);
-    setRestartAttempts(0);
-    setTimeSinceActivity(0);
-    setIsSessionActive(true);
     setIsRecording(true);
     setIsPaused(false);
+    setIsProcessing(false);
 
     try {
       await speechRecognition.startRecording(
@@ -88,29 +63,29 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           setTranscript(newTranscript);
         },
         (error: string) => {
-          console.log('Speech recognition error:', error);
-          // Don't stop recording for recoverable errors
-          if (error === 'no-speech' || error === 'audio-capture' || error === 'network') {
-            setAutoRestartCount(prev => prev + 1);
-            setError(`Recovering from ${error}... (Auto-restart #${autoRestartCount + 1})`);
-            // Clear error after 3 seconds
-            setTimeout(() => setError(null), 3000);
-          } else {
-            setError(`Recording error: ${error}`);
-            setIsRecording(false);
-          }
+          console.log('Whisper API error:', error);
+          setError(`Recording error: ${error}`);
+          setIsRecording(false);
         }
       );
     } catch (err) {
-      setError('Failed to start recording');
+      setError('Failed to start recording. Please check microphone permissions.');
       setIsRecording(false);
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
+    if (!isRecording) return;
+    
+    setIsProcessing(true);
     speechRecognition.stopRecording();
     setIsRecording(false);
     setIsPaused(false);
+    
+    // Wait a moment for processing to complete
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 2000);
   };
 
   const pauseRecording = () => {
@@ -128,11 +103,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
       onSpeechComplete(transcript);
       setTranscript('');
       setDuration(0);
-      setSessionDuration(0);
-      setAutoRestartCount(0);
-      setRestartAttempts(0);
-      setTimeSinceActivity(0);
-      setIsSessionActive(true);
     }
   };
 
@@ -163,7 +133,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Speech {speechNumber}/8
+          Speech {speechNumber}/{totalSpeeches}
         </h3>
         <div className="flex items-center justify-center space-x-2 mb-2">
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -223,116 +193,76 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           )}
         </div>
 
-        {/* Timer and Progress */}
-        {isRecording && (
-          <div className="text-center space-y-2">
-            <div className="flex justify-between items-center text-sm text-gray-600">
-              <span>Elapsed: {formatTime(duration)}</span>
-              <span>Remaining: {getTimeRemaining()}</span>
+        {/* Status Indicators */}
+        <div className="flex items-center justify-center space-x-4">
+          {isRecording && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600">Recording...</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${getProgressPercentage()}%` }}
-              ></div>
+          )}
+          {isPaused && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Paused</span>
             </div>
-            <div className="text-sm text-gray-500">
-              {isPaused ? 'Paused' : 'Recording...'}
-              {autoRestartCount > 0 && (
-                <span className="ml-2 text-yellow-600">
-                  Auto-restarts: {autoRestartCount}
-                </span>
-              )}
+          )}
+          {isProcessing && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600">Processing audio...</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Session Duration Info */}
-        {isRecording && sessionDuration > 0 && (
-          <div className="text-center text-xs text-gray-500 space-y-1">
-            <div>Session duration: {formatTime(Math.floor(sessionDuration / 1000))}</div>
-            {restartAttempts > 0 && (
-              <div className="text-yellow-600">
-                Auto-restarts: {restartAttempts}/10
-              </div>
-            )}
-            {timeSinceActivity > 10000 && (
-              <div className="text-orange-600">
-                No activity for: {formatTime(Math.floor(timeSinceActivity / 1000))}
-              </div>
-            )}
-            {!isSessionActive && (
-              <div className="text-red-600">
-                Session may be inactive
-              </div>
-            )}
+        {/* Timer and Progress */}
+        <div className="text-center">
+          <div className="text-2xl font-mono text-gray-900 mb-2">
+            {formatTime(duration)}
           </div>
-        )}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div 
+              className="bg-red-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${getProgressPercentage()}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-500">
+            Time remaining: {getTimeRemaining()}
+          </p>
+        </div>
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-red-500" />
-              <p className="text-red-800 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {!isRecording && transcript.trim() && !error && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <p className="text-green-800 text-sm">Recording completed successfully!</p>
-            </div>
+          <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <span className="text-sm text-red-700">{error}</span>
           </div>
         )}
 
         {/* Transcript Display */}
-        {transcript && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900">Live Transcript:</h4>
-              <span className="text-xs text-gray-500">
-                {transcript.split(' ').length} words
-              </span>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-              <p className="text-gray-700 text-sm whitespace-pre-wrap">{transcript}</p>
-            </div>
-            
-            {!isRecording && transcript.trim() && (
-              <button
-                onClick={handleComplete}
-                disabled={isAnalyzing}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isAnalyzing ? 'Analyzing...' : 'Complete Speech & Analyze'}
-              </button>
+        <div className="space-y-2">
+          <h4 className="font-medium text-gray-900">Transcript:</h4>
+          <div className="bg-gray-50 rounded-lg p-4 min-h-[100px] max-h-[200px] overflow-y-auto">
+            {transcript ? (
+              <p className="text-gray-800 whitespace-pre-wrap">{transcript}</p>
+            ) : (
+              <p className="text-gray-500 italic">
+                {isRecording ? 'Listening...' : 'No transcript yet'}
+              </p>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Analysis Status */}
-        {isAnalyzing && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span className="text-blue-800 text-sm">AI is analyzing the speech...</span>
-            </div>
-          </div>
-        )}
-
-        {/* Speech Duration Warning */}
-        {duration >= maxSpeechDuration - 30 && duration < maxSpeechDuration && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-yellow-500" />
-              <p className="text-yellow-800 text-sm">
-                Warning: Speech will auto-stop in {getTimeRemaining()}
-              </p>
-            </div>
+        {/* Complete Button */}
+        {transcript.trim() && !isRecording && !isProcessing && (
+          <div className="flex justify-center">
+            <button
+              onClick={handleComplete}
+              className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <CheckCircle className="w-5 h-5" />
+              <span>Complete Speech</span>
+            </button>
           </div>
         )}
       </div>

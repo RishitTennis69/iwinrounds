@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Speaker, DebateSession, DebatePoint, ArgumentMap } from '../types';
 import { AIService } from '../utils/aiService';
-import { SpeechRecognitionService } from '../utils/speechRecognition';
+import { WhisperService } from '../utils/whisperService';
 import SetupPanel from './SetupPanel';
 import RecordingPanel from './RecordingPanel';
 import ArgumentMapPanel from './ArgumentMapPanel';
@@ -17,7 +17,7 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [speechRecognition] = useState(() => new SpeechRecognitionService());
+  const [whisperService] = useState(() => new WhisperService());
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [argumentMap, setArgumentMap] = useState<ArgumentMap | null>(null);
@@ -298,8 +298,9 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
             <RecordingPanel
               currentSpeaker={currentSpeaker}
               speechNumber={speechNumber}
+              totalSpeeches={peoplePerTeam * 2 * speechesPerSpeaker}
               onSpeechComplete={handleSpeechComplete}
-              speechRecognition={speechRecognition}
+              speechRecognition={whisperService}
               isAnalyzing={isAnalyzing}
             />
           </div>
