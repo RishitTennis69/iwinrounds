@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DebateSession, Speaker, DebatePoint } from './types';
 import { WhisperService } from './utils/whisperService';
 import { AIService } from './utils/aiService';
@@ -23,6 +23,8 @@ function App() {
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [showArgumentMap, setShowArgumentMap] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const finalAnalysisRef = useRef<HTMLDivElement>(null);
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
@@ -190,7 +192,26 @@ function App() {
       // Generate personalized feedback and content recommendations for each speaker
       const speakersWithPointsAndFeedback = await Promise.all(
         updatedSession.speakers.map(async (speaker) => {
-          const points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
+          // Use the AI-generated points, but ensure winning team gets higher scores
+          let points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
+          
+          // Ensure winning team gets higher points
+          if (speaker.team === analysis.winner) {
+            // If this speaker is on the winning team, ensure they have higher points
+            const losingTeamSpeakers = updatedSession.speakers.filter(s => s.team !== analysis.winner);
+            const maxLosingScore = Math.max(...losingTeamSpeakers.map(s => analysis.speakerPoints[s.id] || 25));
+            if (points <= maxLosingScore) {
+              points = maxLosingScore + 1;
+            }
+          } else {
+            // If this speaker is on the losing team, ensure they have lower points
+            const winningTeamSpeakers = updatedSession.speakers.filter(s => s.team === analysis.winner);
+            const minWinningScore = Math.min(...winningTeamSpeakers.map(s => analysis.speakerPoints[s.id] || 30));
+            if (points >= minWinningScore) {
+              points = minWinningScore - 1;
+            }
+          }
+          
           // Gather all speeches for this speaker
           const speeches = updatedSession.points
             .filter(p => p.speakerId === speaker.id)
@@ -217,9 +238,10 @@ function App() {
               feedback
             );
           } catch (err) {
-            feedback = 'Error generating feedback.';
+            console.error('Error generating feedback for', speaker.name, err);
+            feedback = 'Unable to generate personalized feedback at this time.';
             contentRecommendations = {
-              weaknesses: ['Unable to analyze weaknesses'],
+              weaknesses: ['Analysis temporarily unavailable'],
               recommendations: []
             };
           }
@@ -245,6 +267,14 @@ function App() {
       };
       setSession(finalSession);
       handleDebateComplete(); // Mark debate as completed
+      
+      // Show completion popup and auto-scroll
+      setShowCompletionPopup(true);
+      setTimeout(() => {
+        if (finalAnalysisRef.current) {
+          finalAnalysisRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500);
     } catch (error) {
       console.error('Error analyzing winner:', error);
     } finally {
@@ -420,11 +450,30 @@ function App() {
 
         {/* Final Analysis */}
         {session.winner && (
-          <div className="mt-8">
+          <div ref={finalAnalysisRef} className="mt-8">
             <FinalAnalysis session={session} />
           </div>
         )}
       </div>
+
+      {/* Completion Popup */}
+      {showCompletionPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Round Complete!</h2>
+            <p className="text-gray-700 mb-6">
+              Your debate analysis is ready! Scroll down to see your final results and personalized feedback.
+            </p>
+            <button
+              onClick={() => setShowCompletionPopup(false)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+            >
+              View Results
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

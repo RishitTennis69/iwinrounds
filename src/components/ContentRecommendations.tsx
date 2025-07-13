@@ -128,14 +128,6 @@ const ContentRecommendations: React.FC<ContentRecommendationsProps> = ({
           ))}
         </div>
       </div>
-
-      {/* Footer Note */}
-      <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <span className="font-medium">💡 Tip:</span> These recommendations are personalized based on your debate performance. 
-          Focus on the areas that were identified as weaknesses to see the most improvement.
-        </p>
-      </div>
     </div>
   );
 };

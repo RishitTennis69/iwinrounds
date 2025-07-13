@@ -149,8 +149,15 @@ ${debateSummary}
 Please determine:
 1. Which team won (affirmative or negative)
 2. Detailed reasoning for the decision
-3. Individual speaker scores (0-100 scale)
+3. Individual speaker scores (0-100 scale) - IMPORTANT: The winning team must have higher scores than the losing team
 4. Overall debate summary
+
+IMPORTANT SCORING RULES:
+- The winning team should have higher scores than the losing team
+- For close debates, use scores like 85-84, 82-81, etc.
+- For decisive wins, use larger gaps like 88-82, 85-78, etc.
+- Base scores on actual performance quality, not just win/loss
+- All scores should be between 70-95 for realistic debate scoring
 
 Respond in this exact JSON format:
 {
@@ -212,6 +219,28 @@ Respond in this exact JSON format:
         }
         
         const analysis = JSON.parse(jsonContent);
+        
+        // Validate that winning team has higher scores
+        const winningTeam = analysis.winner;
+        const winningTeamSpeakers = session.speakers.filter((s: any) => s.team === winningTeam);
+        const losingTeamSpeakers = session.speakers.filter((s: any) => s.team !== winningTeam);
+        
+        const winningScores = winningTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 0);
+        const losingScores = losingTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 0);
+        
+        const avgWinningScore = winningScores.length > 0 ? winningScores.reduce((a: number, b: number) => a + b, 0) / winningScores.length : 0;
+        const avgLosingScore = losingScores.length > 0 ? losingScores.reduce((a: number, b: number) => a + b, 0) / losingScores.length : 0;
+        
+        // If winning team doesn't have higher average score, adjust scores
+        if (avgWinningScore <= avgLosingScore) {
+          const adjustment = Math.max(3, Math.ceil((avgLosingScore - avgWinningScore) + 2));
+          winningTeamSpeakers.forEach((s: any) => {
+            if (analysis.speakerPoints[s.id]) {
+              analysis.speakerPoints[s.id] += adjustment;
+            }
+          });
+        }
+        
         return {
           winner: analysis.winner || 'affirmative',
           reasoning: analysis.reasoning || 'No reasoning provided',
@@ -391,6 +420,11 @@ Respond in this exact JSON format:
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
     }
 
+    // If no speeches provided, return a generic message
+    if (!speeches || speeches.length === 0) {
+      return 'No speeches available for analysis. Please ensure you have completed at least one speech to receive personalized feedback.';
+    }
+
     const combinedSpeeches = speeches.join('\n\n');
 
     const prompt = `You are an expert debate coach. Provide personalized feedback for a debater based on their speeches.
@@ -436,10 +470,16 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
       }
 
       const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+        throw new Error('Invalid response format from API');
+      }
+      
       return data.choices[0].message.content;
     } catch (error) {
-      console.error('API error:', error);
-      throw error;
+      console.error('API error in generateSpeakerFeedback:', error);
+      // Return a helpful fallback message instead of throwing
+      return `Thank you for participating in the debate, ${speakerName}! While we couldn't generate personalized feedback at this time, we encourage you to review your speeches and consider areas where you felt most confident and areas where you could improve. Practice and preparation are key to becoming a stronger debater.`;
     }
   }
 
@@ -455,6 +495,27 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
   }> {
     if (!isAPIKeyConfigured()) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    // If no speeches provided, return default recommendations
+    if (!speeches || speeches.length === 0) {
+      return {
+        weaknesses: ['Limited speech data available for analysis'],
+        recommendations: [
+          {
+            type: 'video',
+            title: 'Debate Fundamentals',
+            description: 'Learn the basics of debate structure and argumentation',
+            reason: 'Essential foundation for all debaters'
+          },
+          {
+            type: 'book',
+            title: 'The Art of Debate',
+            description: 'Comprehensive guide to debate techniques and strategies',
+            reason: 'Valuable resource for improving debate skills'
+          }
+        ]
+      };
     }
 
     const combinedSpeeches = speeches.join('\n\n');
@@ -552,8 +613,25 @@ Focus on high-quality, accessible content that directly addresses the specific w
         throw new Error('Invalid response format from API');
       }
     } catch (error) {
-      console.error('API error:', error);
-      throw error;
+      console.error('API error in generateContentRecommendations:', error);
+      // Return helpful fallback recommendations instead of throwing
+      return {
+        weaknesses: ['Analysis temporarily unavailable'],
+        recommendations: [
+          {
+            type: 'video',
+            title: 'Debate Fundamentals',
+            description: 'Essential debate techniques and strategies',
+            reason: 'Great starting point for improving debate skills'
+          },
+          {
+            type: 'book',
+            title: 'The Art of Debate',
+            description: 'Comprehensive guide to debate techniques',
+            reason: 'Valuable resource for all debaters'
+          }
+        ]
+      };
     }
   }
 
