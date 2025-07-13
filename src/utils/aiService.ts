@@ -443,6 +443,120 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
     }
   }
 
+  static async generateContentRecommendations(speakerName: string, team: string, topic: string, speeches: string[], feedback: string): Promise<{
+    weaknesses: string[];
+    recommendations: Array<{
+      type: 'video' | 'book' | 'article' | 'course';
+      title: string;
+      description: string;
+      url?: string;
+      reason: string;
+    }>;
+  }> {
+    if (!isAPIKeyConfigured()) {
+      throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
+    }
+
+    const combinedSpeeches = speeches.join('\n\n');
+
+    const prompt = `You are an expert debate coach and educational content curator. Based on a debater's performance and feedback, recommend specific educational content to help them improve.
+
+Speaker: ${speakerName}
+Team: ${team}
+Topic: ${topic}
+
+Speeches:
+${combinedSpeeches}
+
+Feedback Given:
+${feedback}
+
+Please analyze the debater's weaknesses and recommend 2-3 specific educational resources (videos, books, articles, or courses) that would help them improve.
+
+First, identify 2-3 specific weaknesses from their performance. Then recommend content that directly addresses these weaknesses.
+
+Respond in this exact JSON format:
+{
+  "weaknesses": ["specific weakness 1", "specific weakness 2", "specific weakness 3"],
+  "recommendations": [
+    {
+      "type": "video",
+      "title": "How to Find Strong Evidence Quickly",
+      "description": "A comprehensive guide on research techniques for debate evidence",
+      "url": "https://example.com/video-url",
+      "reason": "This video directly addresses your struggle with finding relevant evidence"
+    },
+    {
+      "type": "book", 
+      "title": "The Art of Rebuttal",
+      "description": "Master the techniques of effective counter-arguments",
+      "reason": "This book will help improve your rebuttal skills which were identified as an area for growth"
+    }
+  ]
+}
+
+Focus on high-quality, accessible content that directly addresses the specific weaknesses identified. For videos, prefer YouTube educational channels. For books, suggest well-known debate or public speaking books. For articles, suggest academic or debate coaching resources.`;
+
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-nano',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Response:', response.status, errorText);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      
+      try {
+        let jsonContent = content;
+        
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const analysis = JSON.parse(jsonContent);
+        return {
+          weaknesses: analysis.weaknesses || [],
+          recommendations: analysis.recommendations || []
+        };
+      } catch (parseError) {
+        console.error('Failed to parse content recommendations:', parseError);
+        console.error('Raw content:', content);
+        throw new Error('Invalid response format from API');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      throw error;
+    }
+  }
+
   // New methods for argument mapping
   static async extractArgumentNodes(transcript: string, speakerId: string, speakerName: string, team: 'affirmative' | 'negative', speechNumber: number): Promise<{
     nodes: any[];

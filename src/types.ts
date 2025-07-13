@@ -5,6 +5,16 @@ export interface Speaker {
   points: number;
   speakerNumber?: number; // 1st or 2nd speaker
   feedback?: string;
+  contentRecommendations?: {
+    weaknesses: string[];
+    recommendations: Array<{
+      type: 'video' | 'book' | 'article' | 'course';
+      title: string;
+      description: string;
+      url?: string;
+      reason: string;
+    }>;
+  };
 }
 
 export interface DebatePoint {

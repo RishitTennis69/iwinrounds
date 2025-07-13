@@ -182,18 +182,24 @@ function App() {
 
   const analyzeWinner = async (updatedSession: DebateSession) => {
     try {
+      setIsAnalyzing(true);
+      
+      // Analyze the overall winner
       const analysis = await AIService.analyzeWinner(updatedSession);
-      // Assign random points (25-30) and generate feedback for each speaker
+      
+      // Generate personalized feedback and content recommendations for each speaker
       const speakersWithPointsAndFeedback = await Promise.all(
         updatedSession.speakers.map(async (speaker) => {
-          // Assign points (use AI if available, else random 25-30)
           const points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
           // Gather all speeches for this speaker
           const speeches = updatedSession.points
             .filter(p => p.speakerId === speaker.id)
             .map(p => p.transcript);
+          
           // Generate personalized feedback
           let feedback = '';
+          let contentRecommendations = null;
+          
           try {
             feedback = await AIService.generateSpeakerFeedback(
               speaker.name,
@@ -201,16 +207,32 @@ function App() {
               updatedSession.topic,
               speeches
             );
+            
+            // Generate content recommendations based on the feedback
+            contentRecommendations = await AIService.generateContentRecommendations(
+              speaker.name,
+              speaker.team,
+              updatedSession.topic,
+              speeches,
+              feedback
+            );
           } catch (err) {
             feedback = 'Error generating feedback.';
+            contentRecommendations = {
+              weaknesses: ['Unable to analyze weaknesses'],
+              recommendations: []
+            };
           }
+          
           return {
             ...speaker,
             points,
             feedback,
+            contentRecommendations,
           };
         })
       );
+      
       const finalSession: DebateSession = {
         ...updatedSession,
         endTime: new Date(),
@@ -225,6 +247,8 @@ function App() {
       handleDebateComplete(); // Mark debate as completed
     } catch (error) {
       console.error('Error analyzing winner:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
