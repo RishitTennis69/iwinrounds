@@ -308,41 +308,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
           {/* Setup Wizard */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            {/* Progress Steps */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
-                    1
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Basic Info</p>
-                    <p className="text-xs text-gray-500">Topic & Name</p>
-                  </div>
-                </div>
-                <div className="w-16 h-0.5 bg-gray-300"></div>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
-                    2
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-500">Team Setup</p>
-                    <p className="text-xs text-gray-400">Position & Role</p>
-                  </div>
-                </div>
-                <div className="w-16 h-0.5 bg-gray-300"></div>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
-                    3
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-500">Format</p>
-                    <p className="text-xs text-gray-400">Structure & Rules</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <form onSubmit={handleStart} className="space-y-8">
               {/* Step 1: Basic Information */}
               <div className="space-y-6">
@@ -491,8 +456,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       People per Team
                     </label>
-                    <div className="grid grid-cols-4 gap-3">
-                      {[1, 2, 3, 4].map((num) => (
+                    <div className="grid grid-cols-3 gap-3">
+                      {[1, 2, 3].map((num) => (
                         <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
                           <input
                             type="radio"
@@ -527,8 +492,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Speeches per Speaker
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[1, 2, 3].map((num) => (
+                    <div className="grid grid-cols-4 gap-3">
+                      {[1, 2, 3, 4].map((num) => (
                         <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
                           <input
                             type="radio"
