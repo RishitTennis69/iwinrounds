@@ -7,6 +7,7 @@ import HintPanel from './HintPanel';
 import { WhisperService } from '../utils/whisperService';
 import { TTSService } from '../utils/ttsService';
 import { useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 
 interface PracticeModeProps {
   onBack: () => void;
@@ -298,307 +299,193 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   if (step === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-        <div className="max-w-4xl mx-auto px-6">
-          {/* Header */}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
+          {/* Back Button */}
+          <button
+            onClick={onBack}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Mode Selection</span>
+          </button>
+
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Practice Mode Setup</h1>
-            <p className="text-lg text-gray-600">Configure your debate practice session</p>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Dedicate AI</h1>
+            <p className="text-gray-600">AI-Powered Debate Analysis & Flow Tracking</p>
+            <p className="text-blue-600 font-medium mt-2">Practice Mode Setup</p>
           </div>
 
-          {/* Setup Wizard */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form onSubmit={handleStart} className="space-y-8">
-              {/* Step 1: Basic Information */}
-              <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Basic Information</h3>
-                  <p className="text-gray-600">Tell us about your debate topic and yourself</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Debate Topic
-                    </label>
-                    <input
-                      type="text"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="e.g., Should social media be regulated?"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-2">Enter a clear, debatable topic</p>
-                  </div>
+          <form onSubmit={handleStart} className="space-y-6">
+            {/* Topic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Debate Topic
+              </label>
+              <textarea
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+                placeholder="Enter the debate topic or resolution..."
+                required
+              />
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Your Name
-                    </label>
-                    <input
-                      type="text"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                      placeholder="e.g., John Smith"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-2">How you'll be identified in the debate</p>
-                  </div>
-                </div>
+            {/* Your Information */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Enter your name..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            {/* Customization fields */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">People per Team</label>
+                <select
+                  value={peoplePerTeam}
+                  onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value={1}>1 (1v1)</option>
+                  <option value={2}>2 (2v2)</option>
+                  <option value={3}>3 (3v3)</option>
+                </select>
               </div>
-
-              {/* Step 2: Team Setup */}
-              <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Team Setup</h3>
-                  <p className="text-gray-600">Choose your position and role in the debate</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Your Team
-                    </label>
-                    <div className="space-y-3">
-                      <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-all duration-200">
-                        <input
-                          type="radio"
-                          name="team"
-                          value="affirmative"
-                          checked={userTeam === 'affirmative'}
-                          onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
-                          className="sr-only"
-                        />
-                        <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                          userTeam === 'affirmative' 
-                            ? 'border-blue-600 bg-blue-600' 
-                            : 'border-gray-300'
-                        }`}>
-                          {userTeam === 'affirmative' && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">Affirmative</div>
-                          <div className="text-sm text-gray-500">Support the motion</div>
-                        </div>
-                      </label>
-                      
-                      <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-red-300 transition-all duration-200">
-                        <input
-                          type="radio"
-                          name="team"
-                          value="negative"
-                          checked={userTeam === 'negative'}
-                          onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
-                          className="sr-only"
-                        />
-                        <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                          userTeam === 'negative' 
-                            ? 'border-red-600 bg-red-600' 
-                            : 'border-gray-300'
-                        }`}>
-                          {userTeam === 'negative' && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">Negative</div>
-                          <div className="text-sm text-gray-500">Oppose the motion</div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Your Speaker Number
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {Array.from({ length: peoplePerTeam }, (_, i) => (
-                        <label key={i + 1} className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
-                          <input
-                            type="radio"
-                            name="speaker"
-                            value={i + 1}
-                            checked={userSpeakerNumber === i + 1}
-                            onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
-                            className="sr-only"
-                          />
-                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
-                            userSpeakerNumber === i + 1 
-                              ? 'border-blue-600 bg-blue-600' 
-                              : 'border-gray-300'
-                          }`}>
-                            {userSpeakerNumber === i + 1 && (
-                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-900">Speaker {i + 1}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Speeches per Speaker</label>
+                <select
+                  value={speechesPerSpeaker}
+                  onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value={1}>1</option>
+                  <option value={2}>2</option>
+                  <option value={3}>3</option>
+                  <option value={4}>4</option>
+                </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Your Team</label>
+                <select
+                  value={userTeam}
+                  onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="affirmative">Affirmative</option>
+                  <option value="negative">Negative</option>
+                </select>
+              </div>
+            </div>
 
-              {/* Step 3: Format Configuration */}
-              <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Format Configuration</h3>
-                  <p className="text-gray-600">Set up the debate structure and rules</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      People per Team
-                    </label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[1, 2, 3].map((num) => (
-                        <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
-                          <input
-                            type="radio"
-                            name="peoplePerTeam"
-                            value={num}
-                            checked={peoplePerTeam === num}
-                            onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
-                            className="sr-only"
-                          />
-                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
-                            peoplePerTeam === num 
-                              ? 'border-blue-600 bg-blue-600' 
-                              : 'border-gray-300'
-                          }`}>
-                            {peoplePerTeam === num && (
-                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-900">{num}</span>
-                        </label>
-                      ))}
+            {/* Your Speaker Position */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Speaker Number</label>
+              <div className="grid grid-cols-3 gap-3">
+                {Array.from({ length: peoplePerTeam }, (_, i) => (
+                  <label key={i + 1} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
+                    <input
+                      type="radio"
+                      name="speaker"
+                      value={i + 1}
+                      checked={userSpeakerNumber === i + 1}
+                      onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                      className="sr-only"
+                    />
+                    <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
+                      userSpeakerNumber === i + 1 
+                        ? 'border-blue-600 bg-blue-600' 
+                        : 'border-gray-300'
+                    }`}>
+                      {userSpeakerNumber === i + 1 && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {peoplePerTeam === 1 
-                        ? '1v1 debate (you vs opponent)' 
-                        : `Total debaters: ${peoplePerTeam * 2}`
-                      }
+                    <span className="font-medium text-gray-900">Speaker {i + 1}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Debate Structure Preview */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Practice Session Overview</h3>
+              {peoplePerTeam === 1 ? (
+                <div className="text-center">
+                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">1v1 Practice Format</h4>
+                    <p className="text-sm text-blue-700">
+                      You will practice against an AI opponent in a direct 1v1 debate.
                     </p>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Speeches per Speaker
-                    </label>
-                    <div className="grid grid-cols-4 gap-3">
-                      {[1, 2, 3, 4].map((num) => (
-                        <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
-                          <input
-                            type="radio"
-                            name="speechesPerSpeaker"
-                            value={num}
-                            checked={speechesPerSpeaker === num}
-                            onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
-                            className="sr-only"
-                          />
-                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
-                            speechesPerSpeaker === num 
-                              ? 'border-blue-600 bg-blue-600' 
-                              : 'border-gray-300'
-                          }`}>
-                            {speechesPerSpeaker === num && (
-                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-900">{num}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Total speeches: {totalSpeeches}</p>
-                  </div>
-                </div>
-
-                {/* Debate Structure Preview */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h4 className="font-semibold text-gray-900 mb-4">Debate Structure Preview</h4>
-                  {peoplePerTeam === 1 ? (
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                        <h5 className="text-sm font-medium text-blue-800 mb-2">1v1 Debate Format</h5>
-                        <p className="text-sm text-blue-700">
-                          You will debate directly against one opponent, each representing your respective teams.
-                        </p>
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-green-600 font-semibold">You</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span className="text-green-600 font-semibold">You</span>
-                          </div>
-                          <p className="text-sm text-gray-600">{userTeam.charAt(0).toUpperCase() + userTeam.slice(1)}</p>
-                          <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span className="text-red-600 font-semibold">AI</span>
-                          </div>
-                          <p className="text-sm text-gray-600">{userTeam === 'affirmative' ? 'Negative' : 'Affirmative'}</p>
-                          <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
-                        </div>
-                      </div>
+                      <p className="text-sm text-gray-600">{userTeam.charAt(0).toUpperCase() + userTeam.slice(1)}</p>
+                      <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h5 className="text-sm font-medium text-green-700 mb-2">Affirmative Team</h5>
-                        <div className="space-y-1">
-                          {Array.from({ length: peoplePerTeam }, (_, i) => (
-                            <div key={i} className="text-sm text-gray-600">
-                              Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
-                            </div>
-                          ))}
-                        </div>
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-red-600 font-semibold">AI</span>
                       </div>
-                      <div>
-                        <h5 className="text-sm font-medium text-red-700 mb-2">Negative Team</h5>
-                        <div className="space-y-1">
-                          {Array.from({ length: peoplePerTeam }, (_, i) => (
-                            <div key={i} className="text-sm text-gray-600">
-                              Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <p className="text-sm text-gray-600">{userTeam === 'affirmative' ? 'Negative' : 'Affirmative'}</p>
+                      <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
                     </div>
-                  )}
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Your role:</strong> {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)} Speaker {userSpeakerNumber} 
-                      ({userSpeechNums.length} speech{userSpeechNums.length > 1 ? 'es' : ''})
-                    </p>
                   </div>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-600 mb-2">Affirmative Team</h4>
+                    <div className="space-y-1">
+                      {Array.from({ length: peoplePerTeam }, (_, i) => (
+                        <div key={i} className="text-sm text-gray-600">
+                          Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-red-600 mb-2">Negative Team</h4>
+                    <div className="space-y-1">
+                      {Array.from({ length: peoplePerTeam }, (_, i) => (
+                        <div key={i} className="text-sm text-gray-600">
+                          Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Your role:</strong> {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)} Speaker {userSpeakerNumber} 
+                  ({userSpeechNums.length} speech{userSpeechNums.length > 1 ? 'es' : ''})
+                </p>
               </div>
+              <div className="text-xs text-gray-500 mt-2 text-center">
+                Total speeches in this practice session: {totalSpeeches}
+              </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="flex space-x-4 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors font-medium"
-                >
-                  Back to Menu
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-                >
-                  Start Practice Session
-                </button>
-              </div>
-            </form>
-          </div>
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+            >
+              Start Practice Session
+            </button>
+          </form>
         </div>
       </div>
     );
