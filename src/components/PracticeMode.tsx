@@ -298,116 +298,310 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   if (step === 'setup') {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Practice Mode Setup</h2>
-          
-          <form onSubmit={handleStart} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Debate Topic
-              </label>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="Enter the debate topic..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Practice Mode Setup</h1>
+            <p className="text-lg text-gray-600">Configure your debate practice session</p>
+          </div>
+
+          {/* Setup Wizard */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            {/* Progress Steps */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+                    1
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-900">Basic Info</p>
+                    <p className="text-xs text-gray-500">Topic & Name</p>
+                  </div>
+                </div>
+                <div className="w-16 h-0.5 bg-gray-300"></div>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
+                    2
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-500">Team Setup</p>
+                    <p className="text-xs text-gray-400">Position & Role</p>
+                  </div>
+                </div>
+                <div className="w-16 h-0.5 bg-gray-300"></div>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
+                    3
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-500">Format</p>
+                    <p className="text-xs text-gray-400">Structure & Rules</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Enter your name..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+            <form onSubmit={handleStart} className="space-y-8">
+              {/* Step 1: Basic Information */}
+              <div className="space-y-6">
+                <div className="border-b border-gray-200 pb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Basic Information</h3>
+                  <p className="text-gray-600">Tell us about your debate topic and yourself</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Debate Topic
+                    </label>
+                    <input
+                      type="text"
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder="e.g., Should social media be regulated?"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Enter a clear, debatable topic</p>
+                  </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Team
-              </label>
-              <select
-                value={userTeam}
-                onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="affirmative">Affirmative</option>
-                <option value="negative">Negative</option>
-              </select>
-            </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="e.g., John Smith"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-2">How you'll be identified in the debate</p>
+                  </div>
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                People per Team
-              </label>
-              <select
-                value={peoplePerTeam}
-                onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={2}>2 people per team</option>
-                <option value={3}>3 people per team</option>
-                <option value={4}>4 people per team</option>
-              </select>
-            </div>
+              {/* Step 2: Team Setup */}
+              <div className="space-y-6">
+                <div className="border-b border-gray-200 pb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Team Setup</h3>
+                  <p className="text-gray-600">Choose your position and role in the debate</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Your Team
+                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="team"
+                          value="affirmative"
+                          checked={userTeam === 'affirmative'}
+                          onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
+                          className="sr-only"
+                        />
+                        <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                          userTeam === 'affirmative' 
+                            ? 'border-blue-600 bg-blue-600' 
+                            : 'border-gray-300'
+                        }`}>
+                          {userTeam === 'affirmative' && (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Affirmative</div>
+                          <div className="text-sm text-gray-500">Support the motion</div>
+                        </div>
+                      </label>
+                      
+                      <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-red-300 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="team"
+                          value="negative"
+                          checked={userTeam === 'negative'}
+                          onChange={(e) => setUserTeam(e.target.value as 'affirmative' | 'negative')}
+                          className="sr-only"
+                        />
+                        <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                          userTeam === 'negative' 
+                            ? 'border-red-600 bg-red-600' 
+                            : 'border-gray-300'
+                        }`}>
+                          {userTeam === 'negative' && (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Negative</div>
+                          <div className="text-sm text-gray-500">Oppose the motion</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Speaker Number
-              </label>
-              <select
-                value={userSpeakerNumber}
-                onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {Array.from({ length: peoplePerTeam }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    Speaker {i + 1}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Your Speaker Number
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {Array.from({ length: peoplePerTeam }, (_, i) => (
+                        <label key={i + 1} className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
+                          <input
+                            type="radio"
+                            name="speaker"
+                            value={i + 1}
+                            checked={userSpeakerNumber === i + 1}
+                            onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                            className="sr-only"
+                          />
+                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
+                            userSpeakerNumber === i + 1 
+                              ? 'border-blue-600 bg-blue-600' 
+                              : 'border-gray-300'
+                          }`}>
+                            {userSpeakerNumber === i + 1 && (
+                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-900">Speaker {i + 1}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Speeches per Speaker
-              </label>
-              <select
-                value={speechesPerSpeaker}
-                onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={1}>1 speech per speaker</option>
-                <option value={2}>2 speeches per speaker</option>
-                <option value={3}>3 speeches per speaker</option>
-              </select>
-            </div>
+              {/* Step 3: Format Configuration */}
+              <div className="space-y-6">
+                <div className="border-b border-gray-200 pb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Format Configuration</h3>
+                  <p className="text-gray-600">Set up the debate structure and rules</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      People per Team
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[2, 3, 4].map((num) => (
+                        <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
+                          <input
+                            type="radio"
+                            name="peoplePerTeam"
+                            value={num}
+                            checked={peoplePerTeam === num}
+                            onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
+                            className="sr-only"
+                          />
+                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
+                            peoplePerTeam === num 
+                              ? 'border-blue-600 bg-blue-600' 
+                              : 'border-gray-300'
+                          }`}>
+                            {peoplePerTeam === num && (
+                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-900">{num}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Total debaters: {peoplePerTeam * 2}</p>
+                  </div>
 
-            <div className="flex space-x-4">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Start Practice
-              </button>
-            </div>
-          </form>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Speeches per Speaker
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[1, 2, 3].map((num) => (
+                        <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
+                          <input
+                            type="radio"
+                            name="speechesPerSpeaker"
+                            value={num}
+                            checked={speechesPerSpeaker === num}
+                            onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
+                            className="sr-only"
+                          />
+                          <div className={`w-4 h-4 rounded-full border-2 mr-2 flex items-center justify-center ${
+                            speechesPerSpeaker === num 
+                              ? 'border-blue-600 bg-blue-600' 
+                              : 'border-gray-300'
+                          }`}>
+                            {speechesPerSpeaker === num && (
+                              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-900">{num}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Total speeches: {totalSpeeches}</p>
+                  </div>
+                </div>
+
+                {/* Debate Structure Preview */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Debate Structure Preview</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-2">Affirmative Team</h5>
+                      <div className="space-y-1">
+                        {Array.from({ length: peoplePerTeam }, (_, i) => (
+                          <div key={i} className="text-sm text-gray-600">
+                            Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-red-700 mb-2">Negative Team</h5>
+                      <div className="space-y-1">
+                        {Array.from({ length: peoplePerTeam }, (_, i) => (
+                          <div key={i} className="text-sm text-gray-600">
+                            Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Your role:</strong> {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)} Speaker {userSpeakerNumber} 
+                      ({userSpeechNums.length} speech{userSpeechNums.length > 1 ? 'es' : ''})
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Back to Menu
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Start Practice Session
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     );
@@ -415,11 +609,57 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   if (step === 'generating') {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating AI Speeches</h2>
-          <p className="text-gray-600">Please wait while the AI generates speeches for the other debaters...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-6">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            {/* Animated Loading */}
+            <div className="mb-6">
+              <div className="relative">
+                <div className="w-20 h-20 border-4 border-blue-200 rounded-full mx-auto"></div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Preparing Your Debate</h2>
+            <p className="text-gray-600 mb-6">Our AI is generating realistic speeches for the other debaters...</p>
+            
+            {/* Progress Steps */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">
+                  ✓
+                </div>
+                <span className="text-sm text-gray-700">Analyzing debate topic</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">
+                  ✓
+                </div>
+                <span className="text-sm text-gray-700">Setting up debate structure</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs animate-pulse">
+                  ⚡
+                </div>
+                <span className="text-sm text-gray-700">Generating AI speeches</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center text-xs">
+                  ⏳
+                </div>
+                <span className="text-sm text-gray-500">Preparing practice environment</span>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Tip:</strong> This usually takes 10-30 seconds depending on the debate format.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
