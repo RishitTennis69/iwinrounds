@@ -1,6 +1,5 @@
 import React from 'react';
 import { DebateSession } from '../types';
-import { Map } from 'lucide-react';
 
 interface DebateFlowTableProps {
   session: DebateSession;
