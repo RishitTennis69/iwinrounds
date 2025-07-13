@@ -7,6 +7,7 @@ export class WhisperService {
   private audioChunks: Blob[] = [];
   private onResultCallback: ((transcript: string) => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
+  private onProgressCallback: ((status: string) => void) | null = null;
   private stream: MediaStream | null = null;
 
   constructor() {
@@ -16,7 +17,11 @@ export class WhisperService {
     }
   }
 
-  async startRecording(onResult: (transcript: string) => void, onError?: (error: string) => void): Promise<void> {
+  async startRecording(
+    onResult: (transcript: string) => void, 
+    onError?: (error: string) => void,
+    onProgress?: (status: string) => void
+  ): Promise<void> {
     if (!OPENAI_API_KEY) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
     }
@@ -27,24 +32,26 @@ export class WhisperService {
 
     this.onResultCallback = onResult;
     this.onErrorCallback = onError || null;
+    this.onProgressCallback = onProgress || null;
     this.audioChunks = [];
     this.isRecording = true;
 
     try {
-      // Get microphone access
+      // Get microphone access with optimized settings for faster processing
       this.stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          sampleRate: 16000,
-          channelCount: 1,
+          sampleRate: 16000, // Whisper's preferred sample rate
+          channelCount: 1,   // Mono for faster processing
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
         } 
       });
 
-      // Create MediaRecorder
+      // Create MediaRecorder with optimized settings
       this.mediaRecorder = new MediaRecorder(this.stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 16000 // Lower bitrate for faster processing
       });
 
       this.mediaRecorder.ondataavailable = (event) => {
@@ -67,8 +74,8 @@ export class WhisperService {
         }
       };
 
-      // Start recording
-      this.mediaRecorder.start(1000); // Collect data every second
+      // Start recording with smaller chunks for faster processing
+      this.mediaRecorder.start(500); // Collect data every 500ms instead of 1000ms
 
     } catch (error) {
       this.isRecording = false;
@@ -106,42 +113,78 @@ export class WhisperService {
 
   private async processAudio(): Promise<void> {
     try {
+      // Notify user that processing has started
+      if (this.onProgressCallback) {
+        this.onProgressCallback('Processing audio...');
+      }
+
       // Create audio blob
       const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
       
+      // Check if audio is too short (less than 0.5 seconds)
+      if (audioBlob.size < 1000) {
+        if (this.onProgressCallback) {
+          this.onProgressCallback('Audio too short, please try again');
+        }
+        return;
+      }
+
       // Convert to FormData for OpenAI Whisper API
       const formData = new FormData();
       formData.append('file', audioBlob, 'recording.webm');
       formData.append('model', 'whisper-1');
       formData.append('language', 'en');
+      formData.append('response_format', 'json'); // Request JSON for faster parsing
 
-      // Call OpenAI Whisper API
-      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: formData
-      });
+      // Call OpenAI Whisper API with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Whisper API error:', response.status, errorText);
-        
-        if (response.status === 401) {
-          throw new Error('API authentication error. Please check your API key.');
-        } else if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.');
-        } else {
-          throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
+      try {
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`
+          },
+          body: formData,
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Whisper API error:', response.status, errorText);
+          
+          if (response.status === 401) {
+            throw new Error('API authentication error. Please check your API key.');
+          } else if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+          } else {
+            throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
+          }
         }
-      }
 
-      const data = await response.json();
-      const transcript = data.text || '';
+        const data = await response.json();
+        const transcript = data.text || '';
 
-      if (this.onResultCallback && transcript.trim()) {
-        this.onResultCallback(transcript);
+        if (this.onResultCallback && transcript.trim()) {
+          if (this.onProgressCallback) {
+            this.onProgressCallback('Transcript ready!');
+          }
+          this.onResultCallback(transcript);
+        } else {
+          if (this.onProgressCallback) {
+            this.onProgressCallback('No speech detected, please try again');
+          }
+        }
+
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Processing timed out. Please try again.');
+        }
+        throw error;
       }
 
     } catch (error) {
@@ -169,6 +212,7 @@ export class WhisperService {
     formData.append('file', audioFile);
     formData.append('model', 'whisper-1');
     formData.append('language', 'en');
+    formData.append('response_format', 'json');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',

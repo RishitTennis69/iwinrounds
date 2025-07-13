@@ -26,6 +26,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState('');
 
   const maxSpeechDuration = 4 * 60; // 4 minutes in seconds
 
@@ -56,6 +57,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     setIsRecording(true);
     setIsPaused(false);
     setIsProcessing(false);
+    setProcessingStatus('');
 
     try {
       await speechRecognition.startRecording(
@@ -66,11 +68,21 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           console.log('Whisper API error:', error);
           setError(`Recording error: ${error}`);
           setIsRecording(false);
+          setIsProcessing(false);
+        },
+        (status: string) => {
+          setProcessingStatus(status);
+          if (status === 'Processing audio...') {
+            setIsProcessing(true);
+          } else if (status === 'Transcript ready!' || status === 'No speech detected, please try again') {
+            setIsProcessing(false);
+          }
         }
       );
     } catch (err) {
       setError('Failed to start recording. Please check microphone permissions.');
       setIsRecording(false);
+      setIsProcessing(false);
     }
   };
 
@@ -78,14 +90,10 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     if (!isRecording) return;
     
     setIsProcessing(true);
+    setProcessingStatus('Processing audio...');
     speechRecognition.stopRecording();
     setIsRecording(false);
     setIsPaused(false);
-    
-    // Wait a moment for processing to complete
-    setTimeout(() => {
-      setIsProcessing(false);
-    }, 2000);
   };
 
   const pauseRecording = () => {
@@ -210,7 +218,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           {isProcessing && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600">Processing audio...</span>
+              <span className="text-sm text-gray-600">{processingStatus}</span>
             </div>
           )}
         </div>
