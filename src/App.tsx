@@ -8,8 +8,6 @@ import DebateFlowTable from './components/DebateFlowTable';
 import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
-import ArgumentMapPanel from './components/ArgumentMapPanel';
-import ArgumentMappingMode from './components/ArgumentMappingMode';
 import HintPanel from './components/HintPanel';
 
 function App() {
@@ -21,7 +19,6 @@ function App() {
   const [whisperService] = useState(() => new WhisperService());
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
-  const [showArgumentMap, setShowArgumentMap] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const finalAnalysisRef = useRef<HTMLDivElement>(null);
@@ -48,7 +45,6 @@ function App() {
     setCurrentSpeaker(null);
     setSpeechNumber(1);
     setIsAnalyzing(false);
-    setShowArgumentMap(false);
     setHintsUsed(0);
   };
 
@@ -222,14 +218,17 @@ function App() {
           let contentRecommendations = null;
           
           try {
+            console.log(`Generating feedback for ${speaker.name} with ${speeches.length} speeches`);
             feedback = await AIService.generateSpeakerFeedback(
               speaker.name,
               speaker.team,
               updatedSession.topic,
               speeches
             );
+            console.log(`Feedback generated for ${speaker.name}:`, feedback.substring(0, 100) + '...');
             
             // Generate content recommendations based on the feedback
+            console.log(`Generating content recommendations for ${speaker.name}`);
             contentRecommendations = await AIService.generateContentRecommendations(
               speaker.name,
               speaker.team,
@@ -237,8 +236,16 @@ function App() {
               speeches,
               feedback
             );
+            console.log(`Content recommendations generated for ${speaker.name}:`, contentRecommendations);
           } catch (err) {
             console.error('Error generating feedback for', speaker.name, err);
+            console.error('Error details:', {
+              speakerName: speaker.name,
+              team: speaker.team,
+              topic: updatedSession.topic,
+              speechCount: speeches.length,
+              speeches: speeches
+            });
             feedback = 'Unable to generate personalized feedback at this time.';
             contentRecommendations = {
               weaknesses: ['Analysis temporarily unavailable'],
@@ -317,15 +324,6 @@ function App() {
         onBack={handleBackToModeSelection}
         // freeRoundsUsed={freeRoundsUsed} // Removed
         // isAdmin={isAdmin} // Removed
-      />
-    );
-  }
-
-  // Show argument mapping mode
-  if (mode === 'argument-mapping') {
-    return (
-      <ArgumentMappingMode 
-        onBack={handleBackToModeSelection}
       />
     );
   }
@@ -433,20 +431,9 @@ function App() {
               session={session} 
               peoplePerTeam={peoplePerTeam} 
               speechesPerSpeaker={speechesPerSpeaker}
-              onShowArgumentMap={() => setShowArgumentMap(true)}
             />
           </div>
         </div>
-
-        {/* Argument Map Panel */}
-        {showArgumentMap && (
-          <div className="mt-8">
-            <ArgumentMapPanel
-              session={session}
-              onClose={() => setShowArgumentMap(false)}
-            />
-          </div>
-        )}
 
         {/* Final Analysis */}
         {session.winner && (

@@ -6,26 +6,36 @@ interface DebateFlowTableProps {
   session: DebateSession;
   peoplePerTeam: number;
   speechesPerSpeaker: number;
-  onShowArgumentMap?: () => void;
 }
 
-const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTeam, speechesPerSpeaker, onShowArgumentMap }) => {
+const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTeam, speechesPerSpeaker }) => {
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(date);
   };
 
-  // Create debate order that matches the App.tsx logic
   const createDebateOrder = (speakers: any[], speeches: number, people: number): any[] => {
     const aff = speakers.filter(s => s.team === 'affirmative');
     const neg = speakers.filter(s => s.team === 'negative');
     const sequence: any[] = [];
-    for (let i = 0; i < people; i++) {
-      sequence.push(aff[i]);
-      sequence.push(neg[i]);
+    
+    // Create sequence based on first speaker
+    if (session.firstSpeaker === 'affirmative') {
+      for (let i = 0; i < people; i++) {
+        sequence.push(aff[i]);
+        sequence.push(neg[i]);
+      }
+    } else {
+      for (let i = 0; i < people; i++) {
+        sequence.push(neg[i]);
+        sequence.push(aff[i]);
+      }
     }
+    
+    // Repeat the sequence for speeches per speaker
     const debateOrder: any[] = [];
     for (let i = 0; i < speeches; i++) {
       for (let j = 0; j < sequence.length; j++) {
@@ -35,10 +45,8 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
     return debateOrder;
   };
 
-  // Create columns for each speech
-  const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
-  const speechColumns = Array.from({ length: totalSpeeches }, (_, i) => i + 1);
   const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker, peoplePerTeam);
+  const speechColumns = Array.from({ length: peoplePerTeam * 2 * speechesPerSpeaker }, (_, i) => i + 1);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -52,15 +60,6 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
               AI-generated analysis of each speech - follow the debate flow horizontally
             </p>
           </div>
-          {onShowArgumentMap && (
-            <button
-              onClick={onShowArgumentMap}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Map className="w-4 h-4" />
-              View Argument Map
-            </button>
-          )}
         </div>
       </div>
       <div className="overflow-x-auto">

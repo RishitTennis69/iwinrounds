@@ -425,6 +425,9 @@ Respond in this exact JSON format:
       return 'No speeches available for analysis. Please ensure you have completed at least one speech to receive personalized feedback.';
     }
 
+    console.log(`AIService: Generating feedback for ${speakerName} (${team}) on topic: ${topic}`);
+    console.log(`AIService: Number of speeches: ${speeches.length}`);
+
     const combinedSpeeches = speeches.join('\n\n');
 
     const prompt = `You are an expert debate coach. Provide personalized feedback for a debater based on their speeches.
@@ -444,6 +447,7 @@ Please provide constructive feedback in 2-3 paragraphs covering:
 Keep the tone encouraging but honest. Focus on actionable advice.`;
 
     try {
+      console.log(`AIService: Making API call for feedback generation...`);
       const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
         headers: {
@@ -463,21 +467,27 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
         })
       });
 
+      console.log(`AIService: API response status: ${response.status}`);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Response:', response.status, errorText);
+        console.error('AIService: API Response:', response.status, errorText);
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log(`AIService: API response data:`, data);
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+        console.error('AIService: Invalid response format:', data);
         throw new Error('Invalid response format from API');
       }
       
-      return data.choices[0].message.content;
+      const feedback = data.choices[0].message.content;
+      console.log(`AIService: Generated feedback:`, feedback.substring(0, 100) + '...');
+      return feedback;
     } catch (error) {
-      console.error('API error in generateSpeakerFeedback:', error);
+      console.error('AIService: API error in generateSpeakerFeedback:', error);
       // Return a helpful fallback message instead of throwing
       return `Thank you for participating in the debate, ${speakerName}! While we couldn't generate personalized feedback at this time, we encourage you to review your speeches and consider areas where you felt most confident and areas where you could improve. Practice and preparation are key to becoming a stronger debater.`;
     }
@@ -517,6 +527,9 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
         ]
       };
     }
+
+    console.log(`AIService: Generating content recommendations for ${speakerName} (${team})`);
+    console.log(`AIService: Feedback received:`, feedback.substring(0, 100) + '...');
 
     const combinedSpeeches = speeches.join('\n\n');
 
@@ -559,6 +572,7 @@ Respond in this exact JSON format:
 Focus on high-quality, accessible content that directly addresses the specific weaknesses identified. For videos, prefer YouTube educational channels. For books, suggest well-known debate or public speaking books. For articles, suggest academic or debate coaching resources.`;
 
     try {
+      console.log(`AIService: Making API call for content recommendations...`);
       const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
         headers: {
@@ -578,13 +592,16 @@ Focus on high-quality, accessible content that directly addresses the specific w
         })
       });
 
+      console.log(`AIService: Content recommendations API response status: ${response.status}`);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Response:', response.status, errorText);
+        console.error('AIService: Content recommendations API Response:', response.status, errorText);
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log(`AIService: Content recommendations API response data:`, data);
       const content = data.choices[0].message.content;
       
       try {
@@ -603,17 +620,18 @@ Focus on high-quality, accessible content that directly addresses the specific w
         }
         
         const analysis = JSON.parse(jsonContent);
+        console.log(`AIService: Parsed content recommendations:`, analysis);
         return {
           weaknesses: analysis.weaknesses || [],
           recommendations: analysis.recommendations || []
         };
       } catch (parseError) {
-        console.error('Failed to parse content recommendations:', parseError);
-        console.error('Raw content:', content);
+        console.error('AIService: Failed to parse content recommendations:', parseError);
+        console.error('AIService: Raw content:', content);
         throw new Error('Invalid response format from API');
       }
     } catch (error) {
-      console.error('API error in generateContentRecommendations:', error);
+      console.error('AIService: API error in generateContentRecommendations:', error);
       // Return helpful fallback recommendations instead of throwing
       return {
         weaknesses: ['Analysis temporarily unavailable'],
