@@ -491,8 +491,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       People per Team
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[2, 3, 4].map((num) => (
+                    <div className="grid grid-cols-4 gap-3">
+                      {[1, 2, 3, 4].map((num) => (
                         <label key={num} className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-all duration-200">
                           <input
                             type="radio"
@@ -515,7 +515,12 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                         </label>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Total debaters: {peoplePerTeam * 2}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {peoplePerTeam === 1 
+                        ? '1v1 debate (you vs opponent)' 
+                        : `Total debaters: ${peoplePerTeam * 2}`
+                      }
+                    </p>
                   </div>
 
                   <div>
@@ -553,28 +558,55 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
                 {/* Debate Structure Preview */}
                 <div className="bg-gray-50 rounded-xl p-6">
                   <h4 className="font-semibold text-gray-900 mb-4">Debate Structure Preview</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="text-sm font-medium text-green-700 mb-2">Affirmative Team</h5>
-                      <div className="space-y-1">
-                        {Array.from({ length: peoplePerTeam }, (_, i) => (
-                          <div key={i} className="text-sm text-gray-600">
-                            Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                  {peoplePerTeam === 1 ? (
+                    <div className="text-center">
+                      <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                        <h5 className="text-sm font-medium text-blue-800 mb-2">1v1 Debate Format</h5>
+                        <p className="text-sm text-blue-700">
+                          You will debate directly against one opponent, each representing your respective teams.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span className="text-green-600 font-semibold">You</span>
                           </div>
-                        ))}
+                          <p className="text-sm text-gray-600">{userTeam.charAt(0).toUpperCase() + userTeam.slice(1)}</p>
+                          <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span className="text-red-600 font-semibold">AI</span>
+                          </div>
+                          <p className="text-sm text-gray-600">{userTeam === 'affirmative' ? 'Negative' : 'Affirmative'}</p>
+                          <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <h5 className="text-sm font-medium text-red-700 mb-2">Negative Team</h5>
-                      <div className="space-y-1">
-                        {Array.from({ length: peoplePerTeam }, (_, i) => (
-                          <div key={i} className="text-sm text-gray-600">
-                            Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
-                          </div>
-                        ))}
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="text-sm font-medium text-green-700 mb-2">Affirmative Team</h5>
+                        <div className="space-y-1">
+                          {Array.from({ length: peoplePerTeam }, (_, i) => (
+                            <div key={i} className="text-sm text-gray-600">
+                              Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-medium text-red-700 mb-2">Negative Team</h5>
+                        <div className="space-y-1">
+                          {Array.from({ length: peoplePerTeam }, (_, i) => (
+                            <div key={i} className="text-sm text-gray-600">
+                              Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm text-blue-800">
                       <strong>Your role:</strong> {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)} Speaker {userSpeakerNumber} 
