@@ -47,9 +47,9 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
         {/* Left: Text */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-2 drop-shadow-lg">Dedicate AI</h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-blue-400 mb-4">Your Debate Pal</h2>
-          <p className="text-xl text-gray-700 mb-4 font-medium">AI-powered debate feedback, practice, and validation—anytime, anywhere.</p>
+          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-2 drop-shadow-lg">ReasynAI</h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-blue-400 mb-4">Your Personal AI Coach</h2>
+          <p className="text-xl text-gray-700 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
           <p className="text-md text-gray-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
           <button
             className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
@@ -90,7 +90,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use Dedicate AI?</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use ReasynAI?</h2>
             <div className="flex flex-row gap-6 justify-center items-stretch w-full">
               {/* Debate Mode Card */}
               <button

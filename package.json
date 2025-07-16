@@ -1,7 +1,7 @@
 {
-  "name": "debateflowy",
+  "name": "reasynai",
   "version": "1.0.0",
-  "description": "AI-powered debate flow tracking and analysis application",
+  "description": "Your personal AI coach that fits in your pocket",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

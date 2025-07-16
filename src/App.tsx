@@ -25,8 +25,8 @@ function App() {
 
   // Load free rounds count from localStorage on component mount
   useEffect(() => {
-    const savedRounds = localStorage.getItem('debateflowy_free_rounds');
-    const savedAdmin = localStorage.getItem('debateflowy_admin');
+    const savedRounds = localStorage.getItem('reasynai_free_rounds');
+    const savedAdmin = localStorage.getItem('reasynai_admin');
     if (savedRounds) {
       // setFreeRoundsUsed(parseInt(savedRounds)); // Removed
     }
@@ -294,7 +294,7 @@ function App() {
     // if (!isAdmin) { // Removed
     //   const newCount = freeRoundsUsed + 1; // Removed
     //   setFreeRoundsUsed(newCount); // Removed
-    //   localStorage.setItem('debateflowy_free_rounds', newCount.toString()); // Removed
+    //   localStorage.setItem('reasynai_free_rounds', newCount.toString()); // Removed
     // } // Removed
   };
 
@@ -389,7 +389,7 @@ function App() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Dedicate AI - Your Debate Pal
+                ReasynAI - Your Personal AI Coach
               </h1>
               <p className="text-gray-600">
                 Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}

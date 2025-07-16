@@ -1,4 +1,4 @@
-# DebateFlowy - AI-Powered Debate Scribe
+# ReasynAI - Your Personal AI Coach That Fits in Your Pocket
 
 An intelligent debate tracking and analysis application that records speeches, converts them to text, and uses AI to analyze debate points, counter-points, and determine winners.
 
@@ -47,7 +47,7 @@ An intelligent debate tracking and analysis application that records speeches, c
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd debateflowy
+cd reasynai
 ```
 
 2. Install dependencies:

@@ -311,8 +311,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
           </button>
 
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Dedicate AI</h1>
-            <p className="text-gray-600">AI-Powered Debate Analysis & Flow Tracking</p>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">ReasynAI</h1>
+            <p className="text-gray-600">Your Personal AI Coach That Fits in Your Pocket</p>
             <p className="text-blue-600 font-medium mt-2">Practice Mode Setup</p>
           </div>
 
