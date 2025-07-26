@@ -4,10 +4,9 @@ import { Shuffle } from 'lucide-react';
 
 interface RandomTopicSelectorProps {
   onTopicSelect: (topic: string) => void;
-  currentTopic?: string;
 }
 
-const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect, currentTopic }) => {
+const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
 
@@ -81,21 +80,6 @@ const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect
               >
                 Cancel
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Current Topic Display */}
-      {currentTopic && !showOptions && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-medium">
-              ✓
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-green-800 mb-1">Selected Topic:</p>
-              <p className="text-green-700 leading-relaxed">{currentTopic}</p>
             </div>
           </div>
         </div>

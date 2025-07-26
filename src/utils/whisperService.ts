@@ -123,9 +123,8 @@ export class WhisperService {
       
       // Check if audio is too short (less than 0.5 seconds)
       if (audioBlob.size < 1000) {
-        if (this.onProgressCallback) {
-          this.onProgressCallback('Audio too short, please try again');
-        }
+        // Silently handle short audio without showing error message
+        console.log('Audio too short, skipping processing');
         return;
       }
 
@@ -174,9 +173,8 @@ export class WhisperService {
           }
           this.onResultCallback(transcript);
         } else {
-          if (this.onProgressCallback) {
-            this.onProgressCallback('No speech detected, please try again');
-          }
+          // Silently handle no speech detected without showing error message
+          console.log('No speech detected in audio');
         }
 
       } catch (error) {

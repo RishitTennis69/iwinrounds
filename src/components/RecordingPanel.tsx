@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
 import { WhisperService } from '../utils/whisperService';
-import { Mic, Pause, Play, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
+import { Mic, AlertCircle, CheckCircle, RotateCcw, Square } from 'lucide-react';
 
 interface RecordingPanelProps {
   currentSpeaker: Speaker | null;
@@ -21,7 +21,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
   isAnalyzing
 }) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +31,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
   useEffect(() => {
     let interval: number;
-    if (isRecording && !isPaused) {
+    if (isRecording) {
       interval = setInterval(() => {
         setDuration(prev => {
           const newDuration = prev + 1;
@@ -46,7 +45,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRecording, isPaused]);
+  }, [isRecording]);
 
   const startRecording = async () => {
     if (!currentSpeaker) return;
@@ -55,7 +54,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     setTranscript('');
     setDuration(0);
     setIsRecording(true);
-    setIsPaused(false);
     setIsProcessing(false);
     setProcessingStatus('');
 
@@ -93,7 +91,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     setProcessingStatus('Processing audio...');
     speechRecognition.stopRecording();
     setIsRecording(false);
-    setIsPaused(false);
   };
 
   const restartRecording = async () => {
@@ -104,7 +101,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     
     // Reset all state
     setIsRecording(false);
-    setIsPaused(false);
     setTranscript('');
     setDuration(0);
     setError(null);
@@ -113,16 +109,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     
     // Start a new recording
     await startRecording();
-  };
-
-  const pauseRecording = () => {
-    speechRecognition.pauseRecording();
-    setIsPaused(true);
-  };
-
-  const resumeRecording = () => {
-    speechRecognition.resumeRecording();
-    setIsPaused(false);
   };
 
   const handleComplete = () => {
@@ -192,23 +178,13 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
             </button>
           ) : (
             <div className="flex space-x-2">
-              {!isPaused ? (
-                <button
-                  onClick={pauseRecording}
-                  className="flex items-center space-x-2 bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition-colors"
-                >
-                  <Pause className="w-5 h-5" />
-                  <span>Pause</span>
-                </button>
-              ) : (
-                <button
-                  onClick={resumeRecording}
-                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Play className="w-5 h-5" />
-                  <span>Resume</span>
-                </button>
-              )}
+              <button
+                onClick={stopRecording}
+                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <Square className="w-5 h-5" />
+                <span>End Recording</span>
+              </button>
               <button
                 onClick={restartRecording}
                 className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors"
@@ -226,12 +202,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600">Recording...</span>
-            </div>
-          )}
-          {isPaused && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Paused</span>
             </div>
           )}
           {isProcessing && (

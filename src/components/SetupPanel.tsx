@@ -126,7 +126,6 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             {/* Random Topic Selector */}
             <RandomTopicSelector 
               onTopicSelect={setTopic}
-              currentTopic={topic}
             />
             
             {/* Divider */}

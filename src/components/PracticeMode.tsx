@@ -123,6 +123,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
    - Weighing ("our world vs their world")
    - Zinger (memorable closing)
 
+**IMPORTANT LANGUAGE GUIDELINES:**
+- DO NOT use "this house" or "This House" in the topic sentence or resolution
+- Instead, use direct language like "we believe", "the United States should", "our team supports", etc.
+- Make the language natural and direct, not parliamentary debate style
+
 Write the speech in natural, flowing language that sounds like a real debate speech. Make it approximately 2-3 minutes when spoken.
 
 Respond in this exact JSON format:
@@ -445,7 +450,6 @@ Respond in this exact JSON format:
               {/* Random Topic Selector */}
               <RandomTopicSelector 
                 onTopicSelect={setTopic}
-                currentTopic={topic}
               />
               
               {/* Divider */}
