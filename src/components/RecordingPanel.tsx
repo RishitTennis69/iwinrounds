@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
 import { WhisperService } from '../utils/whisperService';
-import { Mic, Square, Pause, Play, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mic, Pause, Play, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
 
 interface RecordingPanelProps {
   currentSpeaker: Speaker | null;
@@ -94,6 +94,25 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     speechRecognition.stopRecording();
     setIsRecording(false);
     setIsPaused(false);
+  };
+
+  const restartRecording = async () => {
+    // Stop current recording if it's running
+    if (isRecording) {
+      speechRecognition.stopRecording();
+    }
+    
+    // Reset all state
+    setIsRecording(false);
+    setIsPaused(false);
+    setTranscript('');
+    setDuration(0);
+    setError(null);
+    setIsProcessing(false);
+    setProcessingStatus('');
+    
+    // Start a new recording
+    await startRecording();
   };
 
   const pauseRecording = () => {
@@ -191,11 +210,11 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
                 </button>
               )}
               <button
-                onClick={stopRecording}
-                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+                onClick={restartRecording}
+                className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors"
               >
-                <Square className="w-5 h-5" />
-                <span>Stop</span>
+                <RotateCcw className="w-5 h-5" />
+                <span>Restart</span>
               </button>
             </div>
           )}

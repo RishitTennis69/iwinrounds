@@ -1,7 +1,6 @@
 import React from 'react';
 import { DebateSession } from '../types';
 import { Trophy, Award, Users, Clock } from 'lucide-react';
-import ContentRecommendations from './ContentRecommendations';
 
 interface FinalAnalysisProps {
   session: DebateSession;
@@ -32,16 +31,34 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
         <div className="p-6 space-y-6">
           {/* Winner Section */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                  Winner: {session.winner?.team === 'affirmative' ? 'Affirmative Team' : 'Negative Team'}
-                </h4>
-                <p className="text-gray-700">{session.winner?.reasoning}</p>
+            <div className="space-y-4">
+              {/* Winner */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                    Winner: {session.winner?.team === 'affirmative' ? 'Affirmative Team' : 'Negative Team'}
+                  </h4>
+                </div>
+                <div className={`text-6xl ${session.winner?.team === 'affirmative' ? 'text-green-500' : 'text-red-500'}`}>
+                  🏆
+                </div>
               </div>
-              <div className={`text-6xl ${session.winner?.team === 'affirmative' ? 'text-green-500' : 'text-red-500'}`}>
-                🏆
-              </div>
+              
+              {/* Key Arguments */}
+              {session.winner?.keyArguments && (
+                <div>
+                  <h5 className="text-lg font-semibold text-gray-800 mb-2">Key Arguments:</h5>
+                  <p className="text-gray-700 leading-relaxed">{session.winner.keyArguments}</p>
+                </div>
+              )}
+              
+              {/* Clash */}
+              {session.winner?.clash && (
+                <div>
+                  <h5 className="text-lg font-semibold text-gray-800 mb-2">Clash:</h5>
+                  <p className="text-gray-700 leading-relaxed">{session.winner.clash}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -64,8 +81,56 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                       </div>
                     </div>
                     {speaker.feedback && (
-                      <div className="mt-2 text-sm text-blue-700 bg-blue-50 rounded p-2">
-                        <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                      <div className="mt-3 space-y-3">
+                        {/* Handle old string format */}
+                        {typeof speaker.feedback === 'string' && (
+                          <div className="text-sm text-blue-700 bg-blue-50 rounded p-2">
+                            <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                          </div>
+                        )}
+                        
+                        {/* Handle new structured format */}
+                        {typeof speaker.feedback === 'object' && speaker.feedback && (
+                          <>
+                            {/* Strengths */}
+                            {speaker.feedback.strengths && speaker.feedback.strengths.length > 0 && (
+                              <div className="text-sm">
+                                <div className="font-semibold text-green-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                  Strengths:
+                                </div>
+                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4">
+                                  {speaker.feedback.strengths.map((strength, index) => (
+                                    <li key={index} className="text-xs">{strength}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Areas for Improvement */}
+                            {speaker.feedback.areasForImprovement && speaker.feedback.areasForImprovement.length > 0 && (
+                              <div className="text-sm">
+                                <div className="font-semibold text-orange-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                                  Areas for Improvement:
+                                </div>
+                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4">
+                                  {speaker.feedback.areasForImprovement.map((area, index) => (
+                                    <li key={index} className="text-xs">{area}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Overall Assessment */}
+                            {speaker.feedback.overallAssessment && (
+                              <div className="text-sm bg-gray-50 rounded p-2">
+                                <div className="font-semibold text-gray-700 mb-1">Overall Assessment:</div>
+                                <p className="text-gray-600 text-xs">{speaker.feedback.overallAssessment}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -90,8 +155,56 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                       </div>
                     </div>
                     {speaker.feedback && (
-                      <div className="mt-2 text-sm text-red-700 bg-red-50 rounded p-2">
-                        <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                      <div className="mt-3 space-y-3">
+                        {/* Handle old string format */}
+                        {typeof speaker.feedback === 'string' && (
+                          <div className="text-sm text-red-700 bg-red-50 rounded p-2">
+                            <span className="font-semibold">Feedback:</span> {speaker.feedback}
+                          </div>
+                        )}
+                        
+                        {/* Handle new structured format */}
+                        {typeof speaker.feedback === 'object' && speaker.feedback && (
+                          <>
+                            {/* Strengths */}
+                            {speaker.feedback.strengths && speaker.feedback.strengths.length > 0 && (
+                              <div className="text-sm">
+                                <div className="font-semibold text-green-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                  Strengths:
+                                </div>
+                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4">
+                                  {speaker.feedback.strengths.map((strength, index) => (
+                                    <li key={index} className="text-xs">{strength}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Areas for Improvement */}
+                            {speaker.feedback.areasForImprovement && speaker.feedback.areasForImprovement.length > 0 && (
+                              <div className="text-sm">
+                                <div className="font-semibold text-orange-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                                  Areas for Improvement:
+                                </div>
+                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4">
+                                  {speaker.feedback.areasForImprovement.map((area, index) => (
+                                    <li key={index} className="text-xs">{area}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {/* Overall Assessment */}
+                            {speaker.feedback.overallAssessment && (
+                              <div className="text-sm bg-gray-50 rounded p-2">
+                                <div className="font-semibold text-gray-700 mb-1">Overall Assessment:</div>
+                                <p className="text-gray-600 text-xs">{speaker.feedback.overallAssessment}</p>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -134,18 +247,6 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
           </div>
         </div>
       </div>
-
-      {/* Content Recommendations for Each Speaker */}
-      {session.speakers.map((speaker) => (
-        speaker.contentRecommendations && (
-          <ContentRecommendations
-            key={speaker.id}
-            speakerName={speaker.name}
-            weaknesses={speaker.contentRecommendations.weaknesses}
-            recommendations={speaker.contentRecommendations.recommendations}
-          />
-        )
-      ))}
     </div>
   );
 };

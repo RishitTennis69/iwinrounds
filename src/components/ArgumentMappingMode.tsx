@@ -191,12 +191,17 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
       // Assign points and generate feedback for each speaker
       const speakersWithPointsAndFeedback = await Promise.all(
         updatedSession.speakers.map(async (speaker) => {
-          const points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
+          // Use the AI-generated points (already validated to ensure winning team has higher scores)
+          const points = analysis.speakerPoints[speaker.id] || 27;
           const speeches = updatedSession.points
             .filter(p => p.speakerId === speaker.id)
             .map(p => p.transcript);
           
-          let feedback = '';
+          let feedback: string | {
+            strengths: string[];
+            areasForImprovement: string[];
+            overallAssessment: string;
+          } = '';
           try {
             feedback = await AIService.generateSpeakerFeedback(
               speaker.name,
@@ -205,7 +210,14 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
               speeches
             );
           } catch (err) {
-            feedback = 'Error generating feedback.';
+            feedback = {
+              strengths: ['Actively participated in the debate'],
+              areasForImprovement: [
+                'Practice speaking more clearly and confidently',
+                'Develop stronger argumentation skills'
+              ],
+              overallAssessment: 'Error generating feedback.'
+            };
           }
           
           return {
@@ -221,7 +233,9 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
         endTime: new Date(),
         winner: {
           team: analysis.winner,
-          reasoning: analysis.reasoning,
+          reasoning: analysis.keyArguments, // Using keyArguments as the main reasoning
+          keyArguments: analysis.keyArguments,
+          clash: analysis.clash,
         },
         summary: analysis.summary,
         speakers: speakersWithPointsAndFeedback,

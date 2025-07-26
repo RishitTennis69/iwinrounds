@@ -4,16 +4,10 @@ export interface Speaker {
   team: 'affirmative' | 'negative';
   points: number;
   speakerNumber?: number; // 1st or 2nd speaker
-  feedback?: string;
-  contentRecommendations?: {
-    weaknesses: string[];
-    recommendations: Array<{
-      type: 'video' | 'book' | 'article' | 'course';
-      title: string;
-      description: string;
-      url?: string;
-      reason: string;
-    }>;
+  feedback?: string | {
+    strengths: string[]; // Minimum 1 strength
+    areasForImprovement: string[]; // Minimum 2 areas for improvement
+    overallAssessment: string; // Brief overall assessment
   };
 }
 
@@ -87,6 +81,8 @@ export interface DebateSession {
   winner?: {
     team: 'affirmative' | 'negative';
     reasoning: string;
+    keyArguments?: string;
+    clash?: string;
   };
   summary?: string;
   hintsUsed: number; // Track hints used per round

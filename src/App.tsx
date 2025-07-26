@@ -185,28 +185,11 @@ function App() {
       // Analyze the overall winner
       const analysis = await AIService.analyzeWinner(updatedSession);
       
-      // Generate personalized feedback and content recommendations for each speaker
+      // Generate personalized feedback for each speaker
       const speakersWithPointsAndFeedback = await Promise.all(
         updatedSession.speakers.map(async (speaker) => {
-          // Use the AI-generated points, but ensure winning team gets higher scores
-          let points = analysis.speakerPoints[speaker.id] || (25 + Math.floor(Math.random() * 6));
-          
-          // Ensure winning team gets higher points
-          if (speaker.team === analysis.winner) {
-            // If this speaker is on the winning team, ensure they have higher points
-            const losingTeamSpeakers = updatedSession.speakers.filter(s => s.team !== analysis.winner);
-            const maxLosingScore = Math.max(...losingTeamSpeakers.map(s => analysis.speakerPoints[s.id] || 25));
-            if (points <= maxLosingScore) {
-              points = maxLosingScore + 1;
-            }
-          } else {
-            // If this speaker is on the losing team, ensure they have lower points
-            const winningTeamSpeakers = updatedSession.speakers.filter(s => s.team === analysis.winner);
-            const minWinningScore = Math.min(...winningTeamSpeakers.map(s => analysis.speakerPoints[s.id] || 30));
-            if (points >= minWinningScore) {
-              points = minWinningScore - 1;
-            }
-          }
+          // Use the AI-generated points (already validated to ensure winning team has higher scores)
+          const points = analysis.speakerPoints[speaker.id] || 27;
           
           // Gather all speeches for this speaker
           const speeches = updatedSession.points
@@ -214,8 +197,11 @@ function App() {
             .map(p => p.transcript);
           
           // Generate personalized feedback
-          let feedback = '';
-          let contentRecommendations = null;
+          let feedback: string | {
+            strengths: string[];
+            areasForImprovement: string[];
+            overallAssessment: string;
+          } = '';
           
           try {
             console.log(`Generating feedback for ${speaker.name} with ${speeches.length} speeches`);
@@ -225,18 +211,7 @@ function App() {
               updatedSession.topic,
               speeches
             );
-            console.log(`Feedback generated for ${speaker.name}:`, feedback.substring(0, 100) + '...');
-            
-            // Generate content recommendations based on the feedback
-            console.log(`Generating content recommendations for ${speaker.name}`);
-            contentRecommendations = await AIService.generateContentRecommendations(
-              speaker.name,
-              speaker.team,
-              updatedSession.topic,
-              speeches,
-              feedback
-            );
-            console.log(`Content recommendations generated for ${speaker.name}:`, contentRecommendations);
+            console.log(`Feedback generated for ${speaker.name}:`, feedback);
           } catch (err) {
             console.error('Error generating feedback for', speaker.name, err);
             console.error('Error details:', {
@@ -246,10 +221,13 @@ function App() {
               speechCount: speeches.length,
               speeches: speeches
             });
-            feedback = 'Unable to generate personalized feedback at this time.';
-            contentRecommendations = {
-              weaknesses: ['Analysis temporarily unavailable'],
-              recommendations: []
+            feedback = {
+              strengths: ['Actively participated in the debate'],
+              areasForImprovement: [
+                'Practice speaking more clearly and confidently',
+                'Develop stronger argumentation skills'
+              ],
+              overallAssessment: 'Unable to generate personalized feedback at this time.'
             };
           }
           
@@ -257,7 +235,6 @@ function App() {
             ...speaker,
             points,
             feedback,
-            contentRecommendations,
           };
         })
       );
@@ -267,7 +244,9 @@ function App() {
         endTime: new Date(),
         winner: {
           team: analysis.winner,
-          reasoning: analysis.reasoning,
+          reasoning: analysis.keyArguments, // Using keyArguments as the main reasoning
+          keyArguments: analysis.keyArguments,
+          clash: analysis.clash,
         },
         summary: analysis.summary,
         speakers: speakersWithPointsAndFeedback,

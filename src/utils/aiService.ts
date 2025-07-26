@@ -127,7 +127,8 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
   
   static async analyzeWinner(session: any): Promise<{
     winner: 'affirmative' | 'negative';
-    reasoning: string;
+    keyArguments: string;
+    clash: string;
     speakerPoints: { [key: string]: number };
     summary: string;
   }> {
@@ -146,31 +147,29 @@ Debate Topic: ${session.topic}
 Debate Summary:
 ${debateSummary}
 
-Please determine:
-1. Which team won (affirmative or negative)
-2. Detailed reasoning for the decision
-3. Individual speaker scores (0-100 scale) - IMPORTANT: The winning team must have higher scores than the losing team
-4. Overall debate summary
-
-IMPORTANT SCORING RULES:
-- The winning team should have higher scores than the losing team
-- For close debates, use scores like 85-84, 82-81, etc.
-- For decisive wins, use larger gaps like 88-82, 85-78, etc.
-- Base scores on actual performance quality, not just win/loss
-- All scores should be between 70-95 for realistic debate scoring
-
-Respond in this exact JSON format:
+Please provide a detailed analysis in this exact JSON format:
 {
   "winner": "affirmative or negative",
-  "reasoning": "Detailed explanation of why this team won",
+  "keyArguments": "Which specific arguments won the debate? For example: 'The affirmative's climate change contention had high impact, while the negative's structural violence contention lacked proper link.' Focus on the most persuasive arguments and why they were effective.",
+  "clash": "Which rebuttals worked well or didn't work? For example: 'The negative's rebuttal against climate change that China has most emissions, so US action is ineffective, was persuasive and well-linked.' Analyze the quality of rebuttals and their effectiveness.",
   "speakerPoints": {
-    "speaker1": 85,
-    "speaker2": 78,
-    "speaker3": 82,
-    "speaker4": 79
+    "speaker1": 28,
+    "speaker2": 26,
+    "speaker3": 27,
+    "speaker4": 25
   },
   "summary": "Overall summary of the debate"
-}`;
+}
+
+IMPORTANT SCORING RULES:
+- Use a 25-30 point scale (25 = horrible, 30 = amazing)
+- The winning team MUST have higher scores than the losing team
+- For close debates, use scores like 28-27, 27-26, etc.
+- For decisive wins, use larger gaps like 30-26, 29-25, etc.
+- Base scores on actual performance quality, not just win/loss
+- All scores must be between 25-30 inclusive
+
+For keyArguments and clash sections, be specific about which arguments and rebuttals were most effective and why.`;
 
     try {
       const response = await fetch(OPENAI_API_URL, {
@@ -220,30 +219,53 @@ Respond in this exact JSON format:
         
         const analysis = JSON.parse(jsonContent);
         
-        // Validate that winning team has higher scores
+        // Validate that winning team has higher scores and all scores are in 25-30 range
         const winningTeam = analysis.winner;
         const winningTeamSpeakers = session.speakers.filter((s: any) => s.team === winningTeam);
         const losingTeamSpeakers = session.speakers.filter((s: any) => s.team !== winningTeam);
         
-        const winningScores = winningTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 0);
-        const losingScores = losingTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 0);
+        // Ensure all scores are within 25-30 range
+        session.speakers.forEach((s: any) => {
+          if (analysis.speakerPoints[s.id]) {
+            analysis.speakerPoints[s.id] = Math.max(25, Math.min(30, analysis.speakerPoints[s.id]));
+          } else {
+            analysis.speakerPoints[s.id] = 27; // Default score
+          }
+        });
         
-        const avgWinningScore = winningScores.length > 0 ? winningScores.reduce((a: number, b: number) => a + b, 0) / winningScores.length : 0;
-        const avgLosingScore = losingScores.length > 0 ? losingScores.reduce((a: number, b: number) => a + b, 0) / losingScores.length : 0;
+        // Ensure winning team has higher scores than losing team
+        const winningScores = winningTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 27);
+        const losingScores = losingTeamSpeakers.map((s: any) => analysis.speakerPoints[s.id] || 27);
         
-        // If winning team doesn't have higher average score, adjust scores
-        if (avgWinningScore <= avgLosingScore) {
-          const adjustment = Math.max(3, Math.ceil((avgLosingScore - avgWinningScore) + 2));
+        const maxWinningScore = Math.max(...winningScores);
+        const maxLosingScore = Math.max(...losingScores);
+        const minWinningScore = Math.min(...winningScores);
+        const minLosingScore = Math.min(...losingScores);
+        
+        // If winning team doesn't have higher scores, adjust them
+        if (maxWinningScore <= maxLosingScore || minWinningScore <= minLosingScore) {
+          // Calculate the minimum gap needed
+          const gap = Math.max(1, maxLosingScore - maxWinningScore + 1);
+          
+          // Adjust winning team scores up
           winningTeamSpeakers.forEach((s: any) => {
-            if (analysis.speakerPoints[s.id]) {
-              analysis.speakerPoints[s.id] += adjustment;
-            }
+            const currentScore = analysis.speakerPoints[s.id] || 27;
+            const newScore = Math.min(30, currentScore + gap);
+            analysis.speakerPoints[s.id] = newScore;
+          });
+          
+          // Adjust losing team scores down if needed
+          losingTeamSpeakers.forEach((s: any) => {
+            const currentScore = analysis.speakerPoints[s.id] || 27;
+            const newScore = Math.max(25, currentScore - Math.floor(gap / 2));
+            analysis.speakerPoints[s.id] = newScore;
           });
         }
         
         return {
           winner: analysis.winner || 'affirmative',
-          reasoning: analysis.reasoning || 'No reasoning provided',
+          keyArguments: analysis.keyArguments || 'No key arguments provided',
+          clash: analysis.clash || 'No clash analysis provided',
           speakerPoints: analysis.speakerPoints || {},
           summary: analysis.summary || 'No summary provided'
         };
@@ -415,14 +437,25 @@ Respond in this exact JSON format:
     }
   }
 
-  static async generateSpeakerFeedback(speakerName: string, team: string, topic: string, speeches: string[]): Promise<string> {
+  static async generateSpeakerFeedback(speakerName: string, team: string, topic: string, speeches: string[]): Promise<{
+    strengths: string[];
+    areasForImprovement: string[];
+    overallAssessment: string;
+  }> {
     if (!isAPIKeyConfigured()) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
     }
 
     // If no speeches provided, return a generic message
     if (!speeches || speeches.length === 0) {
-      return 'No speeches available for analysis. Please ensure you have completed at least one speech to receive personalized feedback.';
+      return {
+        strengths: ['Participated actively in the debate'],
+        areasForImprovement: [
+          'Complete more speeches to receive personalized feedback',
+          'Practice speaking clearly and confidently'
+        ],
+        overallAssessment: 'Thank you for participating in the debate! Complete more speeches to receive detailed personalized feedback.'
+      };
     }
 
     console.log(`AIService: Generating feedback for ${speakerName} (${team}) on topic: ${topic}`);
@@ -430,7 +463,7 @@ Respond in this exact JSON format:
 
     const combinedSpeeches = speeches.join('\n\n');
 
-    const prompt = `You are an expert debate coach. Provide personalized feedback for a debater based on their speeches.
+    const prompt = `You are an expert debate coach. Provide structured feedback for a debater based on their speeches.
 
 Speaker: ${speakerName}
 Team: ${team}
@@ -439,12 +472,26 @@ Topic: ${topic}
 Speeches:
 ${combinedSpeeches}
 
-Please provide constructive feedback in 2-3 paragraphs covering:
-1. Strengths and effective techniques used
-2. Areas for improvement
-3. Specific advice for future debates
+Please provide structured feedback in this exact JSON format:
+{
+  "strengths": [
+    "At least 1 specific strength or positive aspect of their debating",
+    "Another strength if applicable"
+  ],
+  "areasForImprovement": [
+    "At least 2 specific areas where they can improve",
+    "Another area for improvement",
+    "Additional improvement area if applicable"
+  ],
+  "overallAssessment": "A brief 2-3 sentence overall assessment of their performance"
+}
 
-Keep the tone encouraging but honest. Focus on actionable advice.`;
+Requirements:
+- Provide 3-5 total bullet points (1-2 strengths, 2-3 areas for improvement)
+- Minimum 1 strength, minimum 2 areas for improvement
+- Be specific and actionable
+- Keep tone encouraging but honest
+- Focus on debate skills, argumentation, delivery, and strategy`;
 
     try {
       console.log(`AIService: Making API call for feedback generation...`);
@@ -462,7 +509,7 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
               content: prompt
             }
           ],
-          max_tokens: 500,
+          max_tokens: 800,
           temperature: 0.7
         })
       });
@@ -483,13 +530,70 @@ Keep the tone encouraging but honest. Focus on actionable advice.`;
         throw new Error('Invalid response format from API');
       }
       
-      const feedback = data.choices[0].message.content;
-      console.log(`AIService: Generated feedback:`, feedback.substring(0, 100) + '...');
-      return feedback;
+      const content = data.choices[0].message.content;
+      console.log(`AIService: Generated feedback:`, content.substring(0, 100) + '...');
+      
+      // Parse the JSON response
+      try {
+        let jsonContent = content;
+        
+        // Handle responses wrapped in markdown code blocks
+        if (content.includes('```json')) {
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) {
+            jsonContent = jsonMatch[1];
+          }
+        } else if (content.includes('```')) {
+          const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+          if (codeMatch) {
+            jsonContent = codeMatch[1];
+          }
+        }
+        
+        const feedback = JSON.parse(jsonContent);
+        
+        // Validate the structure
+        if (!feedback.strengths || !feedback.areasForImprovement || !feedback.overallAssessment) {
+          throw new Error('Invalid feedback structure');
+        }
+        
+        // Ensure minimum requirements
+        if (feedback.strengths.length < 1) {
+          feedback.strengths = ['Showed commitment to participating in the debate'];
+        }
+        if (feedback.areasForImprovement.length < 2) {
+          feedback.areasForImprovement = [
+            'Practice speaking more clearly and confidently',
+            'Develop stronger argumentation skills'
+          ];
+        }
+        
+        return feedback;
+      } catch (parseError) {
+        console.error('AIService: JSON parsing error:', parseError);
+        // Return fallback structured feedback
+        return {
+          strengths: ['Actively participated in the debate'],
+          areasForImprovement: [
+            'Practice speaking more clearly and confidently',
+            'Develop stronger argumentation and evidence usage',
+            'Work on timing and speech structure'
+          ],
+          overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
+        };
+      }
     } catch (error) {
       console.error('AIService: API error in generateSpeakerFeedback:', error);
-      // Return a helpful fallback message instead of throwing
-      return `Thank you for participating in the debate, ${speakerName}! While we couldn't generate personalized feedback at this time, we encourage you to review your speeches and consider areas where you felt most confident and areas where you could improve. Practice and preparation are key to becoming a stronger debater.`;
+      // Return a helpful fallback structured message
+      return {
+        strengths: ['Actively participated in the debate'],
+        areasForImprovement: [
+          'Practice speaking more clearly and confidently',
+          'Develop stronger argumentation and evidence usage',
+          'Work on timing and speech structure'
+        ],
+        overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
+      };
     }
   }
 

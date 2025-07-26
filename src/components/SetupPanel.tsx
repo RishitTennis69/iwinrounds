@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Speaker } from '../types';
 import { ArrowLeft } from 'lucide-react';
+import RandomTopicSelector from './RandomTopicSelector';
 
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[], peoplePerTeam: number, speechesPerSpeaker: number, firstSpeaker: 'affirmative' | 'negative') => void;
@@ -121,6 +122,23 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Debate Topic
             </label>
+            
+            {/* Random Topic Selector */}
+            <RandomTopicSelector 
+              onTopicSelect={setTopic}
+              currentTopic={topic}
+            />
+            
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">or enter your own topic</span>
+              </div>
+            </div>
+            
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
@@ -157,7 +175,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">First Speaker</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Which Side Speaks First</label>
               <select
                 value={firstSpeaker}
                 onChange={e => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
@@ -166,22 +184,33 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
                 <option value="affirmative">Affirmative</option>
                 <option value="negative">Negative</option>
               </select>
+              <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
             </div>
           </div>
           {/* Speakers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-blue-600">Affirmative Team</h3>
+              <p className="text-sm text-gray-600 mb-3">Enter names for each speaker position</p>
               {speakerInputs('affirmative')}
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-red-600">Negative Team</h3>
+              <p className="text-sm text-gray-600 mb-3">Enter names for each speaker position</p>
               {speakerInputs('negative')}
             </div>
           </div>
           {/* Debate Order Preview */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Debate Order</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Debate Order & Speaker Numbers</h3>
+            <div className="mb-3">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Total Speakers:</strong> {peoplePerTeam * 2} ({peoplePerTeam} per team)
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Speaking Order:</strong> {firstSpeaker.charAt(0).toUpperCase() + firstSpeaker.slice(1)} team speaks first
+              </p>
+            </div>
             <div className="grid grid-cols-{peoplePerTeam * 2} gap-2 text-sm">
               {Array.from({ length: peoplePerTeam * 2 }).map((_, idx) => {
                 // Determine team based on first speaker
@@ -193,12 +222,20 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
                 }
                 const speakerIdx = Math.floor(idx / 2);
                 const key = getSpeakerKey(team, speakerIdx);
+                const speakerNumber = idx + 1; // Global speaker number
+                const isFirstSpeaker = idx === 0;
                 return (
                   <div className="text-center" key={key}>
                     <div className={`font-medium text-${team === 'affirmative' ? 'blue' : 'red'}-600`}>
+                      Speaker #{speakerNumber}
+                      {isFirstSpeaker && (
+                        <div className="text-xs text-green-600 font-bold mt-1">FIRST</div>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500">
                       {speakerIdx+1}{speakerIdx === 0 ? 'st' : speakerIdx === 1 ? 'nd' : speakerIdx === 2 ? 'rd' : 'th'} {team.charAt(0).toUpperCase() + team.slice(1)}
                     </div>
-                    <div className="text-gray-600">{speakerNames[key] || `Speaker ${speakerIdx+1}`}</div>
+                    <div className="text-gray-600 text-xs">{speakerNames[key] || `Speaker ${speakerNumber}`}</div>
                   </div>
                 );
               })}
