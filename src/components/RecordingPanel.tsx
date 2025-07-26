@@ -179,18 +179,18 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           ) : (
             <div className="flex space-x-2">
               <button
-                onClick={stopRecording}
-                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <Square className="w-5 h-5" />
-                <span>End Recording</span>
-              </button>
-              <button
                 onClick={restartRecording}
                 className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <RotateCcw className="w-5 h-5" />
                 <span>Restart</span>
+              </button>
+              <button
+                onClick={stopRecording}
+                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <Square className="w-5 h-5" />
+                <span>End Recording</span>
               </button>
             </div>
           )}
