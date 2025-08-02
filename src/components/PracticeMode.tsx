@@ -40,6 +40,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentTTSLoadingSpeech, setCurrentTTSLoadingSpeech] = useState<number | null>(null);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
+  const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
     areasForImprovement: string[];
@@ -270,8 +271,10 @@ Respond in this exact JSON format:
     const speech = aiSpeeches[speechNum];
     if (!speech || !speech.transcript) return;
 
+    // Set speech state to playing
+    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
+
     try {
-      setIsPlayingAI(true);
       setCurrentPlayingSpeech(speechNum);
       setIsTTSLoading(true);
       setCurrentTTSLoadingSpeech(speechNum);
@@ -279,38 +282,66 @@ Respond in this exact JSON format:
       // Choose voice based on team (male voices for affirmative, female for negative)
       const voice = speech.team === 'affirmative' ? 'echo' : 'nova';
       
+      setIsTTSLoading(false);
+      setCurrentTTSLoadingSpeech(null);
+      
       await ttsService.speak(speech.transcript, { voice, speed: 0.9 });
       
-      // Mark speech as listened to when it finishes
-      setListenedSpeeches(prev => new Set([...prev, speechNum]));
-      
-      // Add the AI speech to the flow chart now that it's been listened to
-      setFlowChartSpeeches(prev => ({
-        ...prev,
-        [speechNum]: speech
-      }));
-      
-      // Clear required speech if this was the one that needed to be listened to
-      if (requiredSpeechToListen === speechNum) {
-        setRequiredSpeechToListen(null);
-      }
+      // Speech completed naturally
+      handleSpeechCompleted(speechNum);
     } catch (error) {
       console.error('Error playing AI speech:', error);
+      setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
     } finally {
-      setIsPlayingAI(false);
       setCurrentPlayingSpeech(null);
       setIsTTSLoading(false);
       setCurrentTTSLoadingSpeech(null);
     }
   };
 
+  // Pause AI speech
+  const pauseAISpeech = (speechNum: number) => {
+    ttsService.pause();
+    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'paused' }));
+  };
+
+  // Resume AI speech
+  const resumeAISpeech = (speechNum: number) => {
+    ttsService.resume();
+    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
+  };
+
   // Stop AI speech
-  const stopAISpeech = () => {
+  const stopAISpeech = (speechNum: number) => {
     ttsService.stop();
-    setIsPlayingAI(false);
     setCurrentPlayingSpeech(null);
     setIsTTSLoading(false);
     setCurrentTTSLoadingSpeech(null);
+    
+    // Mark as completed when stopped
+    handleSpeechCompleted(speechNum);
+  };
+
+  // Handle speech completion (either naturally finished or stopped)
+  const handleSpeechCompleted = (speechNum: number) => {
+    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'completed' }));
+    
+    // Mark speech as listened to
+    setListenedSpeeches(prev => new Set([...prev, speechNum]));
+    
+    // Add the AI speech to the flow chart now that it's been listened to
+    const speech = aiSpeeches[speechNum];
+    if (speech) {
+      setFlowChartSpeeches(prev => ({
+        ...prev,
+        [speechNum]: speech
+      }));
+    }
+    
+    // Clear required speech if this was the one that needed to be listened to
+    if (requiredSpeechToListen === speechNum) {
+      setRequiredSpeechToListen(null);
+    }
   };
 
   // On start, simulate up to the user's first speech
@@ -816,8 +847,11 @@ Respond in this exact JSON format:
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Previous Speeches</h3>
             <div className="space-y-3">
               {getAISpeechesToShow().map((speech) => {
-                const hasBeenListened = listenedSpeeches.has(speech.speechNumber);
+                const playState = speechPlayStates[speech.speechNumber] || 'idle';
+                const hasBeenListened = playState === 'completed';
                 const isRequired = requiredSpeechToListen === speech.speechNumber;
+                const isPlaying = playState === 'playing';
+                const isPaused = playState === 'paused';
                 
                 return (
                   <div key={speech.id} className={`border rounded-lg p-3 ${
@@ -846,7 +880,7 @@ Respond in this exact JSON format:
                       <span className="text-sm text-gray-500">Speech {speech.speechNumber}</span>
                     </div>
                     <p className="text-sm text-gray-700 mb-2 line-clamp-2">
-                      {speech.transcript.substring(0, 100)}...
+                      {hasBeenListened ? speech.transcript.substring(0, 100) + '...' : 'Click listen to hear this speech'}
                     </p>
                     {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber && (
                       <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
@@ -858,34 +892,73 @@ Respond in this exact JSON format:
                         🔊 You must listen to this speech before continuing
                       </div>
                     )}
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => playAISpeech(speech.speechNumber)}
-                        disabled={isPlayingAI || isTTSLoading}
-                        className={`flex-1 text-white py-1 px-2 rounded text-xs transition-colors flex items-center justify-center space-x-1 ${
-                          isRequired && !hasBeenListened
-                            ? 'bg-orange-600 hover:bg-orange-700'
-                            : 'bg-blue-600 hover:bg-blue-700'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber && (
-                          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                        <span>
-                          {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber 
-                            ? 'Loading...' 
-                            : currentPlayingSpeech === speech.speechNumber 
-                              ? 'Playing...' 
-                              : 'Listen'
-                          }
-                        </span>
-                      </button>
-                      {isPlayingAI && currentPlayingSpeech === speech.speechNumber && (
+                    
+                    {/* Control buttons based on state */}
+                    <div className="flex space-x-1">
+                      {playState === 'idle' && (
                         <button
-                          onClick={stopAISpeech}
-                          className="bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"
+                          onClick={() => playAISpeech(speech.speechNumber)}
+                          disabled={isTTSLoading}
+                          className={`flex-1 text-white py-1 px-2 rounded text-xs transition-colors flex items-center justify-center space-x-1 ${
+                            isRequired && !hasBeenListened
+                              ? 'bg-orange-600 hover:bg-orange-700'
+                              : 'bg-blue-600 hover:bg-blue-700'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                          Stop
+                          {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber && (
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                          )}
+                          <span>
+                            {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber 
+                              ? 'Loading...' 
+                              : 'Listen'
+                            }
+                          </span>
+                        </button>
+                      )}
+                      
+                      {playState === 'playing' && (
+                        <>
+                          <button
+                            onClick={() => pauseAISpeech(speech.speechNumber)}
+                            className="flex-1 bg-yellow-600 text-white py-1 px-2 rounded text-xs hover:bg-yellow-700 transition-colors"
+                          >
+                            Pause
+                          </button>
+                          <button
+                            onClick={() => stopAISpeech(speech.speechNumber)}
+                            className="flex-1 bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"
+                          >
+                            Stop
+                          </button>
+                        </>
+                      )}
+                      
+                      {playState === 'paused' && (
+                        <>
+                          <button
+                            onClick={() => resumeAISpeech(speech.speechNumber)}
+                            className="flex-1 bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
+                          >
+                            Resume
+                          </button>
+                          <button
+                            onClick={() => stopAISpeech(speech.speechNumber)}
+                            className="flex-1 bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"
+                          >
+                            Stop
+                          </button>
+                        </>
+                      )}
+                      
+                      {playState === 'completed' && (
+                        <button
+                          onClick={() => {
+                            setSpeechPlayStates(prev => ({ ...prev, [speech.speechNumber]: 'idle' }));
+                          }}
+                          className="flex-1 bg-gray-600 text-white py-1 px-2 rounded text-xs hover:bg-gray-700 transition-colors"
+                        >
+                          Listen Again
                         </button>
                       )}
                     </div>
