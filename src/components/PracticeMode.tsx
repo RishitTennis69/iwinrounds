@@ -25,16 +25,16 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   });
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
-  const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
+  const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [ttsService] = useState(() => new TTSService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const progressUpdateRef = useRef<number | null>(null);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const [speechProgress, setSpeechProgress] = useState<{ [key: number]: number }>({});
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
