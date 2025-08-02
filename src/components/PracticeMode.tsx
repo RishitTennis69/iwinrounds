@@ -41,6 +41,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
+  const [speechTimers, setSpeechTimers] = useState<{[key: number]: number}>({});
+  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: NodeJS.Timeout}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
     areasForImprovement: string[];
@@ -331,12 +333,29 @@ Respond in this exact JSON format:
   const pauseAISpeech = (speechNum: number) => {
     ttsService.pause();
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'paused' }));
+    
+    // Pause the timer
+    const interval = speechIntervals[speechNum];
+    if (interval) {
+      clearInterval(interval);
+      setSpeechIntervals(prev => {
+        const newIntervals = { ...prev };
+        delete newIntervals[speechNum];
+        return newIntervals;
+      });
+    }
   };
 
   // Resume AI speech
   const resumeAISpeech = (speechNum: number) => {
     ttsService.resume();
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
+    
+    // Resume the timer
+    const interval = setInterval(() => {
+      setSpeechTimers(prev => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
+    }, 1000);
+    setSpeechIntervals(prev => ({ ...prev, [speechNum]: interval }));
   };
 
   // Stop AI speech
@@ -352,6 +371,17 @@ Respond in this exact JSON format:
   const handleSpeechCompleted = (speechNum: number) => {
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'completed' }));
     setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
+    
+    // Clear the timer
+    const interval = speechIntervals[speechNum];
+    if (interval) {
+      clearInterval(interval);
+      setSpeechIntervals(prev => {
+        const newIntervals = { ...prev };
+        delete newIntervals[speechNum];
+        return newIntervals;
+      });
+    }
     
     // Mark speech as listened to
     setListenedSpeeches(prev => new Set([...prev, speechNum]));
@@ -518,6 +548,13 @@ Respond in this exact JSON format:
       firstSpeaker: firstSpeaker,
       summary: 'Practice session completed! Focus on the feedback below to improve your debate skills.'
     };
+  };
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Get current speaker for recording
@@ -878,6 +915,7 @@ Respond in this exact JSON format:
                 const isLoading = speechLoadingStates[speech.speechNumber] || false;
                 const hasBeenListened = playState === 'completed';
                 const isRequired = requiredSpeechToListen === speech.speechNumber;
+                const currentTime = speechTimers[speech.speechNumber] || 0;
                 
                 return (
                   <div key={speech.id} className={`border rounded-lg p-3 ${
@@ -916,6 +954,17 @@ Respond in this exact JSON format:
                     {isRequired && !hasBeenListened && (
                       <div className="mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
                         🔊 You must listen to this speech before continuing
+                      </div>
+                    )}
+                    
+                    {/* Timer display when playing or paused */}
+                    {(playState === 'playing' || playState === 'paused') && (
+                      <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-center justify-center space-x-2">
+                        <span>⏱️</span>
+                        <span className="font-mono font-medium">{formatTime(currentTime)}</span>
+                        {playState === 'playing' && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        )}
                       </div>
                     )}
                     
@@ -974,6 +1023,7 @@ Respond in this exact JSON format:
                         <button
                           onClick={() => {
                             setSpeechPlayStates(prev => ({ ...prev, [speech.speechNumber]: 'idle' }));
+                            setSpeechTimers(prev => ({ ...prev, [speech.speechNumber]: 0 }));
                           }}
                           className="flex-1 bg-gray-600 text-white py-1 px-2 rounded text-xs hover:bg-gray-700 transition-colors"
                         >
