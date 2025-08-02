@@ -290,23 +290,40 @@ Respond in this exact JSON format:
 
     // Set loading state
     setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: true }));
+    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
+
+    // Set up TTS event handlers
+    ttsService.onAudioReady = () => {
+      // Audio is ready to play - show controls
+      setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
+      setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
+    };
+
+    ttsService.onAudioEnded = () => {
+      // Audio finished naturally - mark as completed
+      handleSpeechCompleted(speechNum);
+    };
+
+    ttsService.onAudioError = () => {
+      // Audio error - reset state
+      setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
+      setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
+    };
 
     try {
       // Choose voice based on team (male voices for affirmative, female for negative)
       const voice = speech.team === 'affirmative' ? 'echo' : 'nova';
       
-      // Clear loading state and set to playing when audio actually starts
-      setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
-      setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
-      
       await ttsService.speak(speech.transcript, { voice, speed: 0.9 });
-      
-      // Speech completed naturally
-      handleSpeechCompleted(speechNum);
     } catch (error) {
       console.error('Error playing AI speech:', error);
       setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
+    } finally {
+      // Clean up event handlers
+      ttsService.onAudioReady = null;
+      ttsService.onAudioEnded = null;
+      ttsService.onAudioError = null;
     }
   };
 
@@ -334,6 +351,7 @@ Respond in this exact JSON format:
   // Handle speech completion (either naturally finished or stopped)
   const handleSpeechCompleted = (speechNum: number) => {
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'completed' }));
+    setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
     
     // Mark speech as listened to
     setListenedSpeeches(prev => new Set([...prev, speechNum]));
@@ -925,31 +943,24 @@ Respond in this exact JSON format:
                         </button>
                       )}
                       
-                      {playState === 'playing' && (
+                      {(playState === 'playing' || playState === 'paused') && (
                         <>
-                          <button
-                            onClick={() => pauseAISpeech(speech.speechNumber)}
-                            className="flex-1 bg-yellow-600 text-white py-1 px-2 rounded text-xs hover:bg-yellow-700 transition-colors"
-                          >
-                            Pause
-                          </button>
-                          <button
-                            onClick={() => stopAISpeech(speech.speechNumber)}
-                            className="flex-1 bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"
-                          >
-                            Stop
-                          </button>
-                        </>
-                      )}
-                      
-                      {playState === 'paused' && (
-                        <>
-                          <button
-                            onClick={() => resumeAISpeech(speech.speechNumber)}
-                            className="flex-1 bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
-                          >
-                            Resume
-                          </button>
+                          {playState === 'playing' && (
+                            <button
+                              onClick={() => pauseAISpeech(speech.speechNumber)}
+                              className="flex-1 bg-yellow-600 text-white py-1 px-2 rounded text-xs hover:bg-yellow-700 transition-colors"
+                            >
+                              Pause
+                            </button>
+                          )}
+                          {playState === 'paused' && (
+                            <button
+                              onClick={() => resumeAISpeech(speech.speechNumber)}
+                              className="flex-1 bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
+                            >
+                              Resume
+                            </button>
+                          )}
                           <button
                             onClick={() => stopAISpeech(speech.speechNumber)}
                             className="flex-1 bg-red-600 text-white py-1 px-2 rounded text-xs hover:bg-red-700 transition-colors"

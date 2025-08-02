@@ -9,6 +9,9 @@ export interface TTSOptions {
 
 export class TTSService {
   private currentAudio: HTMLAudioElement | null = null;
+  public onAudioReady: (() => void) | null = null;
+  public onAudioEnded: (() => void) | null = null;
+  public onAudioError: ((error: any) => void) | null = null;
 
   constructor() {
     // Constructor can be empty for now
@@ -63,13 +66,30 @@ export class TTSService {
       this.currentAudio = new Audio(audioUrl);
       
       // Set up event listeners
+      this.currentAudio.onloadstart = () => {
+        // Audio is loading, but not yet playing
+      };
+      
+      this.currentAudio.oncanplay = () => {
+        // Audio can start playing - this is when we should show controls
+        if (this.onAudioReady) {
+          this.onAudioReady();
+        }
+      };
+      
       this.currentAudio.onended = () => {
         this.cleanup();
+        if (this.onAudioEnded) {
+          this.onAudioEnded();
+        }
       };
 
       this.currentAudio.onerror = (error) => {
         console.error('Audio playback error:', error);
         this.cleanup();
+        if (this.onAudioError) {
+          this.onAudioError(error);
+        }
       };
 
       // Play the audio
