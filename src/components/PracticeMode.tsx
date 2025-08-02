@@ -38,7 +38,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [isPlayingAI, setIsPlayingAI] = useState(false);
-  const [currentPlayingSpeech, setCurrentPlayingSpeech] = useState<number | null>(null);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
   const [currentTTSLoadingSpeech, setCurrentTTSLoadingSpeech] = useState<number | null>(null);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
@@ -295,7 +294,6 @@ Respond in this exact JSON format:
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
 
     try {
-      setCurrentPlayingSpeech(speechNum);
       setIsTTSLoading(true);
       setCurrentTTSLoadingSpeech(speechNum);
       
@@ -313,7 +311,6 @@ Respond in this exact JSON format:
       console.error('Error playing AI speech:', error);
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
     } finally {
-      setCurrentPlayingSpeech(null);
       setIsTTSLoading(false);
       setCurrentTTSLoadingSpeech(null);
     }
@@ -334,7 +331,6 @@ Respond in this exact JSON format:
   // Stop AI speech
   const stopAISpeech = (speechNum: number) => {
     ttsService.stop();
-    setCurrentPlayingSpeech(null);
     setIsTTSLoading(false);
     setCurrentTTSLoadingSpeech(null);
     
@@ -848,11 +844,6 @@ Respond in this exact JSON format:
               <button
                 onClick={onBack}
                 className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
-                onClick={() => {
-                  // Clear sessionStorage when going back to menu
-                  sessionStorage.removeItem('reasynai_user_name');
-                  onBack();
-                }}
               >
                 Back to Menu
               </button>
@@ -875,8 +866,6 @@ Respond in this exact JSON format:
                 const playState = speechPlayStates[speech.speechNumber] || 'idle';
                 const hasBeenListened = playState === 'completed';
                 const isRequired = requiredSpeechToListen === speech.speechNumber;
-                const isPlaying = playState === 'playing';
-                const isPaused = playState === 'paused';
                 
                 return (
                   <div key={speech.id} className={`border rounded-lg p-3 ${
