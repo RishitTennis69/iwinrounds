@@ -29,9 +29,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
-  const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [whisperService] = useState(() => new WhisperService());
+  const [progressInterval, setProgressInterval] = useState<number | null>(null);
   const [ttsService] = useState(() => new TTSService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
