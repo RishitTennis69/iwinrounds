@@ -3,7 +3,6 @@ import { Speaker, DebatePoint, DebateSession } from '../types';
 import { WhisperService } from '../utils/whisperService';
 import { AIService } from '../utils/aiService';
 import { TTSService } from '../utils/ttsService';
-import { TTSService } from '../utils/ttsService';
 import RecordingPanel from './RecordingPanel';
 import DebateFlowTable from './DebateFlowTable';
 import HintPanel from './HintPanel';
