@@ -19,7 +19,10 @@ interface PracticeModeProps {
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [step, setStep] = useState<'setup' | 'generating' | 'practice' | 'complete'>('setup');
   const [topic, setTopic] = useState('');
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(() => {
+    // Load username from sessionStorage on component mount
+    return sessionStorage.getItem('reasynai_user_name') || '';
+  });
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
@@ -48,6 +51,23 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   } | null>(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [flowChartSpeeches, setFlowChartSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
+
+  // Save username to sessionStorage whenever it changes
+  useEffect(() => {
+    if (userName) {
+      sessionStorage.setItem('reasynai_user_name', userName);
+    }
+  }, [userName]);
+
+  // Clear sessionStorage when component unmounts or user goes back
+  useEffect(() => {
+    return () => {
+      // Only clear if we're actually leaving the practice mode
+      if (step === 'setup') {
+        sessionStorage.removeItem('reasynai_user_name');
+      }
+    };
+  }, [step]);
 
   // Calculate user's team based on speaker number and first speaker
   const getUserTeam = (): 'affirmative' | 'negative' => {
@@ -828,6 +848,11 @@ Respond in this exact JSON format:
               <button
                 onClick={onBack}
                 className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
+                onClick={() => {
+                  // Clear sessionStorage when going back to menu
+                  sessionStorage.removeItem('reasynai_user_name');
+                  onBack();
+                }}
               >
                 Back to Menu
               </button>
