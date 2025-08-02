@@ -51,7 +51,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [ttsService] = useState(() => new TTSService());
   const [isLoading, setIsLoading] = useState(false);
 
-  const intervalRef = useRef<number | null>(null);
   useEffect(() => {
     if (userName) {
       sessionStorage.setItem('reasynai_user_name', userName);
