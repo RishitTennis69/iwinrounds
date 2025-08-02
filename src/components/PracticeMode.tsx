@@ -947,12 +947,14 @@ Respond in this exact JSON format:
             </div>
           )}
 
-          <HintPanel
-            currentSpeaker={getCurrentSpeaker()!}
-            session={createMockSession()}
-            onHintUsed={handleHintUsed}
-            hintsUsed={hintsUsed}
-          />
+          {getCurrentSpeaker() && (
+            <HintPanel
+              currentSpeaker={getCurrentSpeaker()!}
+              session={createMockSession()}
+              onHintUsed={handleHintUsed}
+              hintsUsed={hintsUsed}
+            />
+          )}
         </div>
       </div>
 
