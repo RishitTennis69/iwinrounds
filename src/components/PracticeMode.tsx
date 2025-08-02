@@ -1004,14 +1004,31 @@ Respond in this exact JSON format:
               </button>
             </div>
           )}
-          <RecordingPanel
-            currentSpeaker={getCurrentSpeaker()}
-            speechNumber={userSpeechNums[currentSpeechIdx]}
-            totalSpeeches={totalSpeeches}
-            onSpeechComplete={handleSpeechComplete}
-            speechRecognition={whisperService}
-            isAnalyzing={isSummarizing}
-          />
+          {!requiredSpeechToListen ? (
+            <RecordingPanel
+              currentSpeaker={getCurrentSpeaker()}
+              speechNumber={userSpeechNums[currentSpeechIdx]}
+              totalSpeeches={totalSpeeches}
+              onSpeechComplete={handleSpeechComplete}
+              speechRecognition={whisperService}
+              isAnalyzing={isSummarizing}
+            />
+          ) : (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🎧</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Listen First</h3>
+                <p className="text-gray-600 mb-4">
+                  You need to listen to Speech #{requiredSpeechToListen} before you can record your response.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Click the "Listen" button in the Previous Speeches section to hear the AI's arguments.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Analysis & Hints */}
