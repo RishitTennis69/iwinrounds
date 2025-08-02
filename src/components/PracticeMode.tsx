@@ -29,7 +29,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
-  const [animationId, setAnimationId] = useState<number | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
@@ -38,7 +38,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
-  const [speechTimers, setSpeechTimers] = useState<{[key: number]: number}>({});
+  const intervalRef = useRef<number | null>(null);
   const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: NodeJS.Timeout}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
