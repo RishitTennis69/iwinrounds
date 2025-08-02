@@ -441,6 +441,16 @@ Respond in this exact JSON format:
     strengths: string[];
     areasForImprovement: string[];
     overallAssessment: string;
+    delivery: {
+      wordsPerMinute: number;
+      fillerWords: {
+        count: number;
+        types: string[];
+        percentage: number;
+      };
+      paceAssessment: string;
+      fillerAssessment: string;
+    };
   }> {
     if (!isAPIKeyConfigured()) {
       throw new Error('OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in your .env file.');
@@ -454,12 +464,21 @@ Respond in this exact JSON format:
           'Complete more speeches to receive personalized feedback',
           'Practice speaking clearly and confidently'
         ],
-        overallAssessment: 'Thank you for participating in the debate! Complete more speeches to receive detailed personalized feedback.'
+        overallAssessment: 'Thank you for participating in the debate! Complete more speeches to receive detailed personalized feedback.',
+        delivery: {
+          wordsPerMinute: 0,
+          fillerWords: { count: 0, types: [], percentage: 0 },
+          paceAssessment: 'Unable to analyze pace - no speech data available',
+          fillerAssessment: 'Unable to analyze filler words - no speech data available'
+        }
       };
     }
 
     console.log(`AIService: Generating feedback for ${speakerName} (${team}) on topic: ${topic}`);
     console.log(`AIService: Number of speeches: ${speeches.length}`);
+
+    // Calculate delivery metrics
+    const deliveryMetrics = this.calculateDeliveryMetrics(speeches);
 
     const combinedSpeeches = speeches.join('\n\n');
 
@@ -483,7 +502,11 @@ Please provide structured feedback in this exact JSON format:
     "Another area for improvement",
     "Additional improvement area if applicable"
   ],
-  "overallAssessment": "A brief 2-3 sentence overall assessment of their performance"
+  "overallAssessment": "A brief 2-3 sentence overall assessment of their performance",
+  "delivery": {
+    "paceAssessment": "Assessment of speaking pace based on ${deliveryMetrics.wordsPerMinute} words per minute (target: 130-160 wpm)",
+    "fillerAssessment": "Assessment of filler word usage - found ${deliveryMetrics.fillerWords.count} filler words (${deliveryMetrics.fillerWords.percentage.toFixed(1)}% of speech)"
+  }
 }
 
 Requirements:
@@ -562,6 +585,13 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
         
         const feedback = JSON.parse(jsonContent);
         
+        // Add delivery metrics to the response
+        feedback.delivery = {
+          ...deliveryMetrics,
+          paceAssessment: feedback.delivery?.paceAssessment || this.generatePaceAssessment(deliveryMetrics.wordsPerMinute),
+          fillerAssessment: feedback.delivery?.fillerAssessment || this.generateFillerAssessment(deliveryMetrics.fillerWords)
+        };
+        
         // Validate the structure
         if (!feedback.strengths || !feedback.areasForImprovement || !feedback.overallAssessment) {
           throw new Error('Invalid feedback structure');
@@ -589,7 +619,12 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
             'Develop stronger argumentation and evidence usage',
             'Work on timing and speech structure'
           ],
-          overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
+          overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`,
+          delivery: {
+            ...deliveryMetrics,
+            paceAssessment: this.generatePaceAssessment(deliveryMetrics.wordsPerMinute),
+            fillerAssessment: this.generateFillerAssessment(deliveryMetrics.fillerWords)
+          }
         };
       }
     } catch (error) {
@@ -602,7 +637,12 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
           'Develop stronger argumentation and evidence usage',
           'Work on timing and speech structure'
         ],
-        overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
+        overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`,
+        delivery: {
+          ...deliveryMetrics,
+          paceAssessment: this.generatePaceAssessment(deliveryMetrics.wordsPerMinute),
+          fillerAssessment: this.generateFillerAssessment(deliveryMetrics.fillerWords)
+        }
       };
     }
   }
