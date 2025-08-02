@@ -46,6 +46,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     overallAssessment: string;
   } | null>(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+  const [flowChartSpeeches, setFlowChartSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
 
   // Calculate user's team based on speaker number and first speaker
   const getUserTeam = (): 'affirmative' | 'negative' => {
@@ -219,6 +220,12 @@ Respond in this exact JSON format:
       // Mark speech as listened to when it finishes
       setListenedSpeeches(prev => new Set([...prev, speechNum]));
       
+      // Add the AI speech to the flow chart now that it's been listened to
+      setFlowChartSpeeches(prev => ({
+        ...prev,
+        [speechNum]: speech
+      }));
+      
       // Clear required speech if this was the one that needed to be listened to
       if (requiredSpeechToListen === speechNum) {
         setRequiredSpeechToListen(null);
@@ -361,8 +368,8 @@ Respond in this exact JSON format:
       });
     });
     
-    // Add AI speeches
-    Object.values(aiSpeeches).forEach(speech => {
+    // Add only AI speeches that have been listened to (in flow chart)
+    Object.values(flowChartSpeeches).forEach(speech => {
       points.push(speech);
     });
     
@@ -413,7 +420,7 @@ Respond in this exact JSON format:
   const createMockSession = () => {
     return {
       topic,
-      points: Object.values(aiSpeeches).sort((a, b) => a.speechNumber - b.speechNumber)
+      points: Object.values(flowChartSpeeches).sort((a, b) => a.speechNumber - b.speechNumber)
     };
   };
 
