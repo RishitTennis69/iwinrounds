@@ -31,6 +31,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [ttsService] = useState(() => new TTSService());
+  const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -49,6 +50,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   } | null>(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [flowChartSpeeches, setFlowChartSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
+  const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
 
   // Save username to sessionStorage whenever it changes
   useEffect(() => {
