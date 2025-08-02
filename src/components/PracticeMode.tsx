@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Speaker, DebatePoint, DebateSession } from '../types';
 import { WhisperService } from '../utils/whisperService';
 import { AIService } from '../utils/aiService';
@@ -50,9 +50,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [flowChartSpeeches, setFlowChartSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [ttsService] = useState(() => new TTSService());
+  const [isLoading, setIsLoading] = useState(false);
 
   // Save username to sessionStorage whenever it changes
   const intervalRef = useRef<number | null>(null);
+  useEffect(() => {
     if (userName) {
       sessionStorage.setItem('reasynai_user_name', userName);
     }
