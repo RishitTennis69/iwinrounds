@@ -33,7 +33,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
@@ -52,7 +51,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [ttsService] = useState(() => new TTSService());
   const [isLoading, setIsLoading] = useState(false);
 
-  // Save username to sessionStorage whenever it changes
+  const intervalRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
   useEffect(() => {
     if (userName) {
