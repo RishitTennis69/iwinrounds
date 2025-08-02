@@ -747,47 +747,13 @@ Respond in this exact JSON format:
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="max-w-md mx-auto px-6">
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            {/* Animated Loading */}
+            {/* Modern Loading Spinner */}
             <div className="mb-6">
-              <div className="relative">
-                <div className="w-20 h-20 border-4 border-blue-200 rounded-full mx-auto"></div>
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
-                </div>
-              </div>
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
             </div>
             
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Preparing Your Debate</h2>
             <p className="text-gray-600 mb-6">Our AI is generating realistic speeches for the other debaters...</p>
-            
-            {/* Progress Steps */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">
-                  ✓
-                </div>
-                <span className="text-sm text-gray-700">Analyzing debate topic</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">
-                  ✓
-                </div>
-                <span className="text-sm text-gray-700">Setting up debate structure</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs animate-pulse">
-                  ⚡
-                </div>
-                <span className="text-sm text-gray-700">Generating AI speeches</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center text-xs">
-                  ⏳
-                </div>
-                <span className="text-sm text-gray-500">Preparing practice environment</span>
-              </div>
-            </div>
             
             <div className="bg-blue-50 rounded-lg p-4">
               <p className="text-sm text-blue-800">
