@@ -95,11 +95,16 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   // Generate AI speeches up to (but not including) the next user speech
   const generateAISpeechesUpTo = async (from: number, to: number) => {
     setIsLoading(true);
+    console.log(`Generating AI speeches from ${from} to ${to}`);
     const aiSpeechMap = { ...aiSpeeches };
     // Start from 1 if from is 0, otherwise from + 1
     const startFrom = from === 0 ? 1 : from + 1;
+    console.log(`Starting from speech ${startFrom}, going to ${to}`);
     for (let i = startFrom; i < to; i++) {
+      console.log(`Checking speech ${i}: userSpeechNums includes ${i}?`, userSpeechNums.includes(i));
+      console.log(`Already have aiSpeech for ${i}?`, !!aiSpeechMap[i]);
       if (!userSpeechNums.includes(i) && !aiSpeechMap[i]) {
+        console.log(`Generating AI speech for speech ${i}`);
         const sp = debateOrder[i - 1];
         const prompt = `You are an expert debater. Write a realistic ${sp.team} speech for a practice debate following this exact structure:
 
@@ -256,6 +261,9 @@ Respond in this exact JSON format:
     e.preventDefault();
     setStep('generating');
     const firstUserSpeech = userSpeechNums[0];
+    console.log('First user speech:', firstUserSpeech);
+    console.log('User speech numbers:', userSpeechNums);
+    console.log('Debate order:', debateOrder.map((s, i) => `${i+1}: ${s.team} ${s.speakerNumber}`));
     // Generate AI speeches from speech 1 up to (but not including) the first user speech
     await generateAISpeechesUpTo(0, firstUserSpeech);
     setStep('practice');
@@ -412,11 +420,15 @@ Respond in this exact JSON format:
   // Get AI speeches to display
   const getAISpeechesToShow = () => {
     const currentUserSpeech = userSpeechNums[currentSpeechIdx];
+    console.log('Current user speech:', currentUserSpeech);
+    console.log('AI speeches available:', Object.keys(aiSpeeches));
     if (!currentUserSpeech) return [];
     
-    return Object.values(aiSpeeches)
+    const speechesToShow = Object.values(aiSpeeches)
       .filter(speech => speech.speechNumber < currentUserSpeech)
       .sort((a, b) => a.speechNumber - b.speechNumber);
+    console.log('AI speeches to show:', speechesToShow.map(s => `Speech ${s.speechNumber}: ${s.speakerName}`));
+    return speechesToShow;
   };
 
   // Create a mock session for HintPanel
