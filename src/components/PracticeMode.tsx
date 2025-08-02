@@ -26,13 +26,15 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
-  const [ttsService] = useState(() => new TTSService());
+  const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [animationId, setAnimationId] = useState<number | null>(null);
   const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
@@ -48,6 +50,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [flowChartSpeeches, setFlowChartSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
+  const [ttsService] = useState(() => new TTSService());
 
   // Save username to sessionStorage whenever it changes
   useEffect(() => {
