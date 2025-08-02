@@ -37,7 +37,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [isPlayingAI, setIsPlayingAI] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
   const [currentTTSLoadingSpeech, setCurrentTTSLoadingSpeech] = useState<number | null>(null);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
