@@ -96,7 +96,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const generateAISpeechesUpTo = async (from: number, to: number) => {
     setIsLoading(true);
     const aiSpeechMap = { ...aiSpeeches };
-    for (let i = from + 1; i < to; i++) {
+    // Start from 1 if from is 0, otherwise from + 1
+    const startFrom = from === 0 ? 1 : from + 1;
+    for (let i = startFrom; i < to; i++) {
       if (!userSpeechNums.includes(i) && !aiSpeechMap[i]) {
         const sp = debateOrder[i - 1];
         const prompt = `You are an expert debater. Write a realistic ${sp.team} speech for a practice debate following this exact structure:
@@ -254,6 +256,7 @@ Respond in this exact JSON format:
     e.preventDefault();
     setStep('generating');
     const firstUserSpeech = userSpeechNums[0];
+    // Generate AI speeches from speech 1 up to (but not including) the first user speech
     await generateAISpeechesUpTo(0, firstUserSpeech);
     setStep('practice');
   };
