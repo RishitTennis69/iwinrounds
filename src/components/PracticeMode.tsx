@@ -30,7 +30,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [progressInterval, setProgressInterval] = useState<number | null>(null);
   const [ttsService] = useState(() => new TTSService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
