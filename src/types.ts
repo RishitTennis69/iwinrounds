@@ -8,6 +8,16 @@ export interface Speaker {
     strengths: string[]; // Minimum 1 strength
     areasForImprovement: string[]; // Minimum 2 areas for improvement
     overallAssessment: string; // Brief overall assessment
+    delivery?: {
+      wordsPerMinute: number;
+      fillerWords: {
+        count: number;
+        types: string[];
+        percentage: number;
+      };
+      paceAssessment: string;
+      fillerAssessment: string;
+    };
   };
 }
 

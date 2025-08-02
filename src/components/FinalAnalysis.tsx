@@ -155,6 +155,31 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                               </div>
                             )}
                             
+                            {/* Delivery Feedback */}
+                            {typeof speaker.feedback === 'object' && speaker.feedback.delivery && (
+                              <div className="text-sm bg-indigo-50 rounded p-2">
+                                <div className="font-semibold text-indigo-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                  Delivery Analysis:
+                                </div>
+                                <div className="space-y-2 text-indigo-600 text-xs">
+                                  <div>
+                                    <span className="font-medium">Speaking Pace:</span> {speaker.feedback.delivery.wordsPerMinute} words/min
+                                    <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.paceAssessment}</div>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Filler Words:</span> {speaker.feedback.delivery.fillerWords.count} total ({speaker.feedback.delivery.fillerWords.percentage.toFixed(1)}%)
+                                    <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.fillerAssessment}</div>
+                                    {speaker.feedback.delivery.fillerWords.types.length > 0 && (
+                                      <div className="text-indigo-400 mt-1">
+                                        Most common: {speaker.feedback.delivery.fillerWords.types.slice(0, 3).join(', ')}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
                             {/* Overall Assessment */}
                             {speaker.feedback.overallAssessment && (
                               <div className="text-sm bg-gray-50 rounded p-2">
@@ -231,6 +256,31 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                               </div>
                             )}
                             
+                            {/* Delivery Feedback */}
+                            {typeof speaker.feedback === 'object' && speaker.feedback.delivery && (
+                              <div className="text-sm bg-indigo-50 rounded p-2">
+                                <div className="font-semibold text-indigo-700 mb-1 flex items-center">
+                                  <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                  Delivery Analysis:
+                                </div>
+                                <div className="space-y-2 text-indigo-600 text-xs">
+                                  <div>
+                                    <span className="font-medium">Speaking Pace:</span> {speaker.feedback.delivery.wordsPerMinute} words/min
+                                    <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.paceAssessment}</div>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Filler Words:</span> {speaker.feedback.delivery.fillerWords.count} total ({speaker.feedback.delivery.fillerWords.percentage.toFixed(1)}%)
+                                    <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.fillerAssessment}</div>
+                                    {speaker.feedback.delivery.fillerWords.types.length > 0 && (
+                                      <div className="text-indigo-400 mt-1">
+                                        Most common: {speaker.feedback.delivery.fillerWords.types.slice(0, 3).join(', ')}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
                             {/* Overall Assessment */}
                             {speaker.feedback.overallAssessment && (
                               <div className="text-sm bg-gray-50 rounded p-2">
@@ -290,4 +340,4 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
   );
 };
 
-export default FinalAnalysis; 
+export default FinalAnalysis;
