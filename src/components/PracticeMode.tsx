@@ -1044,7 +1044,7 @@ Respond in this exact JSON format:
 
         {/* Right Column - Analysis & Hints */}
         <div className="lg:col-span-1 space-y-4">
-          {currentTranscript && (
+          {currentTranscript && !requiredSpeechToListen && (
             <div className="bg-white rounded-lg shadow-md p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Speech Analysis</h3>
               {isSummarizing ? (
@@ -1101,7 +1101,7 @@ Respond in this exact JSON format:
             </div>
           )}
 
-          {getCurrentSpeaker() && (
+          {getCurrentSpeaker() && !requiredSpeechToListen && (
             <HintPanel
               currentSpeaker={getCurrentSpeaker()!}
               session={createMockSession()}
