@@ -1102,6 +1102,7 @@ If no fallacies are found, return empty array for fallacies and high strength sc
   }
 
   // Helper method to generate pace assessment
+  private static generatePaceAssessment(wpm: number): string {
     if (wpm === 0) {
       return 'Unable to analyze speaking pace - no speech data available';
     } else if (wpm < 100) {
@@ -1118,6 +1119,7 @@ If no fallacies are found, return empty array for fallacies and high strength sc
   }
 
   // Helper method to generate filler word assessment
+  private static generateFillerAssessment(fillerWords: { count: number; types: string[]; percentage: number }): string {
     if (fillerWords.count === 0) {
       return 'Excellent! No filler words detected. Your speech was clean and professional.';
     } else if (fillerWords.percentage < 2) {
