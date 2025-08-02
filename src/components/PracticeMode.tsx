@@ -251,7 +251,7 @@ Respond in this exact JSON format:
           aiSpeechMap[i] = {
             id: `ai-${i}`,
             speakerId: `ai-${i}`,
-            speakerName: `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
+            speakerName: `AI Debater ${sp.speakerNumber}`,
             team: sp.team,
             speechNumber: i,
             mainPoints: aiSpeech.mainPoints || [],
@@ -266,7 +266,7 @@ Respond in this exact JSON format:
           aiSpeechMap[i] = {
             id: `ai-${i}`,
             speakerId: `ai-${i}`,
-            speakerName: `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
+            speakerName: `AI Debater ${sp.speakerNumber}`,
             team: sp.team,
             speechNumber: i,
             mainPoints: ['[Error generating speech]'],
@@ -490,7 +490,7 @@ Respond in this exact JSON format:
     // Create speakers array with user feedback
     const speakers: Speaker[] = debateOrder.map((sp) => ({
       ...sp,
-      name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
+      name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `AI Debater ${sp.speakerNumber}`,
       points: 0, // No points in practice mode
       feedback: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userFeedback || undefined : undefined
     }));
