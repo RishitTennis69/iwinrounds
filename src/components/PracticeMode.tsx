@@ -42,6 +42,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
+  const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
     areasForImprovement: string[];
@@ -289,18 +290,16 @@ Respond in this exact JSON format:
     const speech = aiSpeeches[speechNum];
     if (!speech || !speech.transcript) return;
 
-    // Set speech state to playing
-    setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
+    // Set loading state
+    setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: true }));
 
     try {
-      setIsTTSLoading(true);
-      setCurrentTTSLoadingSpeech(speechNum);
-      
       // Choose voice based on team (male voices for affirmative, female for negative)
       const voice = speech.team === 'affirmative' ? 'echo' : 'nova';
       
-      setIsTTSLoading(false);
-      setCurrentTTSLoadingSpeech(null);
+      // Clear loading state and set to playing when audio actually starts
+      setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
+      setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
       
       await ttsService.speak(speech.transcript, { voice, speed: 0.9 });
       
@@ -308,10 +307,8 @@ Respond in this exact JSON format:
       handleSpeechCompleted(speechNum);
     } catch (error) {
       console.error('Error playing AI speech:', error);
+      setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
-    } finally {
-      setIsTTSLoading(false);
-      setCurrentTTSLoadingSpeech(null);
     }
   };
 
@@ -330,8 +327,7 @@ Respond in this exact JSON format:
   // Stop AI speech
   const stopAISpeech = (speechNum: number) => {
     ttsService.stop();
-    setIsTTSLoading(false);
-    setCurrentTTSLoadingSpeech(null);
+    setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
     
     // Mark as completed when stopped
     handleSpeechCompleted(speechNum);
@@ -863,6 +859,7 @@ Respond in this exact JSON format:
             <div className="space-y-3">
               {getAISpeechesToShow().map((speech) => {
                 const playState = speechPlayStates[speech.speechNumber] || 'idle';
+                const isLoading = speechLoadingStates[speech.speechNumber] || false;
                 const hasBeenListened = playState === 'completed';
                 const isRequired = requiredSpeechToListen === speech.speechNumber;
                 
@@ -895,7 +892,7 @@ Respond in this exact JSON format:
                     <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                       {hasBeenListened ? speech.transcript.substring(0, 100) + '...' : 'Click listen to hear this speech'}
                     </p>
-                    {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber && (
+                    {isLoading && (
                       <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
                         ⏳ Preparing audio...
                       </div>
@@ -908,21 +905,21 @@ Respond in this exact JSON format:
                     
                     {/* Control buttons based on state */}
                     <div className="flex space-x-1">
-                      {playState === 'idle' && (
+                      {(playState === 'idle' || isLoading) && (
                         <button
                           onClick={() => playAISpeech(speech.speechNumber)}
-                          disabled={isTTSLoading}
+                          disabled={isLoading}
                           className={`flex-1 text-white py-1 px-2 rounded text-xs transition-colors flex items-center justify-center space-x-1 ${
                             isRequired && !hasBeenListened
                               ? 'bg-orange-600 hover:bg-orange-700'
                               : 'bg-blue-600 hover:bg-blue-700'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                          {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber && (
+                          {isLoading && (
                             <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
                           )}
                           <span>
-                            {isTTSLoading && currentTTSLoadingSpeech === speech.speechNumber 
+                            {isLoading
                               ? 'Loading...' 
                               : 'Listen'
                             }
