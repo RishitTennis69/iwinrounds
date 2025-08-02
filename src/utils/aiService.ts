@@ -612,6 +612,13 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
             'Develop stronger argumentation and evidence usage',
             'Work on timing and speech structure'
           ],
+          overallAssessment: 'Unable to generate personalized feedback at this time.',
+          delivery: {
+            wordsPerMinute: 0,
+            fillerWords: { count: 0, types: [], percentage: 0 },
+            paceAssessment: 'Unable to analyze pace - no speech data available',
+            fillerAssessment: 'Unable to analyze filler words - no speech data available'
+          },
           overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
         };
       }
