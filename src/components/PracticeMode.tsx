@@ -34,7 +34,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
@@ -53,7 +52,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [ttsService] = useState(() => new TTSService());
 
   // Save username to sessionStorage whenever it changes
-  useEffect(() => {
+  const intervalRef = useRef<number | null>(null);
     if (userName) {
       sessionStorage.setItem('reasynai_user_name', userName);
     }
