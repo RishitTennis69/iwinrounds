@@ -592,9 +592,9 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
           overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
         };
       }
-      // Generate a realistic debate score between 26-28 (on the 25-30 scale)
-      const score = Math.floor(Math.random() * 3) + 26; // 26-28 range
-      // Return a helpful fallback structured message
+    } catch (error) {
+      console.error('AIService: API error in generateSpeakerFeedback:', error);
+      // Return fallback structured feedback
       return {
         strengths: ['Actively participated in the debate'],
         areasForImprovement: [
