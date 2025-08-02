@@ -68,24 +68,81 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   // Debate structure - now configurable
   const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
-  // Debate order: [Aff1, Neg1, Aff2, Neg2] repeated
-  const speakerOrder: Speaker[] = [];
-  for (let i = 0; i < peoplePerTeam; i++) {
-    speakerOrder.push({ id: `aff${i+1}`, name: '', team: 'affirmative', points: 0, speakerNumber: i+1 });
-    speakerOrder.push({ id: `neg${i+1}`, name: '', team: 'negative', points: 0, speakerNumber: i+1 });
-  }
-  const debateOrder: Speaker[] = [];
-  for (let i = 0; i < speechesPerSpeaker; i++) {
-    for (let j = 0; j < speakerOrder.length; j++) {
-      debateOrder.push(speakerOrder[j]);
+  
+  // Create debate order based on first speaker and people per team
+  const createDebateOrderForPractice = (): Speaker[] => {
+    const aff = Array.from({ length: peoplePerTeam }, (_, i) => ({
+      id: `aff${i+1}`,
+      name: '',
+      team: 'affirmative' as const,
+      points: 0,
+      speakerNumber: i+1
+    }));
+    const neg = Array.from({ length: peoplePerTeam }, (_, i) => ({
+      id: `neg${i+1}`,
+      name: '',
+      team: 'negative' as const,
+      points: 0,
+      speakerNumber: i+1
+    }));
+    
+    const sequence: Speaker[] = [];
+    // Create sequence based on first speaker
+    if (firstSpeaker === 'affirmative') {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(aff[i]);
+        sequence.push(neg[i]);
+      }
+    } else {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(neg[i]);
+        sequence.push(aff[i]);
+      }
     }
-  }
+    
+    // Repeat the sequence for speeches per speaker
+    const debateOrder: Speaker[] = [];
+    for (let i = 0; i < speechesPerSpeaker; i++) {
+      for (let j = 0; j < sequence.length; j++) {
+        debateOrder.push(sequence[j]);
+      }
+    }
+    return debateOrder;
+  };
+  
+  const debateOrder = createDebateOrderForPractice();
+  
   // Find which speeches are the user's
+  const calculateUserSpeechPosition = () => {
+    // Convert userSpeakerNumber (1-4) to team and position within team
+    let targetTeam: 'affirmative' | 'negative';
+    let positionInTeam: number;
+    
+    if (firstSpeaker === 'affirmative') {
+      // Order: Aff1, Neg1, Aff2, Neg2, etc.
+      targetTeam = userSpeakerNumber % 2 === 1 ? 'affirmative' : 'negative';
+      positionInTeam = Math.ceil(userSpeakerNumber / 2);
+    } else {
+      // Order: Neg1, Aff1, Neg2, Aff2, etc.
+      targetTeam = userSpeakerNumber % 2 === 1 ? 'negative' : 'affirmative';
+      positionInTeam = Math.ceil(userSpeakerNumber / 2);
+    }
+    
+    return { targetTeam, positionInTeam };
+  };
+  
+  const { targetTeam, positionInTeam } = calculateUserSpeechPosition();
   const userSpeechNums = debateOrder
-    .map((sp, idx) =>
-      sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? idx + 1 : null
-    )
+    .map((sp, idx) => {
+      const isUserSpeech = sp.team === targetTeam && sp.speakerNumber === positionInTeam;
+      return isUserSpeech ? idx + 1 : null;
+    })
     .filter((n) => n !== null) as number[];
+
+  console.log('First user speech:', userSpeechNums[0]);
+  console.log('User speech numbers:', userSpeechNums);
+  console.log('User team:', targetTeam, 'Position in team:', positionInTeam);
+  console.log('Debate order:', debateOrder.map((s, i) => `${i+1}: ${s.team} ${s.speakerNumber}`));
 
   // Helper: get the next user speech number after a given speech
   const getNextUserSpeechNum = (after: number) => {
@@ -993,4 +1050,4 @@ Respond in this exact JSON format:
   );
 };
 
-export default PracticeMode; 
+export default PracticeMode;
