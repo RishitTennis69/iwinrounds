@@ -24,12 +24,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
     return sessionStorage.getItem('reasynai_user_name') || '';
   });
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
-  const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [animationId, setAnimationId] = useState<number | null>(null);
   const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });

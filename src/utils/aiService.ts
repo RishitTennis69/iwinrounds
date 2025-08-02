@@ -637,6 +637,12 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
           paceAssessment: 'Unable to analyze pace - no speech data available',
           fillerAssessment: 'Unable to analyze filler words - no speech data available'
         },
+        delivery: {
+          wordsPerMinute: 0,
+          fillerWords: { count: 0, types: [], percentage: 0 },
+          paceAssessment: 'Unable to analyze pace - no speech data available',
+          fillerAssessment: 'Unable to analyze filler words - no speech data available'
+        },
         overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
       };
     }
@@ -1099,37 +1105,5 @@ If no fallacies are found, return empty array for fallacies and high strength sc
         percentage: fillerPercentage
       }
     };
-  }
-
-  // Helper method to generate pace assessment
-  private static generatePaceAssessment(wpm: number): string {
-    if (wpm === 0) {
-      return 'Unable to analyze speaking pace - no speech data available';
-    } else if (wpm < 100) {
-      return `Speaking pace is quite slow at ${wpm} words per minute. Consider speaking a bit faster to maintain audience engagement. Target: 130-160 wpm.`;
-    } else if (wpm < 130) {
-      return `Speaking pace is somewhat slow at ${wpm} words per minute. Try to increase your pace slightly for better flow. Target: 130-160 wpm.`;
-    } else if (wpm <= 160) {
-      return `Excellent speaking pace at ${wpm} words per minute! This is within the ideal range of 130-160 wpm for clear, engaging delivery.`;
-    } else if (wpm <= 180) {
-      return `Speaking pace is a bit fast at ${wpm} words per minute. Consider slowing down slightly to ensure clarity. Target: 130-160 wpm.`;
-    } else {
-      return `Speaking pace is quite fast at ${wpm} words per minute. Slow down to improve clarity and give the audience time to process your arguments. Target: 130-160 wpm.`;
-    }
-  }
-
-  // Helper method to generate filler word assessment
-  private static generateFillerAssessment(fillerWords: { count: number; types: string[]; percentage: number }): string {
-    if (fillerWords.count === 0) {
-      return 'Excellent! No filler words detected. Your speech was clean and professional.';
-    } else if (fillerWords.percentage < 2) {
-      return `Very good control of filler words. Only ${fillerWords.count} filler words detected (${fillerWords.percentage.toFixed(1)}% of speech). Keep up the good work!`;
-    } else if (fillerWords.percentage < 5) {
-      return `Good job managing filler words. ${fillerWords.count} filler words detected (${fillerWords.percentage.toFixed(1)}% of speech). Common ones: ${fillerWords.types.slice(0, 3).join(', ')}.`;
-    } else if (fillerWords.percentage < 8) {
-      return `Moderate use of filler words detected. ${fillerWords.count} filler words (${fillerWords.percentage.toFixed(1)}% of speech). Focus on reducing: ${fillerWords.types.slice(0, 3).join(', ')}.`;
-    } else {
-      return `High use of filler words detected. ${fillerWords.count} filler words (${fillerWords.percentage.toFixed(1)}% of speech). Practice pausing instead of using: ${fillerWords.types.slice(0, 3).join(', ')}.`;
-    }
   }
 }
