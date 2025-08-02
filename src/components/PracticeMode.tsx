@@ -30,11 +30,10 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [ttsService] = useState(() => new TTSService());
   const [whisperService] = useState(() => new WhisperService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
-  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [animationId, setAnimationId] = useState<number | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [listenedSpeeches, setListenedSpeeches] = useState<Set<number>>(new Set());
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);

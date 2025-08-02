@@ -612,7 +612,6 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
             'Develop stronger argumentation and evidence usage',
             'Work on timing and speech structure'
           ],
-          overallAssessment: 'Unable to generate personalized feedback at this time.',
           delivery: {
             wordsPerMinute: 0,
             fillerWords: { count: 0, types: [], percentage: 0 },
@@ -632,13 +631,13 @@ Most speakers score between 26-29, with 30 being extremely rare.`;
           'Develop stronger argumentation and evidence usage',
           'Work on timing and speech structure'
         ],
-        overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`,
         delivery: {
           wordsPerMinute: 0,
           fillerWords: { count: 0, types: [], percentage: 0 },
           paceAssessment: 'Unable to analyze pace - no speech data available',
           fillerAssessment: 'Unable to analyze filler words - no speech data available'
-        }
+        },
+        overallAssessment: `Thank you for participating in the debate, ${speakerName}! While we couldn't generate detailed personalized feedback at this time, we encourage you to review your speeches and continue practicing.`
       };
     }
   }
@@ -1103,7 +1102,6 @@ If no fallacies are found, return empty array for fallacies and high strength sc
   }
 
   // Helper method to generate pace assessment
-  private static generatePaceAssessment(wpm: number): string {
     if (wpm === 0) {
       return 'Unable to analyze speaking pace - no speech data available';
     } else if (wpm < 100) {
@@ -1120,7 +1118,6 @@ If no fallacies are found, return empty array for fallacies and high strength sc
   }
 
   // Helper method to generate filler word assessment
-  private static generateFillerAssessment(fillerWords: { count: number; types: string[]; percentage: number }): string {
     if (fillerWords.count === 0) {
       return 'Excellent! No filler words detected. Your speech was clean and professional.';
     } else if (fillerWords.percentage < 2) {
