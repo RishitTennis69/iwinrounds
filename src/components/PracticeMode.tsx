@@ -370,7 +370,7 @@ Respond in this exact JSON format:
     const speakers: Speaker[] = debateOrder.map((sp) => ({
       ...sp,
       name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `${sp.team.charAt(0).toUpperCase() + sp.team.slice(1)} ${sp.speakerNumber}`,
-      points: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? 85 : 80, // Mock points for practice
+      points: 0, // No points in practice mode
       feedback: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userFeedback || undefined : undefined
     }));
     
@@ -383,11 +383,7 @@ Respond in this exact JSON format:
       endTime: step === 'complete' ? new Date() : undefined,
       hintsUsed,
       firstSpeaker: firstSpeaker,
-      winner: {
-        team: userTeam,
-        reasoning: 'Practice session completed successfully'
-      },
-      summary: 'Practice debate session completed. Review your performance and feedback to improve your skills.'
+      summary: 'Practice session completed! Focus on the feedback below to improve your debate skills.'
     };
   };
 

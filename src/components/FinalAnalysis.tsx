@@ -17,50 +17,81 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
   const affirmativeSpeakers = session.speakers.filter(s => s.team === 'affirmative');
   const negativeSpeakers = session.speakers.filter(s => s.team === 'negative');
 
+  // Check if this is a practice session (no winner determined)
+  const isPracticeSession = !session.winner;
+
   return (
     <div className="space-y-6">
       {/* Main Analysis Card */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-            Final Analysis
+            {isPracticeSession ? (
+              <>
+                <Award className="w-5 h-5 mr-2 text-blue-500" />
+                Practice Session Complete
+              </>
+            ) : (
+              <>
+                <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                Final Analysis
+              </>
+            )}
           </h3>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Winner Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
-            <div className="space-y-4">
-              {/* Winner */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                    Winner: {session.winner?.team === 'affirmative' ? 'Affirmative Team' : 'Negative Team'}
-                  </h4>
+          {/* Winner Section - Only show for competitive debates */}
+          {!isPracticeSession && session.winner && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+              <div className="space-y-4">
+                {/* Winner */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                      Winner: {session.winner?.team === 'affirmative' ? 'Affirmative Team' : 'Negative Team'}
+                    </h4>
+                  </div>
+                  <div className={`text-6xl ${session.winner?.team === 'affirmative' ? 'text-green-500' : 'text-red-500'}`}>
+                    🏆
+                  </div>
                 </div>
-                <div className={`text-6xl ${session.winner?.team === 'affirmative' ? 'text-green-500' : 'text-red-500'}`}>
-                  🏆
+                
+                {/* Key Arguments */}
+                {session.winner?.keyArguments && (
+                  <div>
+                    <h5 className="text-lg font-semibold text-gray-800 mb-2">Key Arguments:</h5>
+                    <p className="text-gray-700 leading-relaxed">{session.winner.keyArguments}</p>
+                  </div>
+                )}
+                
+                {/* Clash */}
+                {session.winner?.clash && (
+                  <div>
+                    <h5 className="text-lg font-semibold text-gray-800 mb-2">Clash:</h5>
+                    <p className="text-gray-700 leading-relaxed">{session.winner.clash}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Practice Session Summary */}
+          {isPracticeSession && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-xl font-semibold text-gray-900">
+                  Practice Session Summary
+                </h4>
+                <div className="text-6xl text-blue-500">
+                  🎯
                 </div>
               </div>
-              
-              {/* Key Arguments */}
-              {session.winner?.keyArguments && (
-                <div>
-                  <h5 className="text-lg font-semibold text-gray-800 mb-2">Key Arguments:</h5>
-                  <p className="text-gray-700 leading-relaxed">{session.winner.keyArguments}</p>
-                </div>
-              )}
-              
-              {/* Clash */}
-              {session.winner?.clash && (
-                <div>
-                  <h5 className="text-lg font-semibold text-gray-800 mb-2">Clash:</h5>
-                  <p className="text-gray-700 leading-relaxed">{session.winner.clash}</p>
-                </div>
-              )}
+              <p className="text-gray-700 leading-relaxed">
+                Great job completing your practice session! Review your personalized feedback below to identify areas for improvement and continue developing your debate skills.
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Speaker Scores */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -75,10 +106,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                   <div key={speaker.id} className="bg-white rounded-lg p-3 mb-2">
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-900">{speaker.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <Award className="w-4 h-4 text-yellow-500" />
-                        <span className="font-semibold text-gray-900">{speaker.points}</span>
-                      </div>
+                      {!isPracticeSession && (
+                        <div className="flex items-center space-x-2">
+                          <Award className="w-4 h-4 text-yellow-500" />
+                          <span className="font-semibold text-gray-900">{speaker.points}</span>
+                        </div>
+                      )}
                     </div>
                     {speaker.feedback && (
                       <div className="mt-3 space-y-3">
@@ -149,10 +182,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                   <div key={speaker.id} className="bg-white rounded-lg p-3 mb-2">
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-900">{speaker.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <Award className="w-4 h-4 text-yellow-500" />
-                        <span className="font-semibold text-gray-900">{speaker.points}</span>
-                      </div>
+                      {!isPracticeSession && (
+                        <div className="flex items-center space-x-2">
+                          <Award className="w-4 h-4 text-yellow-500" />
+                          <span className="font-semibold text-gray-900">{speaker.points}</span>
+                        </div>
+                      )}
                     </div>
                     {speaker.feedback && (
                       <div className="mt-3 space-y-3">
@@ -214,10 +249,14 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
           </div>
 
           {/* Debate Summary */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h5 className="text-lg font-semibold text-gray-900 mb-3">Debate Summary</h5>
-            <p className="text-gray-700 leading-relaxed">{session.summary}</p>
-          </div>
+          {session.summary && (
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h5 className="text-lg font-semibold text-gray-900 mb-3">
+                {isPracticeSession ? 'Session Summary' : 'Debate Summary'}
+              </h5>
+              <p className="text-gray-700 leading-relaxed">{session.summary}</p>
+            </div>
+          )}
 
           {/* Session Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
