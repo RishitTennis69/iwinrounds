@@ -491,7 +491,17 @@ Requirements:
 - Minimum 1 strength, minimum 2 areas for improvement
 - Be specific and actionable
 - Keep tone encouraging but honest
-- Focus on debate skills, argumentation, delivery, and strategy`;
+- Focus on debate skills, argumentation, delivery, and strategy
+
+IMPORTANT: Remember that speaker points in debate are scored on a 25-30 scale where:
+- 25 = Horrible performance
+- 26 = Poor performance  
+- 27 = Average performance
+- 28 = Good performance
+- 29 = Excellent performance
+- 30 = Amazing/Perfect performance
+
+Most speakers score between 26-29, with 30 being extremely rare.`;
 
     try {
       console.log(`AIService: Making API call for feedback generation...`);
