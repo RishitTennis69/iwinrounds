@@ -3,6 +3,7 @@ import { Speaker, DebatePoint, DebateSession } from '../types';
 import { WhisperService } from '../utils/whisperService';
 import { AIService } from '../utils/aiService';
 import { TTSService } from '../utils/ttsService';
+import { TTSService } from '../utils/ttsService';
 import RecordingPanel from './RecordingPanel';
 import DebateFlowTable from './DebateFlowTable';
 import HintPanel from './HintPanel';
@@ -26,6 +27,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
+  const [ttsService] = useState(() => new TTSService());
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [animationId, setAnimationId] = useState<number | null>(null);
