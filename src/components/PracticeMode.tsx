@@ -490,9 +490,9 @@ Respond in this exact JSON format:
     // Create speakers array with user feedback
     const speakers: Speaker[] = debateOrder.map((sp) => ({
       ...sp,
-      name: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userName : sp.name || `AI Debater ${sp.speakerNumber}`,
+      name: sp.team === userTeam && sp.speakerNumber === positionInTeam ? userName : sp.name || `AI Debater ${sp.speakerNumber}`,
       points: 0, // No points in practice mode
-      feedback: sp.team === userTeam && sp.speakerNumber === userSpeakerNumber ? userFeedback || undefined : undefined
+      feedback: sp.team === userTeam && sp.speakerNumber === positionInTeam ? userFeedback || undefined : undefined
     }));
     
     return {
