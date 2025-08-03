@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
+import { HeroFuturistic } from './ui/hero-futuristic';
 import { SplineSceneBasic } from './ui/spline-demo';
 
 interface ModeSelectionProps {
@@ -43,46 +44,59 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Hero Section */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
-        {/* Left: Text */}
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">ReasynAI</h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-blue-300 mb-4">Your Personal AI Coach</h2>
-          <p className="text-xl text-gray-200 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
-          <p className="text-md text-gray-300 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
-          <button
-            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            onClick={() => setShowModal(true)}
-          >
-            Get Started
-          </button>
-        </div>
-        {/* Right: Illustration/Icon */}
-        <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-          <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible border border-white/20">
-            <img
-              src="/image-removebg-preview.png"
-              alt="Debate illustration"
-              className="w-72 h-72 object-contain rounded-2xl"
-            />
+    <div className="min-h-screen">
+      {/* Futuristic Hero Section */}
+      <HeroFuturistic />
+      
+      {/* Main Content Section */}
+      <div id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 relative">
+        {/* Hero Section */}
+        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
+          {/* Left: Text */}
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-2 drop-shadow-lg">ReasynAI</h1>
+            <h2 className="text-2xl md:text-3xl font-semibold text-blue-700 mb-4">Your Personal AI Coach</h2>
+            <p className="text-xl text-blue-800 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
+            <p className="text-md text-blue-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
+            <button
+              className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              onClick={() => setShowModal(true)}
+            >
+              Get Started
+            </button>
+          </div>
+          {/* Right: Illustration/Icon */}
+          <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
+            <div className="w-80 h-80 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible border border-blue-200">
+              <img
+                src="/image-removebg-preview.png"
+                alt="Debate illustration"
+                className="w-72 h-72 object-contain rounded-2xl"
+              />
+            </div>
           </div>
         </div>
+        
+        {/* Features Section */}
+        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          {features.map((f, i) => (
+            <div key={i} className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4 border border-blue-200" style={{ borderTopColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
+              <div className="mb-4">{f.icon}</div>
+              <h3 className="text-lg font-bold mb-2 text-blue-900">{f.title}</h3>
+              <p className="text-blue-700 text-center">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+        
+        {/* 3D Interactive Section */}
+        <div className="w-full max-w-5xl mb-16">
+          <SplineSceneBasic />
+        </div>
       </div>
-      {/* Features Section */}
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-        {features.map((f, i) => (
-          <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4 border border-white/20" style={{ borderTopColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
-            <div className="mb-4">{f.icon}</div>
-            <h3 className="text-lg font-bold mb-2 text-white">{f.title}</h3>
-            <p className="text-gray-200 text-center">{f.desc}</p>
-          </div>
-        ))}
-      </div>
+      
       {/* Mode Selection Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-5xl relative animate-fade-in">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
@@ -139,11 +153,6 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
           </div>
         </div>
       )}
-      
-      {/* 3D Interactive Section */}
-      <div className="w-full max-w-5xl mb-16">
-        <SplineSceneBasic />
-      </div>
     </div>
   );
 };

@@ -108,8 +108,14 @@ export const HeroFuturistic = () => {
     }
   }, [visibleWords, titleWords.length]);
 
+  const scrollToContent = () => {
+    const contentSection = document.getElementById('main-content');
+    if (contentSection) {
+      contentSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   return (
-    <div className="h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-black">
+    <div className="h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       <div className="h-screen uppercase items-center w-full absolute z-50 pointer-events-none px-10 flex justify-center flex-col">
         <div className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold">
           <div className="flex space-x-2 lg:space-x-6 overflow-hidden text-white">
@@ -140,10 +146,11 @@ export const HeroFuturistic = () => {
       </div>
 
       <button
+        onClick={scrollToContent}
         className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50 text-white border border-white/30 px-6 py-3 rounded-full hover:bg-white/10 transition-all duration-300 opacity-0 animate-fade-in-delayed pointer-events-auto"
         style={{ animationDelay: '2.2s' }}
       >
-        Start Debating
+        Explore Features
         <span className="ml-2 inline-block">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline">
             <path d="M11 5V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
