@@ -38,7 +38,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
-  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: NodeJS.Timeout}>({});
+  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: number}>({});
+  const [speechTimers, setSpeechTimers] = useState<{[key: number]: number}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
     areasForImprovement: string[];
@@ -351,9 +352,9 @@ Respond in this exact JSON format:
     
     // Resume the timer
     const interval = setInterval(() => {
-      setSpeechTimers(prev => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
+      setSpeechTimers((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
     }, 1000);
-    setSpeechIntervals(prev => ({ ...prev, [speechNum]: interval }));
+    setSpeechIntervals((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: interval }));
   };
 
   // Stop AI speech
@@ -374,7 +375,7 @@ Respond in this exact JSON format:
     const interval = speechIntervals[speechNum];
     if (interval) {
       clearInterval(interval);
-      setSpeechIntervals(prev => {
+      setSpeechIntervals((prev: {[key: number]: number}) => {
         const newIntervals = { ...prev };
         delete newIntervals[speechNum];
         return newIntervals;
