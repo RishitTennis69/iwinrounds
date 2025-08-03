@@ -1,4 +1,4 @@
-// OpenAI Whisper API service for better speech-to-text accuracy
+// OpenAI Whisper API service for better speech-to-text accuracy with chunked processing
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
 
 export class WhisperService {
@@ -9,6 +9,10 @@ export class WhisperService {
   private onErrorCallback: ((error: string) => void) | null = null;
   private onProgressCallback: ((status: string) => void) | null = null;
   private stream: MediaStream | null = null;
+  private currentTranscript: string = '';
+  private chunkProcessingInterval: number | null = null;
+  private readonly minChunkDurationMs: number = 10000; // Process chunks every 10 seconds
+  private isProcessingChunk: boolean = false;
 
   constructor() {
     // Check if MediaRecorder is supported
@@ -34,7 +38,9 @@ export class WhisperService {
     this.onErrorCallback = onError || null;
     this.onProgressCallback = onProgress || null;
     this.audioChunks = [];
+    this.currentTranscript = '';
     this.isRecording = true;
+    this.isProcessingChunk = false;
 
     try {
       // Get microphone access with optimized settings for faster processing
@@ -61,8 +67,15 @@ export class WhisperService {
       };
 
       this.mediaRecorder.onstop = async () => {
+        // Clear the interval when recording stops
+        if (this.chunkProcessingInterval) {
+          clearInterval(this.chunkProcessingInterval);
+          this.chunkProcessingInterval = null;
+        }
+        
+        // Process any remaining chunks
         if (this.audioChunks.length > 0) {
-          await this.processAudio();
+          await this.sendAccumulatedChunksToWhisper();
         }
       };
 
@@ -75,7 +88,14 @@ export class WhisperService {
       };
 
       // Start recording with smaller chunks for faster processing
-      this.mediaRecorder.start(500); // Collect data every 500ms instead of 1000ms
+      this.mediaRecorder.start(1000); // Collect data every 1000ms
+
+      // Set up interval to process chunks periodically
+      this.chunkProcessingInterval = window.setInterval(() => {
+        if (this.isRecording && !this.isProcessingChunk && this.audioChunks.length > 0) {
+          this.sendAccumulatedChunksToWhisper();
+        }
+      }, this.minChunkDurationMs);
 
     } catch (error) {
       this.isRecording = false;
@@ -90,6 +110,13 @@ export class WhisperService {
     }
 
     this.isRecording = false;
+    
+    // Clear the processing interval
+    if (this.chunkProcessingInterval) {
+      clearInterval(this.chunkProcessingInterval);
+      this.chunkProcessingInterval = null;
+    }
+    
     this.mediaRecorder.stop();
     
     // Stop all tracks
@@ -111,29 +138,38 @@ export class WhisperService {
     }
   }
 
-  private async processAudio(): Promise<void> {
+  private async sendAccumulatedChunksToWhisper(): Promise<void> {
+    // Prevent concurrent processing
+    if (this.isProcessingChunk || this.audioChunks.length === 0) {
+      return;
+    }
+
+    this.isProcessingChunk = true;
+
     try {
       // Notify user that processing has started
       if (this.onProgressCallback) {
-        this.onProgressCallback('Processing audio...');
+        this.onProgressCallback('Processing audio chunk...');
       }
 
-      // Create audio blob
+      // Create audio blob from current chunks
       const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
       
-      // Check if audio is too short (less than 0.5 seconds)
-      if (audioBlob.size < 1000) {
-        // Silently handle short audio without showing error message
-        console.log('Audio too short, skipping processing');
+      // Clear the chunks array immediately to prevent memory buildup
+      this.audioChunks = [];
+      
+      // Check if audio chunk is too short (less than 1 second of data)
+      if (audioBlob.size < 2000) {
+        console.log('Audio chunk too short, skipping processing');
         return;
       }
 
       // Convert to FormData for OpenAI Whisper API
       const formData = new FormData();
-      formData.append('file', audioBlob, 'recording.webm');
+      formData.append('file', audioBlob, 'chunk.webm');
       formData.append('model', 'whisper-1');
       formData.append('language', 'en');
-      formData.append('response_format', 'json'); // Request JSON for faster parsing
+      formData.append('response_format', 'json');
 
       // Call OpenAI Whisper API with timeout
       const controller = new AbortController();
@@ -165,39 +201,51 @@ export class WhisperService {
         }
 
         const data = await response.json();
-        const transcript = data.text || '';
+        const chunkTranscript = data.text || '';
 
-        if (this.onResultCallback && transcript.trim()) {
-          if (this.onProgressCallback) {
-            this.onProgressCallback('Transcript ready!');
+        if (chunkTranscript.trim()) {
+          // Append the new transcript to the current transcript
+          this.currentTranscript += (this.currentTranscript ? ' ' : '') + chunkTranscript;
+          
+          if (this.onResultCallback) {
+            if (this.onProgressCallback) {
+              this.onProgressCallback('Transcript updated!');
+            }
+            this.onResultCallback(this.currentTranscript);
           }
-          this.onResultCallback(transcript);
         } else {
-          // Silently handle no speech detected without showing error message
-          console.log('No speech detected in audio');
+          console.log('No speech detected in audio chunk');
         }
 
       } catch (error) {
         clearTimeout(timeoutId);
         if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Processing timed out. Please try again.');
+          console.error('Processing timed out for audio chunk');
+          // Don't throw error for individual chunk timeouts, just log it
+        } else {
+          console.error('Error processing audio chunk:', error);
+          // Don't throw error for individual chunk failures to avoid stopping the recording
         }
-        throw error;
       }
 
     } catch (error) {
-      console.error('Error processing audio:', error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(error instanceof Error ? error.message : 'Failed to process audio');
-      }
+      console.error('Error in chunk processing:', error);
+      // Don't propagate errors from individual chunks to avoid stopping the recording
     } finally {
-      // Clear audio chunks for next recording
-      this.audioChunks = [];
+      this.isProcessingChunk = false;
     }
   }
 
   isCurrentlyRecording(): boolean {
     return this.isRecording;
+  }
+
+  getCurrentTranscript(): string {
+    return this.currentTranscript;
+  }
+
+  clearTranscript(): void {
+    this.currentTranscript = '';
   }
 
   // Method to transcribe an existing audio file (for batch processing)
@@ -229,4 +277,4 @@ export class WhisperService {
     const data = await response.json();
     return data.text || '';
   }
-} 
+}
