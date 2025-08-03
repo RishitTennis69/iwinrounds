@@ -27,21 +27,11 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
 
-  const maxSpeechDuration = 4 * 60; // 4 minutes in seconds
-
   useEffect(() => {
     let interval: number;
     if (isRecording) {
       interval = setInterval(() => {
-        setDuration(prev => {
-          const newDuration = prev + 1;
-          // Auto-stop after 4 minutes
-          if (newDuration >= maxSpeechDuration) {
-            stopRecording();
-            return prev;
-          }
-          return newDuration;
-        });
+        setDuration(prev => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -125,15 +115,6 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getTimeRemaining = () => {
-    const remaining = maxSpeechDuration - duration;
-    return formatTime(Math.max(0, remaining));
-  };
-
-  const getProgressPercentage = () => {
-    return Math.min(100, (duration / maxSpeechDuration) * 100);
-  };
-
   if (!currentSpeaker) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -214,17 +195,11 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
         {/* Timer and Progress */}
         <div className="text-center">
-          <div className="text-2xl font-mono text-gray-900 mb-2">
+          <div className="text-3xl font-mono text-gray-900 mb-4">
             {formatTime(duration)}
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-            <div 
-              className="bg-red-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${getProgressPercentage()}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-gray-500">
-            Time remaining: {getTimeRemaining()}
+          <p className="text-sm text-gray-600 font-medium">
+            Speech Duration
           </p>
         </div>
 
