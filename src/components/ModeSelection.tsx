@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
+import FuturisticHero from './ui/hero-futuristic';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice' | 'argument-mapping') => void;
@@ -42,47 +43,59 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Hero Section */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
-        {/* Left: Text */}
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-2 drop-shadow-lg">ReasynAI</h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-blue-400 mb-4">Your Personal AI Coach</h2>
-          <p className="text-xl text-gray-700 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
-          <p className="text-md text-gray-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
-          <button
-            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            onClick={() => setShowModal(true)}
-          >
-            Get Started
-          </button>
-        </div>
-        {/* Right: Illustration/Icon */}
-        <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-          <div className="w-80 h-80 bg-white rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible">
-            <img
-              src="/image-removebg-preview.png"
-              alt="Debate illustration"
-              className="w-72 h-72 object-contain rounded-2xl bg-white"
-            />
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Futuristic Hero Section */}
+      <div className="relative z-10">
+        <FuturisticHero />
+        {/* Override the explore button to show modal */}
+        <button
+          className="explore-btn"
+          style={{ animationDelay: '2.5s' }}
+          onClick={() => setShowModal(true)}
+        >
+          Get Started
+          <span className="explore-arrow">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="arrow-svg">
+              <path d="M11 5V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M6 12L11 17L16 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      {/* Features Section - Now with dark theme */}
+      <div className="relative z-20 bg-gradient-to-b from-black via-gray-900 to-black py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Powered by Advanced AI
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Experience the future of debate training with cutting-edge artificial intelligence
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((f, i) => (
+              <div 
+                key={i} 
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 flex flex-col items-center border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:transform hover:scale-105"
+              >
+                <div className="mb-4 p-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+                  {f.icon}
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-white">{f.title}</h3>
+                <p className="text-gray-300 text-center text-sm">{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      {/* Features Section */}
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-        {features.map((f, i) => (
-          <div key={i} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4" style={{ borderColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
-            <div className="mb-4">{f.icon}</div>
-            <h3 className="text-lg font-bold mb-2 text-gray-800">{f.title}</h3>
-            <p className="text-gray-600 text-center">{f.desc}</p>
-          </div>
-        ))}
-      </div>
+
       {/* Mode Selection Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-5xl relative animate-fade-in">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-700 rounded-2xl shadow-2xl p-6 w-full max-w-5xl relative">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
               onClick={() => setShowModal(false)}
@@ -90,7 +103,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">How do you want to use ReasynAI?</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">How do you want to use ReasynAI?</h2>
             <div className="flex flex-row gap-6 justify-center items-stretch w-full">
               {/* Debate Mode Card */}
               <button
@@ -104,8 +117,8 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-green-800 mb-2">Debate Mode</h3>
-                <p className="text-green-700 mb-2 text-center">Full debate simulation with real-time speech analysis and AI feedback</p>
-                <ul className="text-sm text-green-600 space-y-1 text-left mx-auto">
+                <p className="text-white mb-2 text-center">Full debate simulation with real-time speech analysis and AI feedback</p>
+                <ul className="text-sm text-gray-300 space-y-1 text-left mx-auto">
                   <li>• Real-time speech recording</li>
                   <li>• AI-powered analysis</li>
                   <li>• Live debate flow tracking</li>
@@ -125,8 +138,8 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-blue-800 mb-2">Practice Mode</h3>
-                <p className="text-blue-700 mb-2 text-center">Practice with AI-generated context and personalized feedback</p>
-                <ul className="text-sm text-blue-600 space-y-1 text-left mx-auto">
+                <p className="text-white mb-2 text-center">Practice with AI-generated context and personalized feedback</p>
+                <ul className="text-sm text-gray-300 space-y-1 text-left mx-auto">
                   <li>• AI-generated previous speeches</li>
                   <li>• Focus on your speeches only</li>
                   <li>• Full debate context</li>
