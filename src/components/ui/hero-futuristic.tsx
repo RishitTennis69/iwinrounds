@@ -3,9 +3,9 @@
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
 import { useAspect, useTexture } from '@react-three/drei';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import * as THREE from 'three/webgpu';
+import * as THREE from 'three';
+import { WebGPURenderer } from 'three/examples/jsm/renderers/webgpu/WebGPURenderer.js';
 import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
-import { Mesh } from 'three';
 
 import {
   abs,
@@ -29,8 +29,6 @@ import {
 const TEXTUREMAP = { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop' };
 const DEPTHMAP = { src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=600&fit=crop' };
 
-extend(THREE as any);
-
 // Post Processing component
 const PostProcessing = ({
   strength = 1,
@@ -45,7 +43,7 @@ const PostProcessing = ({
   const progressRef = useRef({ value: 0 });
 
   const render = useMemo(() => {
-    const postProcessing = new THREE.PostProcessing(gl as any);
+    const postProcessing = new (THREE as any).PostProcessing(gl as any);
     const scenePass = pass(scene, camera);
     const scenePassColor = scenePass.getTextureNode('output');
     const bloomPass = bloom(scenePassColor, strength, 0.5, threshold);
@@ -91,7 +89,7 @@ const HEIGHT = 300;
 const Scene = () => {
   const [rawMap, depthMap] = useTexture([TEXTUREMAP.src, DEPTHMAP.src]);
 
-  const meshRef = useRef<Mesh>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -248,7 +246,7 @@ export const FuturisticHero = () => {
       <Canvas
         flat
         gl={async (props) => {
-          const renderer = new THREE.WebGPURenderer(props as any);
+          const renderer = new WebGPURenderer(props as any);
           await renderer.init();
           return renderer;
         }}
