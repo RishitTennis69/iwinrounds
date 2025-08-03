@@ -15,9 +15,9 @@ interface HeroSectionProps {
  
 export function HeroSection({ setShowModal, features }: HeroSectionProps) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Hero Section with 3D Spline */}
-      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center relative">
+      <div className="h-screen flex items-center justify-center relative">
         <Card className="w-full max-w-6xl mx-auto h-[600px] bg-gradient-to-br from-blue-50/10 to-indigo-100/10 relative overflow-hidden border-2 border-blue-200/30 backdrop-blur-sm">
           <Spotlight
             className="-top-40 left-0 md:left-60 md:-top-20"
@@ -70,7 +70,7 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
       </div>
       
       {/* Features Section */}
-      <div id="main-content" className="bg-gradient-to-br from-blue-900/20 to-indigo-900/30 py-16 px-4 backdrop-blur-sm">
+      <div id="main-content" className="py-16 px-4">
         <div className="w-full max-w-6xl mx-auto">
           <h3 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
             Powerful Features
@@ -81,13 +81,13 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {features.map((f, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group">
+              <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 group">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-500/20 border border-white/20">
                   {f.icon}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-3 text-white group-hover:text-blue-200 transition-colors">{f.title}</h3>
+                    <h3 className="text-xl font-bold mb-3 text-white group-hover:text-blue-200 transition-colors">{f.title}</h3>
+                    <p className="text-white/70 leading-relaxed">{f.desc}</p>
                   <p className="text-white/70 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
