@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
-import { SplineSceneBasic } from './ui/spline-demo';
+import { HeroSection } from './ui/spline-demo';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice' | 'argument-mapping') => void;
@@ -44,71 +44,8 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
 
   return (
     <div className="min-h-screen">
-      {/* 3D Spline Hero Section */}
-      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center relative">
-        <div className="w-full max-w-6xl mx-auto px-4">
-          <SplineSceneBasic />
-        </div>
-        
-        <button
-          onClick={() => {
-            const contentSection = document.getElementById('main-content');
-            if (contentSection) {
-              contentSection.scrollIntoView({ behavior: 'smooth' });
-            }
-          }}
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50 text-white border border-white/30 px-6 py-3 rounded-full hover:bg-white/10 transition-all duration-300"
-        >
-          Explore Features
-          <span className="ml-2 inline-block">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline">
-              <path d="M11 5V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M6 12L11 17L16 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </span>
-        </button>
-      </div>
-      
-      {/* Main Content Section */}
-      <div id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 relative">
-        {/* Hero Section */}
-        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
-          {/* Left: Text */}
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-2 drop-shadow-lg">ReasynAI</h1>
-            <h2 className="text-2xl md:text-3xl font-semibold text-blue-700 mb-4">Your Personal AI Coach</h2>
-            <p className="text-xl text-blue-800 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
-            <p className="text-md text-blue-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
-            <button
-              className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
-              onClick={() => setShowModal(true)}
-            >
-              Get Started
-            </button>
-          </div>
-          {/* Right: Illustration/Icon */}
-          <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-            <div className="w-80 h-80 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible border border-blue-200">
-              <img
-                src="/image-removebg-preview.png"
-                alt="Debate illustration"
-                className="w-72 h-72 object-contain rounded-2xl"
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Features Section */}
-        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          {features.map((f, i) => (
-            <div key={i} className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4 border border-blue-200" style={{ borderTopColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
-              <div className="mb-4">{f.icon}</div>
-              <h3 className="text-lg font-bold mb-2 text-blue-900">{f.title}</h3>
-              <p className="text-blue-700 text-center">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Integrated Hero Section with all content */}
+      <HeroSection setShowModal={setShowModal} features={features} />
       
       {/* Mode Selection Modal */}
       {showModal && (
