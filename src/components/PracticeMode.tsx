@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Speaker, DebatePoint, DebateSession } from '../types';
 import { WhisperService } from '../utils/whisperService';
 import { AIService } from '../utils/aiService';
