@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
-import { HeroFuturistic } from './ui/hero-futuristic';
 import { SplineSceneBasic } from './ui/spline-demo';
 
 interface ModeSelectionProps {
@@ -45,8 +44,30 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
 
   return (
     <div className="min-h-screen">
-      {/* Futuristic Hero Section */}
-      <HeroFuturistic />
+      {/* 3D Spline Hero Section */}
+      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center relative">
+        <div className="w-full max-w-6xl mx-auto px-4">
+          <SplineSceneBasic />
+        </div>
+        
+        <button
+          onClick={() => {
+            const contentSection = document.getElementById('main-content');
+            if (contentSection) {
+              contentSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50 text-white border border-white/30 px-6 py-3 rounded-full hover:bg-white/10 transition-all duration-300"
+        >
+          Explore Features
+          <span className="ml-2 inline-block">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline">
+              <path d="M11 5V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M6 12L11 17L16 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </span>
+        </button>
+      </div>
       
       {/* Main Content Section */}
       <div id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 relative">
@@ -86,11 +107,6 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
               <p className="text-blue-700 text-center">{f.desc}</p>
             </div>
           ))}
-        </div>
-        
-        {/* 3D Interactive Section */}
-        <div className="w-full max-w-5xl mb-16">
-          <SplineSceneBasic />
         </div>
       </div>
       
