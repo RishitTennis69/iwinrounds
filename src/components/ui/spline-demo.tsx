@@ -30,12 +30,9 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
               <h1 className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:drop-shadow-[0_0_30px_rgba(59,130,246,0.8)] transition-all duration-500">
                 ReasynAI
               </h1>
-              <h2 className="text-2xl md:text-3xl font-semibold mb-4 bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] hover:animate-bounce hover:drop-shadow-[0_8px_16px_rgba(59,130,246,0.6)] transition-all duration-300">
+              <h2 className="text-2xl md:text-3xl font-semibold mb-4 bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] hover:drop-shadow-[0_8px_16px_rgba(59,130,246,0.6)] transition-all duration-300 animate-bounce-once">
                 Master the art of debating with the power of AI
               </h2>
-              <p className="text-md mb-8 bg-gradient-to-r from-blue-100 via-white to-blue-100 bg-clip-text text-transparent leading-relaxed hover:text-white hover:drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-300">
-                Debate against AI opponents whenever you feel like it, keep track of your rounds with beatiful flowing, and get personalized insights to improve your debating skills.
-              </p>
             </div>
             {/* Full width 3D Scene */}
             <div className="w-full relative">
