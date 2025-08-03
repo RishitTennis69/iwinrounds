@@ -86,9 +86,10 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
                 <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-500/20 border border-white/20">
                   {f.icon}
                 </div>
-                    <h3 className="text-xl font-bold mb-3 text-white group-hover:text-blue-200 transition-colors">{f.title}</h3>
-                    <p className="text-white/70 leading-relaxed">{f.desc}</p>
+                <div>
+                  <h3 className="text-xl font-bold mb-3 text-white group-hover:text-blue-200 transition-colors">{f.title}</h3>
                   <p className="text-white/70 leading-relaxed">{f.desc}</p>
+                </div>
                 </div>
               </div>
             </div>
