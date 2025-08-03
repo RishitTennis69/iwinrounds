@@ -38,6 +38,8 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
               </p>
               <p className="text-md text-blue-600 mb-8">
                 Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.
+              </p>
+            </div>
             {/* Full width 3D Scene */}
             <div className="w-full relative">
               <SplineScene 
