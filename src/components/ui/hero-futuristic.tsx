@@ -114,39 +114,45 @@ export const HeroFuturistic = () => {
   };
   return (
     <div className="h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
-      <div className="h-screen uppercase items-center w-full absolute z-50 pointer-events-none px-10 flex justify-center flex-col">
-        <div className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold">
-          <div className="flex space-x-2 lg:space-x-6 overflow-hidden text-white">
-            {titleWords.map((word, index) => (
-              <div
-                key={index}
-                className={`transition-all duration-1000 ${index < visibleWords ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-                style={{ 
-                  animationDelay: `${index * 0.13 + (delays[index] || 0)}s`,
-                  transitionDelay: `${index * 0.13 + (delays[index] || 0)}s`
-                }}
-              >
-                {word}
-              </div>
-            ))}
+      {/* Text content - completely separate from Canvas */}
+      <div className="absolute inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+        <div className="text-center px-10">
+          <div className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold uppercase">
+            <div className="flex space-x-2 lg:space-x-6 overflow-hidden justify-center" style={{ color: '#ffffff' }}>
+              {titleWords.map((word, index) => (
+                <div
+                  key={index}
+                  className={`transition-all duration-1000 ${index < visibleWords ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  style={{ 
+                    animationDelay: `${index * 0.13 + (delays[index] || 0)}s`,
+                    transitionDelay: `${index * 0.13 + (delays[index] || 0)}s`,
+                    color: '#ffffff'
+                  }}
+                >
+                  {word}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="text-xs md:text-xl xl:text-2xl 2xl:text-3xl mt-2 overflow-hidden text-white font-bold normal-case">
-          <div
-            className={`transition-all duration-1000 ${subtitleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-            style={{ 
-              transitionDelay: `${titleWords.length * 0.13 + 0.2 + subtitleDelay}s`
-            }}
-          >
-            {subtitle}
+          <div className="text-xs md:text-xl xl:text-2xl 2xl:text-3xl mt-2 overflow-hidden font-bold normal-case" style={{ color: '#ffffff' }}>
+            <div
+              className={`transition-all duration-1000 ${subtitleVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ 
+                transitionDelay: `${titleWords.length * 0.13 + 0.2 + subtitleDelay}s`,
+                color: '#ffffff'
+              }}
+            >
+              {subtitle}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Button - also separate from Canvas */}
       <button
         onClick={scrollToContent}
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50 text-white border border-white/30 px-6 py-3 rounded-full hover:bg-white/10 transition-all duration-300 opacity-0 animate-fade-in-delayed pointer-events-auto"
-        style={{ animationDelay: '2.2s' }}
+        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-[9999] border border-white/30 px-6 py-3 rounded-full hover:bg-white/10 transition-all duration-300 opacity-0 animate-fade-in-delayed pointer-events-auto"
+        style={{ animationDelay: '2.2s', color: '#ffffff' }}
       >
         Explore Features
         <span className="ml-2 inline-block">
@@ -157,13 +163,14 @@ export const HeroFuturistic = () => {
         </span>
       </button>
 
-      <Canvas
-        className="absolute inset-0"
+      {/* Canvas temporarily removed to test text color */}
+      {/* <Canvas
+        className="absolute inset-0 z-0"
         gl={createRenderer}
       >
         <PostProcessing fullScreenEffect={true} />
         <Scene />
-      </Canvas>
+      </Canvas> */}
     </div>
   );
 };
