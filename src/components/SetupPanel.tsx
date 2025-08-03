@@ -155,7 +155,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
           {onBack && (
             <button
               onClick={onBack}
-              className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
+              className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Mode Selection</span>
@@ -163,8 +163,8 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
           )}
           
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Choose Debate Format</h1>
-            <p className="text-blue-200">Select a standard format or customize your own settings</p>
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Debate Format</h1>
+            <p className="text-blue-700">Select a standard format or customize your own settings</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -219,15 +219,15 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
         {/* Back Button */}
         <button
           onClick={() => setStep('format')}
-          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
+          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Format Selection</span>
         </button>
         
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Debate Setup</h1>
-          <p className="text-blue-200">
+          <h1 className="text-4xl font-bold text-blue-900 mb-2">Debate Setup</h1>
+          <p className="text-blue-700">
             {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up custom debate format'}
           </p>
         </div>

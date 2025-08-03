@@ -17,7 +17,8 @@ interface PracticeModeProps {
 }
 
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
-  const [step, setStep] = useState<'setup' | 'generating' | 'practice' | 'complete'>('setup');
+  const [step, setStep] = useState<'format' | 'setup' | 'generating' | 'practice' | 'complete'>('format');
+  const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [topic, setTopic] = useState('');
   const [userName, setUserName] = useState(() => {
     // Load username from sessionStorage on component mount
@@ -27,7 +28,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
-  const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -51,6 +51,62 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [ttsService] = useState(() => new TTSService());
   const [isLoading, setIsLoading] = useState(false);
+
+  // Debate formats for practice mode
+  const DEBATE_FORMATS = [
+    {
+      name: 'Public Forum',
+      description: '2v2 format with constructive speeches and rebuttals',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 2,
+      firstSpeaker: 'affirmative' as const,
+      icon: '🏛️'
+    },
+    {
+      name: 'Lincoln Douglas',
+      description: '1v1 value debate format with multiple speeches per speaker',
+      peoplePerTeam: 1,
+      speechesPerSpeaker: 3,
+      firstSpeaker: 'affirmative' as const,
+      icon: '⚖️'
+    },
+    {
+      name: 'Policy Debate',
+      description: '2v2 format with constructives and rebuttals',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 4,
+      firstSpeaker: 'affirmative' as const,
+      icon: '📋'
+    },
+    {
+      name: 'Parliamentary',
+      description: '2v2 Government vs Opposition format',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 1,
+      firstSpeaker: 'affirmative' as const,
+      icon: '🏛️'
+    },
+    {
+      name: 'Spar Debate',
+      description: '1v1 short format with quick constructive and rebuttal rounds',
+      peoplePerTeam: 1,
+      speechesPerSpeaker: 2,
+      firstSpeaker: 'affirmative' as const,
+      icon: '⚡'
+    }
+  ];
+
+  const handleFormatSelect = (format: typeof DEBATE_FORMATS[0] | null) => {
+    if (format) {
+      setSelectedFormat(format.name);
+      setPeoplePerTeam(format.peoplePerTeam);
+      setSpeechesPerSpeaker(format.speechesPerSpeaker);
+      setFirstSpeaker(format.firstSpeaker);
+    } else {
+      setSelectedFormat('');
+    }
+    setStep('setup');
+  };
 
   useEffect(() => {
     if (userName) {
@@ -85,36 +141,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       setUserSpeakerNumber(1);
     }
   }, [peoplePerTeam, userSpeakerNumber]);
-
-  // Handler for selecting debate format
-  const handleFormatSelect = (format: string) => {
-    setSelectedFormat(format);
-    
-    switch (format) {
-      case 'lincoln-douglas':
-        setPeoplePerTeam(1);
-        setSpeechesPerSpeaker(3);
-        setFirstSpeaker('affirmative');
-        break;
-      case 'policy':
-        setPeoplePerTeam(2);
-        setSpeechesPerSpeaker(4);
-        setFirstSpeaker('affirmative');
-        break;
-      case 'public-forum':
-        setPeoplePerTeam(2);
-        setSpeechesPerSpeaker(2);
-        setFirstSpeaker('affirmative');
-        break;
-      case 'parliamentary':
-        setPeoplePerTeam(3);
-        setSpeechesPerSpeaker(2);
-        setFirstSpeaker('affirmative');
-        break;
-      default:
-        break;
-    }
-  };
 
   // Debate structure - now configurable
   const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
@@ -621,6 +647,58 @@ Respond in this exact JSON format:
     };
   };
 
+  if (step === 'format') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
+          {/* Back Button */}
+          <button
+            onClick={onBack}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Mode Selection</span>
+          </button>
+
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">ReasynAI</h1>
+            <p className="text-blue-700">Your Personal AI Coach That Fits in Your Pocket</p>
+            <p className="text-blue-600 font-medium mt-2">Choose a Practice Debate Format</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {DEBATE_FORMATS.map((format) => (
+              <div
+                key={format.name}
+                className={`border-2 rounded-lg p-6 transition-colors cursor-pointer ${
+                  selectedFormat === format.name
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+                onClick={() => handleFormatSelect(format)}
+              >
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-3xl text-blue-600">
+                    {format.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{format.name}</h3>
+                    <p className="text-sm text-gray-600">{format.description}</p>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 space-y-1">
+                  <div>• {format.peoplePerTeam} speakers per team</div>
+                  <div>• {format.speechesPerSpeaker} speeches per speaker</div>
+                  <div>• {format.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (step === 'setup') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
@@ -628,16 +706,16 @@ Respond in this exact JSON format:
           {/* Back Button */}
           <button
             onClick={onBack}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Mode Selection</span>
           </button>
 
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">ReasynAI</h1>
-            <p className="text-blue-200">Your Personal AI Coach That Fits in Your Pocket</p>
-            <p className="text-blue-300 font-medium mt-2">Practice Mode Setup</p>
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">ReasynAI</h1>
+            <p className="text-blue-700">Your Personal AI Coach That Fits in Your Pocket</p>
+            <p className="text-blue-600 font-medium mt-2">Practice Mode Setup</p>
           </div>
 
           <form onSubmit={handleStart} className="space-y-6">
@@ -741,7 +819,7 @@ Respond in this exact JSON format:
                       ? 'border-blue-500 bg-blue-50' 
                       : 'border-gray-200 hover:border-blue-300'
                   }`}
-                  onClick={() => handleFormatSelect('lincoln-douglas')}
+                  onClick={() => handleFormatSelect({ name: 'Lincoln Douglas', description: '1v1 value debate format with multiple speeches per speaker', peoplePerTeam: 1, speechesPerSpeaker: 3, firstSpeaker: 'affirmative' as const, icon: '⚖️' })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -765,7 +843,7 @@ Respond in this exact JSON format:
                       ? 'border-green-500 bg-green-50' 
                       : 'border-gray-200 hover:border-green-300'
                   }`}
-                  onClick={() => handleFormatSelect('policy')}
+                  onClick={() => handleFormatSelect({ name: 'Policy Debate', description: '2v2 format with constructives and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 4, firstSpeaker: 'affirmative' as const, icon: '📋' })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -789,7 +867,7 @@ Respond in this exact JSON format:
                       ? 'border-indigo-500 bg-indigo-50' 
                       : 'border-gray-200 hover:border-indigo-300'
                   }`}
-                  onClick={() => handleFormatSelect('public-forum')}
+                  onClick={() => handleFormatSelect({ name: 'Public Forum', description: '2v2 format with constructive speeches and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 2, firstSpeaker: 'affirmative' as const, icon: '🏛️' })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -813,7 +891,7 @@ Respond in this exact JSON format:
                       ? 'border-orange-500 bg-orange-50' 
                       : 'border-gray-200 hover:border-orange-300'
                   }`}
-                  onClick={() => handleFormatSelect('parliamentary')}
+                  onClick={() => handleFormatSelect({ name: 'Parliamentary', description: '2v2 Government vs Opposition format', peoplePerTeam: 2, speechesPerSpeaker: 1, firstSpeaker: 'affirmative' as const, icon: '🏛️' })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -821,12 +899,12 @@ Respond in this exact JSON format:
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900">Parliamentary</h4>
-                      <p className="text-sm text-gray-600">3v3 format with impromptu topics</p>
+                      <p className="text-sm text-gray-600">2v2 format with impromptu topics</p>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 space-y-1">
-                    <div>• 3 speakers per team</div>
-                    <div>• 1-2 speeches per speaker</div>
+                    <div>• 2 speakers per team</div>
+                    <div>• 1 speech per speaker</div>
                     <div>• Focus on quick thinking</div>
                   </div>
                 </div>
@@ -893,72 +971,6 @@ Respond in this exact JSON format:
                     </label>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Debate Structure Preview */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Practice Session Overview</h3>
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Your role:</strong> {userTeam.charAt(0).toUpperCase() + userTeam.slice(1)} Speaker #{userSpeakerNumber} 
-                  ({userSpeechNums.length} speech{userSpeechNums.length > 1 ? 'es' : ''})
-                </p>
-                <p className="text-sm text-blue-700 mt-1">
-                  <strong>Speaking order:</strong> {firstSpeaker.charAt(0).toUpperCase() + firstSpeaker.slice(1)} team speaks first
-                </p>
-              </div>
-              {peoplePerTeam === 1 ? (
-                <div className="text-center">
-                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">1v1 Practice Format</h4>
-                    <p className="text-sm text-blue-700">
-                      You will practice against an AI opponent in a direct 1v1 debate.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <span className="text-green-600 font-semibold">You</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{userTeam.charAt(0).toUpperCase() + userTeam.slice(1)}</p>
-                      <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <span className="text-red-600 font-semibold">AI</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{userTeam === 'affirmative' ? 'Negative' : 'Affirmative'}</p>
-                      <p className="text-xs text-gray-500">{speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-blue-600 mb-2">Affirmative Team</h4>
-                    <div className="space-y-1">
-                      {Array.from({ length: peoplePerTeam }, (_, i) => (
-                        <div key={i} className="text-sm text-gray-600">
-                          Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-red-600 mb-2">Negative Team</h4>
-                    <div className="space-y-1">
-                      {Array.from({ length: peoplePerTeam }, (_, i) => (
-                        <div key={i} className="text-sm text-gray-600">
-                          Speaker {i + 1}: {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="text-xs text-gray-500 mt-2 text-center">
-                Total speeches in this practice session: {totalSpeeches}
               </div>
             </div>
 
