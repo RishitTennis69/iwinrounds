@@ -149,13 +149,13 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
   // Format Selection Step
   if (step === 'format') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
           {/* Back Button */}
           {onBack && (
             <button
               onClick={onBack}
-              className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Mode Selection</span>
@@ -163,8 +163,8 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
           )}
           
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Choose Debate Format</h1>
-            <p className="text-gray-600">Select a standard format or customize your own settings</p>
+            <h1 className="text-4xl font-bold text-white mb-2">Choose Debate Format</h1>
+            <p className="text-blue-200">Select a standard format or customize your own settings</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -173,14 +173,14 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               <button
                 key={format.name}
                 onClick={() => handleFormatSelect(format)}
-                className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
+                className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border-2 border-blue-200/50 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
               >
                 <div className="text-4xl mb-4">{format.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
+                <h3 className="text-xl font-semibold text-blue-900 mb-2 group-hover:text-blue-600">
                   {format.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">{format.description}</p>
-                <div className="space-y-1 text-xs text-gray-500">
+                <p className="text-blue-700 text-sm mb-4">{format.description}</p>
+                <div className="space-y-1 text-xs text-blue-600">
                   <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
                   <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
                   <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
@@ -191,16 +191,16 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             {/* Custom Format Option */}
             <button
               onClick={() => handleFormatSelect(null)}
-              className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
+              className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border-2 border-blue-200/50 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
             >
               <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
+              <h3 className="text-xl font-semibold text-blue-900 mb-2 group-hover:text-blue-600">
                 Custom Format
               </h3>
-              <p className="text-gray-600 text-sm mb-4">
+              <p className="text-blue-700 text-sm mb-4">
                 Create your own debate format with custom settings
               </p>
-              <div className="space-y-1 text-xs text-gray-500">
+              <div className="space-y-1 text-xs text-blue-600">
                 <div>🎛️ Customize team sizes</div>
                 <div>🎤 Set speech counts</div>
                 <div>⚡ Flexible configuration</div>
@@ -214,20 +214,20 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
 
   // Setup Step
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
         {/* Back Button */}
         <button
           onClick={() => setStep('format')}
-          className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Format Selection</span>
         </button>
         
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Debate Setup</h1>
-          <p className="text-gray-600">
+          <h1 className="text-4xl font-bold text-white mb-2">Debate Setup</h1>
+          <p className="text-blue-200">
             {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up custom debate format'}
           </p>
         </div>

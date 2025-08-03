@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArgumentNode, ArgumentConnection, ArgumentMap as ArgumentMapType } from '../types';
-import { ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff, AlertTriangle, CheckCircle, XCircle, X } from 'lucide-react';
 
 interface ArgumentMapProps {
   argumentMap: ArgumentMapType;
@@ -123,69 +123,69 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, className = '' }
   };
 
   return (
-    <div className={`relative bg-white rounded-lg border ${className}`}>
+    <div className={`relative bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg border border-blue-200/30 ${className}`}>
       {/* Controls */}
       <div className="absolute top-4 left-4 z-10 flex gap-2">
         <button
           onClick={handleZoomIn}
-          className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+          className="p-2 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg shadow-md hover:bg-gradient-to-br from-blue-100/80 to-indigo-200/80 border border-blue-200/30"
           title="Zoom In"
         >
-          <ZoomIn className="w-4 h-4" />
+          <ZoomIn className="w-4 h-4 text-blue-700" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+          className="p-2 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg shadow-md hover:bg-gradient-to-br from-blue-100/80 to-indigo-200/80 border border-blue-200/30"
           title="Zoom Out"
         >
-          <ZoomOut className="w-4 h-4" />
+          <ZoomOut className="w-4 h-4 text-blue-700" />
         </button>
         <button
           onClick={handleReset}
-          className="p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
+          className="p-2 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg shadow-md hover:bg-gradient-to-br from-blue-100/80 to-indigo-200/80 border border-blue-200/30"
           title="Reset View"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-4 h-4 text-blue-700" />
         </button>
         <button
           onClick={() => setShowStrength(!showStrength)}
-          className={`p-2 rounded-lg shadow-md ${showStrength ? 'bg-blue-100' : 'bg-white'} hover:bg-gray-50`}
+          className={`p-2 rounded-lg shadow-md ${showStrength ? 'bg-gradient-to-br from-blue-100/80 to-indigo-200/80' : 'bg-gradient-to-br from-blue-50/80 to-indigo-100/80'} hover:bg-gradient-to-br from-blue-100/80 to-indigo-200/80 border border-blue-200/30`}
           title="Toggle Strength Indicators"
         >
-          {showStrength ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          {showStrength ? <Eye className="w-4 h-4 text-blue-700" /> : <EyeOff className="w-4 h-4 text-blue-700" />}
         </button>
         <button
           onClick={() => setShowFallacies(!showFallacies)}
-          className={`p-2 rounded-lg shadow-md ${showFallacies ? 'bg-red-100' : 'bg-white'} hover:bg-gray-50`}
+          className={`p-2 rounded-lg shadow-md ${showFallacies ? 'bg-gradient-to-br from-red-100/80 to-pink-200/80' : 'bg-gradient-to-br from-blue-50/80 to-indigo-100/80'} hover:bg-gradient-to-br from-red-100/80 to-pink-200/80 border border-red-200/30`}
           title="Toggle Fallacy Indicators"
         >
-          <AlertTriangle className="w-4 h-4" />
+          <AlertTriangle className="w-4 h-4 text-red-700" />
         </button>
       </div>
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-md p-3 text-sm">
-        <div className="font-semibold mb-2">Argument Types</div>
+      <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-3 text-sm border border-blue-200/30">
+        <div className="font-semibold mb-2 text-blue-900">Argument Types</div>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>Claim</span>
+            <span className="text-blue-700">Claim</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span>Evidence</span>
+            <span className="text-blue-700">Evidence</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-            <span>Reasoning</span>
+            <span className="text-blue-700">Reasoning</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span>Counter-claim</span>
+            <span className="text-blue-700">Counter-claim</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span>Rebuttal</span>
+            <span className="text-blue-700">Rebuttal</span>
           </div>
         </div>
       </div>
@@ -363,58 +363,69 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, className = '' }
         </g>
       </svg>
 
-      {/* Node Details Panel */}
+      {/* Node Details Popup */}
       {selectedNode && (
-        <div className="absolute bottom-4 left-4 right-4 z-10 bg-white rounded-lg shadow-lg p-4 max-h-64 overflow-y-auto">
+        <div className="absolute bottom-4 left-4 right-4 z-10 bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-lg p-4 max-h-64 overflow-y-auto border border-blue-200/30">
           <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-lg capitalize">{selectedNode.type}</h3>
+            <h3 className="text-lg font-semibold text-blue-900">{selectedNode.content}</h3>
             <button
               onClick={() => setSelectedNode(null)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-blue-600 hover:text-blue-800"
             >
-              ×
+              <X className="w-4 h-4" />
             </button>
           </div>
           
           <div className="space-y-3">
             <div>
-              <div className="font-medium text-sm text-gray-600 mb-1">Content</div>
-              <div className="text-sm">{selectedNode.content}</div>
+              <span className="font-medium text-blue-800">Type:</span>
+              <span className="ml-2 px-2 py-1 rounded text-xs font-medium bg-gradient-to-br from-blue-100/80 to-indigo-100/80 text-blue-700">
+                {selectedNode.type}
+              </span>
             </div>
             
-            <div className="flex gap-4">
+            {showStrength && selectedNode.strength !== undefined && (
               <div>
-                <div className="font-medium text-sm text-gray-600 mb-1">Speaker</div>
-                <div className="text-sm">{selectedNode.speakerName} ({selectedNode.team})</div>
-              </div>
-              <div>
-                <div className="font-medium text-sm text-gray-600 mb-1">Speech</div>
-                <div className="text-sm">#{selectedNode.speechNumber}</div>
-              </div>
-              <div>
-                <div className="font-medium text-sm text-gray-600 mb-1">Strength</div>
-                <div className="text-sm flex items-center gap-1">
-                  {getStrengthIcon(selectedNode.strength)}
-                  {selectedNode.strength}/10
+                <span className="font-medium text-blue-800">Strength:</span>
+                <div className="flex items-center mt-1">
+                  <div className="flex-1 bg-blue-200 rounded-full h-2 mr-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(selectedNode.strength / 10) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-blue-700">{selectedNode.strength}/10</span>
                 </div>
               </div>
+            )}
+            
+            {showFallacies && selectedNode.logicalFallacies && selectedNode.logicalFallacies.length > 0 && (
+              <div>
+                <span className="font-medium text-red-800">Fallacies:</span>
+                <div className="mt-1 space-y-1">
+                  {selectedNode.logicalFallacies.map((fallacy: string, index: number) => (
+                    <div key={index} className="text-sm text-red-700 bg-gradient-to-br from-red-50/80 to-pink-50/80 rounded px-2 py-1">
+                      {fallacy}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <span className="font-medium text-blue-800">Speaker:</span>
+              <span className="ml-2 text-sm text-blue-700">{selectedNode.speakerName} ({selectedNode.team})</span>
+            </div>
+            
+            <div>
+              <span className="font-medium text-blue-800">Speech:</span>
+              <span className="ml-2 text-sm text-blue-700">#{selectedNode.speechNumber}</span>
             </div>
             
             {selectedNode.evidenceQuality && (
               <div>
-                <div className="font-medium text-sm text-gray-600 mb-1">Evidence Quality</div>
-                <div className="text-sm">{selectedNode.evidenceQuality}/10</div>
-              </div>
-            )}
-            
-            {selectedNode.logicalFallacies && selectedNode.logicalFallacies.length > 0 && (
-              <div>
-                <div className="font-medium text-sm text-gray-600 mb-1">Logical Fallacies</div>
-                <div className="text-sm space-y-1">
-                  {selectedNode.logicalFallacies.map((fallacy, index) => (
-                    <div key={index} className="text-red-600">• {fallacy}</div>
-                  ))}
-                </div>
+                <span className="font-medium text-blue-800">Evidence Quality:</span>
+                <span className="ml-2 text-sm text-blue-700">{selectedNode.evidenceQuality}/10</span>
               </div>
             )}
           </div>

@@ -623,21 +623,21 @@ Respond in this exact JSON format:
 
   if (step === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
           {/* Back Button */}
           <button
             onClick={onBack}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-200 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Mode Selection</span>
           </button>
 
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">ReasynAI</h1>
-            <p className="text-gray-600">Your Personal AI Coach That Fits in Your Pocket</p>
-            <p className="text-blue-600 font-medium mt-2">Practice Mode Setup</p>
+            <h1 className="text-4xl font-bold text-white mb-2">ReasynAI</h1>
+            <p className="text-blue-200">Your Personal AI Coach That Fits in Your Pocket</p>
+            <p className="text-blue-300 font-medium mt-2">Practice Mode Setup</p>
           </div>
 
           <form onSubmit={handleStart} className="space-y-6">

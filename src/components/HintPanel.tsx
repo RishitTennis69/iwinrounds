@@ -112,13 +112,13 @@ const HintPanel: React.FC<HintPanelProps> = ({
   const opponentArguments = getOpponentArguments();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+        <h3 className="text-lg font-semibold text-blue-900 flex items-center">
           <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />
           AI Debate Hints
         </h3>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-blue-700">
           {remainingHints}/{maxHints} hints remaining
         </div>
       </div>
@@ -134,13 +134,13 @@ const HintPanel: React.FC<HintPanelProps> = ({
       {/* Argument Selection */}
       {opponentArguments.length > 0 && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-blue-700 mb-2">
             Select opponent argument to target:
           </label>
           <select
             value={selectedArgument}
             onChange={(e) => setSelectedArgument(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm"
             disabled={remainingHints <= 0}
           >
             <option value="">Choose an argument...</option>
@@ -208,7 +208,7 @@ const HintPanel: React.FC<HintPanelProps> = ({
             </button>
           </div>
           
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg p-4 border border-blue-200/30">
             {hintType === 'cross-examination' ? (
               <div className="space-y-2">
                 {hintContent.map((question, index) => (
@@ -216,12 +216,12 @@ const HintPanel: React.FC<HintPanelProps> = ({
                     <span className="text-blue-600 font-medium text-sm min-w-[20px]">
                       {index + 1}.
                     </span>
-                    <p className="text-gray-700 text-sm">{question}</p>
+                    <p className="text-blue-700 text-sm">{question}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-700 text-sm">{hintContent[0]}</p>
+              <p className="text-blue-700 text-sm">{hintContent[0]}</p>
             )}
           </div>
         </div>
@@ -229,8 +229,8 @@ const HintPanel: React.FC<HintPanelProps> = ({
 
       {/* No opponent arguments message */}
       {opponentArguments.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <p className="text-gray-600 text-sm text-center">
+        <div className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border border-blue-200/30 rounded-lg p-4">
+          <p className="text-blue-600 text-sm text-center">
             No opponent arguments available yet. Hints will be available after opponents have spoken.
           </p>
         </div>

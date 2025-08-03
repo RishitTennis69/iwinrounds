@@ -117,16 +117,16 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
   if (!currentSpeaker) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <p className="text-gray-500 text-center">No speaker selected</p>
+      <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
+        <p className="text-blue-700 text-center">No speaker selected</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-blue-900 mb-2">
           Speech {speechNumber}/{totalSpeeches}
         </h3>
         <div className="flex items-center justify-center space-x-2 mb-2">
@@ -137,10 +137,10 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           }`}>
             {currentSpeaker.team}
           </span>
-          <span className="text-gray-600">•</span>
-          <span className="font-medium text-gray-900">{currentSpeaker.name}</span>
+          <span className="text-blue-600">•</span>
+          <span className="font-medium text-blue-900">{currentSpeaker.name}</span>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-blue-700">
           {speechNumber % 2 === 1 ? 'First' : 'Second'} {currentSpeaker.team} speaker
         </p>
       </div>
@@ -213,12 +213,12 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
         {/* Transcript Display */}
         <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">Transcript:</h4>
-          <div className="bg-gray-50 rounded-lg p-4 min-h-[100px] max-h-[200px] overflow-y-auto">
+          <h4 className="font-medium text-blue-900">Transcript:</h4>
+          <div className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg p-4 min-h-[100px] max-h-[200px] overflow-y-auto border border-blue-200/30">
             {transcript ? (
-              <p className="text-gray-800 whitespace-pre-wrap">{transcript}</p>
+              <p className="text-blue-800 whitespace-pre-wrap">{transcript}</p>
             ) : (
-              <p className="text-gray-500 italic">
+              <p className="text-blue-600 italic">
                 {isRecording ? 'Listening...' : 'No transcript yet'}
               </p>
             )}

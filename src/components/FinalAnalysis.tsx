@@ -23,9 +23,9 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
   return (
     <div className="space-y-6">
       {/* Main Analysis Card */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+      <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md overflow-hidden border border-blue-200/30">
+        <div className="px-6 py-4 border-b border-blue-200/30">
+          <h3 className="text-lg font-semibold text-blue-900 flex items-center">
             {isPracticeSession ? (
               <>
                 <Award className="w-5 h-5 mr-2 text-blue-500" />
@@ -43,12 +43,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
         <div className="p-6 space-y-6">
           {/* Winner Section - Only show for competitive debates */}
           {!isPracticeSession && session.winner && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200/30">
               <div className="space-y-4">
                 {/* Winner */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h4 className="text-xl font-semibold text-blue-900 mb-2">
                       Winner: {session.winner?.team === 'affirmative' ? 'Affirmative Team' : 'Negative Team'}
                     </h4>
                   </div>
@@ -60,16 +60,16 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                 {/* Key Arguments */}
                 {session.winner?.keyArguments && (
                   <div>
-                    <h5 className="text-lg font-semibold text-gray-800 mb-2">Key Arguments:</h5>
-                    <p className="text-gray-700 leading-relaxed">{session.winner.keyArguments}</p>
+                    <h5 className="text-lg font-semibold text-blue-800 mb-2">Key Arguments:</h5>
+                    <p className="text-blue-700 leading-relaxed">{session.winner.keyArguments}</p>
                   </div>
                 )}
                 
                 {/* Clash */}
                 {session.winner?.clash && (
                   <div>
-                    <h5 className="text-lg font-semibold text-gray-800 mb-2">Clash:</h5>
-                    <p className="text-gray-700 leading-relaxed">{session.winner.clash}</p>
+                    <h5 className="text-lg font-semibold text-blue-800 mb-2">Clash:</h5>
+                    <p className="text-blue-700 leading-relaxed">{session.winner.clash}</p>
                   </div>
                 )}
               </div>
@@ -78,16 +78,16 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
 
           {/* Practice Session Summary */}
           {isPracticeSession && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200/30">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-xl font-semibold text-gray-900">
+                <h4 className="text-xl font-semibold text-blue-900">
                   Practice Session Summary
                 </h4>
                 <div className="text-6xl text-blue-500">
                   🎯
                 </div>
               </div>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-blue-700 leading-relaxed">
                 Great job completing your practice session! Review your personalized feedback below to identify areas for improvement and continue developing your debate skills.
               </p>
             </div>
@@ -103,13 +103,13 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
               </h5>
               <div className="space-y-3">
                 {affirmativeSpeakers.map((speaker) => (
-                  <div key={speaker.id} className="bg-white rounded-lg p-3 mb-2">
+                  <div key={speaker.id} className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg p-3 mb-2 border border-blue-200/30">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-900">{speaker.name}</span>
+                      <span className="font-medium text-blue-900">{speaker.name}</span>
                       {!isPracticeSession && (
                         <div className="flex items-center space-x-2">
                           <Award className="w-4 h-4 text-yellow-500" />
-                          <span className="font-semibold text-gray-900">{speaker.points}</span>
+                          <span className="font-semibold text-blue-900">{speaker.points}</span>
                         </div>
                       )}
                     </div>
@@ -117,7 +117,7 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                       <div className="mt-3 space-y-3">
                         {/* Handle old string format */}
                         {typeof speaker.feedback === 'string' && (
-                          <div className="text-sm text-blue-700 bg-blue-50 rounded p-2">
+                          <div className="text-sm text-blue-700 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded p-2 border border-blue-200/30">
                             <span className="font-semibold">Feedback:</span> {speaker.feedback}
                           </div>
                         )}
@@ -157,7 +157,7 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Delivery Feedback */}
                             {typeof speaker.feedback === 'object' && speaker.feedback.delivery && (
-                              <div className="bg-indigo-50 rounded p-2">
+                              <div className="bg-gradient-to-br from-indigo-50/80 to-blue-100/80 backdrop-blur-sm rounded p-2 border border-indigo-200/30">
                                 <div className="font-semibold text-indigo-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                                   Delivery Analysis:
@@ -182,9 +182,9 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Overall Assessment */}
                             {speaker.feedback.overallAssessment && (
-                              <div className="bg-gray-50 rounded p-2">
-                                <div className="font-semibold text-gray-700 mb-1 text-base">Overall Assessment:</div>
-                                <p className="text-gray-600 text-sm">{speaker.feedback.overallAssessment}</p>
+                              <div className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded p-2 border border-blue-200/30">
+                                <div className="font-semibold text-blue-700 mb-1 text-base">Overall Assessment:</div>
+                                <p className="text-blue-600 text-sm">{speaker.feedback.overallAssessment}</p>
                               </div>
                             )}
                           </>
