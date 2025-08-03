@@ -1,6 +1,7 @@
 {
   "name": "reasynai",
   "version": "1.0.0",
+  "type": "module",
   "description": "Your personal AI coach that fits in your pocket",
   "main": "index.js",
   "scripts": {
