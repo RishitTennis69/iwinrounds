@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
+import { SplineSceneBasic } from './ui/spline-demo';
 
 interface ModeSelectionProps {
   onSelectMode: (mode: 'debate' | 'practice' | 'argument-mapping') => void;
@@ -138,6 +139,11 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
           </div>
         </div>
       )}
+      
+      {/* 3D Interactive Section */}
+      <div className="w-full max-w-5xl mb-16">
+        <SplineSceneBasic />
+      </div>
     </div>
   );
 };
