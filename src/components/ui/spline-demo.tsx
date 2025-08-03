@@ -38,24 +38,8 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
               </p>
               <p className="text-md text-blue-600 mb-8">
                 Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.
-              </p>
-              
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">
-                ReasynAI
-              </h1>
-              <h2 className="text-2xl md:text-3xl font-semibold text-white/90 mb-4">
-                Your Personal AI Coach
-              </h2>
-              <p className="text-xl text-white/80 mb-4 font-medium">
-                Your personal AI coach that fits in your pocket—anytime, anywhere.
-              </p>
-              <p className="text-md text-white/70 mb-8">
-                Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.
-              </p>
-            </div>
-
-            {/* Right content - 3D Scene */}
-            <div className="flex-1 relative">
+            {/* Full width 3D Scene */}
+            <div className="w-full relative">
               <SplineScene 
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
