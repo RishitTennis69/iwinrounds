@@ -8,6 +8,7 @@ import DebateFlowTable from './DebateFlowTable';
 import HintPanel from './HintPanel';
 import RandomTopicSelector from './RandomTopicSelector';
 import FinalAnalysis from './FinalAnalysis';
+import PrepTime from './PrepTime';
 import { ArrowLeft } from 'lucide-react';
 
 interface PracticeModeProps {
@@ -17,7 +18,7 @@ interface PracticeModeProps {
 }
 
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
-  const [step, setStep] = useState<'format' | 'setup' | 'generating' | 'practice' | 'complete'>('format');
+  const [step, setStep] = useState<'format' | 'setup' | 'prep' | 'generating' | 'practice' | 'complete'>('format');
   const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [topic, setTopic] = useState('');
   const [userName, setUserName] = useState(() => {
@@ -51,6 +52,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [currentSpeechIdx, setCurrentSpeechIdx] = useState(0);
   const [ttsService] = useState(() => new TTSService());
   const [isLoading, setIsLoading] = useState(false);
+  const [prepTimeUsed, setPrepTimeUsed] = useState(0);
+  const [selectedFormatData, setSelectedFormatData] = useState<typeof DEBATE_FORMATS[0] | null>(null);
 
   // Debate formats for practice mode
   const DEBATE_FORMATS = [
@@ -60,7 +63,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       peoplePerTeam: 2,
       speechesPerSpeaker: 2,
       firstSpeaker: 'affirmative' as const,
-      icon: '🏛️'
+      icon: '🏛️',
+      prepTime: 3,
+      prepTimeType: 'flexible' as const
     },
     {
       name: 'Lincoln Douglas',
@@ -68,7 +73,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       peoplePerTeam: 1,
       speechesPerSpeaker: 3,
       firstSpeaker: 'affirmative' as const,
-      icon: '⚖️'
+      icon: '⚖️',
+      prepTime: 4,
+      prepTimeType: 'flexible' as const
     },
     {
       name: 'Policy Debate',
@@ -76,7 +83,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       peoplePerTeam: 2,
       speechesPerSpeaker: 4,
       firstSpeaker: 'affirmative' as const,
-      icon: '📋'
+      icon: '📋',
+      prepTime: 8,
+      prepTimeType: 'flexible' as const
     },
     {
       name: 'Parliamentary',
@@ -84,7 +93,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       peoplePerTeam: 2,
       speechesPerSpeaker: 1,
       firstSpeaker: 'affirmative' as const,
-      icon: '🏛️'
+      icon: '🏛️',
+      prepTime: 20,
+      prepTimeType: 'pre-round' as const
     },
     {
       name: 'Spar Debate',
@@ -92,7 +103,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       peoplePerTeam: 1,
       speechesPerSpeaker: 2,
       firstSpeaker: 'affirmative' as const,
-      icon: '⚡'
+      icon: '⚡',
+      prepTime: 2,
+      prepTimeType: 'pre-round' as const
     }
   ];
 
@@ -102,8 +115,10 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       setPeoplePerTeam(format.peoplePerTeam);
       setSpeechesPerSpeaker(format.speechesPerSpeaker);
       setFirstSpeaker(format.firstSpeaker);
+      setSelectedFormatData(format);
     } else {
       setSelectedFormat('');
+      setSelectedFormatData(null);
     }
     setStep('setup');
   };
@@ -460,6 +475,13 @@ Respond in this exact JSON format:
   // On start, simulate up to the user's first speech
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if format has pre-round prep time
+    if (selectedFormatData && selectedFormatData.prepTimeType === 'pre-round' && selectedFormatData.prepTime > 0) {
+      setStep('prep');
+      return;
+    }
+    
     setStep('generating');
     const firstUserSpeech = userSpeechNums[0];
     console.log('First user speech:', firstUserSpeech);
@@ -650,7 +672,7 @@ Respond in this exact JSON format:
   if (step === 'format') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
           {/* Back Button */}
           <button
             onClick={onBack}
@@ -661,38 +683,55 @@ Respond in this exact JSON format:
           </button>
 
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">ReasynAI</h1>
-            <p className="text-blue-700">Your Personal AI Coach That Fits in Your Pocket</p>
-            <p className="text-blue-600 font-medium mt-2">Choose a Practice Debate Format</p>
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Practice Format</h1>
+            <p className="text-blue-700">Select a standard format or customize your own settings</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Standard Formats */}
             {DEBATE_FORMATS.map((format) => (
-              <div
+              <button
                 key={format.name}
-                className={`border-2 rounded-lg p-6 transition-colors cursor-pointer ${
-                  selectedFormat === format.name
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300'
-                }`}
                 onClick={() => handleFormatSelect(format)}
+                className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
               >
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-3xl text-blue-600">
-                    {format.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{format.name}</h3>
-                    <p className="text-sm text-gray-600">{format.description}</p>
+                <div className="text-4xl mb-4">{format.icon}</div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
+                  {format.name}
+                </h3>
+                <p className="text-slate-700 text-sm mb-4">{format.description}</p>
+                <div className="space-y-1 text-xs text-slate-600">
+                  <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
+                  <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
+                  <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <div className="font-medium text-slate-700">⏱️ Prep Time: {format.prepTime} min</div>
+                    <div className="text-slate-500">
+                      {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
+                    </div>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500 space-y-1">
-                  <div>• {format.peoplePerTeam} speakers per team</div>
-                  <div>• {format.speechesPerSpeaker} speeches per speaker</div>
-                  <div>• {format.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</div>
-                </div>
-              </div>
+              </button>
             ))}
+
+            {/* Custom Format Option */}
+            <button
+              onClick={() => handleFormatSelect(null)}
+              className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
+            >
+              <div className="text-4xl mb-4">⚙️</div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
+                Custom Format
+              </h3>
+              <p className="text-slate-700 text-sm mb-4">
+                Create your own practice format with custom settings
+              </p>
+              <div className="space-y-1 text-xs text-slate-600">
+                <div>🎛️ Customize team sizes</div>
+                <div>🎤 Set speech counts</div>
+                <div>⚡ Flexible configuration</div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -807,6 +846,79 @@ Respond in this exact JSON format:
               </div>
             </div>
 
+            {/* Prep Time Configuration - only show if custom format */}
+            {!selectedFormat && (
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">Prep Time Configuration</h3>
+                <p className="text-sm text-blue-700 mb-4">
+                  Configure prep time settings for your custom practice format
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time (minutes)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={selectedFormatData?.prepTime || 0}
+                      onChange={e => {
+                        const newPrepTime = Math.max(0, Math.min(60, Number(e.target.value)));
+                        if (selectedFormatData) {
+                          setSelectedFormatData({
+                            ...selectedFormatData,
+                            prepTime: newPrepTime,
+                            prepTimeType: newPrepTime > 0 ? 'flexible' : 'pre-round'
+                          });
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Set to 0 for no prep time</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time Type</label>
+                    <select
+                      value={selectedFormatData?.prepTime && selectedFormatData.prepTime > 0 ? 'flexible' : 'none'}
+                      onChange={e => {
+                        if (selectedFormatData) {
+                          if (e.target.value === 'none') {
+                            setSelectedFormatData({
+                              ...selectedFormatData,
+                              prepTime: 0,
+                              prepTimeType: 'pre-round'
+                            });
+                          } else if (selectedFormatData.prepTime === 0) {
+                            setSelectedFormatData({
+                              ...selectedFormatData,
+                              prepTime: 5,
+                              prepTimeType: e.target.value as 'flexible' | 'pre-round'
+                            });
+                          } else {
+                            setSelectedFormatData({
+                              ...selectedFormatData,
+                              prepTimeType: e.target.value as 'flexible' | 'pre-round'
+                            });
+                          }
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="none">No Prep Time</option>
+                      <option value="flexible">Flexible (use anytime)</option>
+                      <option value="pre-round">Pre-round (use before round)</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {selectedFormatData?.prepTime && selectedFormatData.prepTime > 0 ? 
+                        (selectedFormatData.prepTime === 1 ? '1 minute of prep time' : 
+                         `${selectedFormatData.prepTime} minutes of prep time`) : 
+                        'No prep time configured'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Debate Format Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -819,7 +931,7 @@ Respond in this exact JSON format:
                       ? 'border-blue-500 bg-blue-50' 
                       : 'border-gray-200 hover:border-blue-300'
                   }`}
-                  onClick={() => handleFormatSelect({ name: 'Lincoln Douglas', description: '1v1 value debate format with multiple speeches per speaker', peoplePerTeam: 1, speechesPerSpeaker: 3, firstSpeaker: 'affirmative' as const, icon: '⚖️' })}
+                  onClick={() => handleFormatSelect({ name: 'Lincoln Douglas', description: '1v1 value debate format with multiple speeches per speaker', peoplePerTeam: 1, speechesPerSpeaker: 3, firstSpeaker: 'affirmative' as const, icon: '⚖️', prepTime: 4, prepTimeType: 'flexible' as const })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -843,7 +955,7 @@ Respond in this exact JSON format:
                       ? 'border-green-500 bg-green-50' 
                       : 'border-gray-200 hover:border-green-300'
                   }`}
-                  onClick={() => handleFormatSelect({ name: 'Policy Debate', description: '2v2 format with constructives and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 4, firstSpeaker: 'affirmative' as const, icon: '📋' })}
+                  onClick={() => handleFormatSelect({ name: 'Policy Debate', description: '2v2 format with constructives and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 4, firstSpeaker: 'affirmative' as const, icon: '📋', prepTime: 8, prepTimeType: 'flexible' as const })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -867,7 +979,7 @@ Respond in this exact JSON format:
                       ? 'border-indigo-500 bg-indigo-50' 
                       : 'border-gray-200 hover:border-indigo-300'
                   }`}
-                  onClick={() => handleFormatSelect({ name: 'Public Forum', description: '2v2 format with constructive speeches and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 2, firstSpeaker: 'affirmative' as const, icon: '🏛️' })}
+                  onClick={() => handleFormatSelect({ name: 'Public Forum', description: '2v2 format with constructive speeches and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 2, firstSpeaker: 'affirmative' as const, icon: '🏛️', prepTime: 3, prepTimeType: 'flexible' as const })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -891,7 +1003,7 @@ Respond in this exact JSON format:
                       ? 'border-orange-500 bg-orange-50' 
                       : 'border-gray-200 hover:border-orange-300'
                   }`}
-                  onClick={() => handleFormatSelect({ name: 'Parliamentary', description: '2v2 Government vs Opposition format', peoplePerTeam: 2, speechesPerSpeaker: 1, firstSpeaker: 'affirmative' as const, icon: '🏛️' })}
+                  onClick={() => handleFormatSelect({ name: 'Parliamentary', description: '2v2 Government vs Opposition format', peoplePerTeam: 2, speechesPerSpeaker: 1, firstSpeaker: 'affirmative' as const, icon: '🏛️', prepTime: 20, prepTimeType: 'pre-round' as const })}
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -974,6 +1086,15 @@ Respond in this exact JSON format:
               </div>
             </div>
 
+            {/* Prep Time */}
+            {selectedFormatData && (
+              <PrepTime
+                totalPrepTime={selectedFormatData.prepTime}
+                prepTimeType={selectedFormatData.prepTimeType}
+                onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
+              />
+            )}
+
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
@@ -981,6 +1102,65 @@ Respond in this exact JSON format:
               Start Practice Session
             </button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 'prep') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
+          {/* Back Button */}
+          <button
+            onClick={() => setStep('setup')}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Setup</span>
+          </button>
+
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">Prep Time</h1>
+            <p className="text-blue-700">
+              {selectedFormatData && selectedFormatData.prepTime > 0 ? 
+                `You have ${selectedFormatData.prepTime} minutes of prep time before the round starts.` :
+                'No prep time configured for this format.'
+              }
+            </p>
+          </div>
+
+          {selectedFormatData && selectedFormatData.prepTime > 0 && (
+            <PrepTime
+              totalPrepTime={selectedFormatData.prepTime}
+              prepTimeType={selectedFormatData.prepTimeType}
+              onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
+              onPrepTimeComplete={() => {
+                setStep('generating');
+                const firstUserSpeech = userSpeechNums[0];
+                generateAISpeechesUpTo(0, firstUserSpeech).then(() => {
+                  setStep('practice');
+                });
+              }}
+            />
+          )}
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={async () => {
+                setStep('generating');
+                const firstUserSpeech = userSpeechNums[0];
+                await generateAISpeechesUpTo(0, firstUserSpeech);
+                setStep('practice');
+              }}
+              className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {selectedFormatData && selectedFormatData.prepTime > 0 ? 
+                'Skip Prep Time & Start Round' : 
+                'Start Round'
+              }
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1306,6 +1486,15 @@ Respond in this exact JSON format:
               session={createMockSession()}
               onHintUsed={handleHintUsed}
               hintsUsed={hintsUsed}
+            />
+          )}
+
+          {/* Prep Time Component */}
+          {selectedFormatData && selectedFormatData.prepTimeType === 'flexible' && selectedFormatData.prepTime > 0 && (
+            <PrepTime
+              totalPrepTime={selectedFormatData.prepTime}
+              prepTimeType={selectedFormatData.prepTimeType}
+              onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
             />
           )}
         </div>

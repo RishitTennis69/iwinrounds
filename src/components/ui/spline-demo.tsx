@@ -204,20 +204,6 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
             >
               Start Your First Debate
             </button>
-            <button
-              onClick={() => {
-                const contentSection = document.getElementById('main-content');
-                if (contentSection) {
-                  contentSection.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                }
-              }}
-              className="px-8 py-4 border-2 border-white/30 text-white text-lg font-semibold rounded-full hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
-            >
-              Learn More
-            </button>
           </div>
         </div>
       </div>
