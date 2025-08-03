@@ -44,6 +44,14 @@ const DEBATE_FORMATS: DebateFormat[] = [
     speechesPerSpeaker: 1,
     firstSpeaker: 'affirmative',
     icon: '🏛️'
+  },
+  {
+    name: 'Spar Debate',
+    description: '1v1 short format with quick constructive and rebuttal rounds',
+    peoplePerTeam: 1,
+    speechesPerSpeaker: 2,
+    firstSpeaker: 'affirmative',
+    icon: '⚡'
   }
 ];
 
