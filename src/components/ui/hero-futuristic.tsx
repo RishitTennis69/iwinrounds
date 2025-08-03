@@ -5,7 +5,7 @@ import { useAspect, useTexture } from '@react-three/drei';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { WebGPURenderer } from 'three/examples/jsm/renderers/webgpu/WebGPURenderer.js';
-import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
+import { bloom } from 'three/examples/jsm/nodes/display/BloomNode.js';
 
 import {
   abs,
@@ -23,8 +23,7 @@ import {
   pass,
   mix,
   add
-} from 'three/tsl';
-
+} from 'three/examples/jsm/nodes/Nodes.js';
 // Using debate-related stock images from Unsplash
 const TEXTUREMAP = { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop' };
 const DEPTHMAP = { src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=600&fit=crop' };
