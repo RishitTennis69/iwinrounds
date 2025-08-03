@@ -40,21 +40,18 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
                 Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.
               </p>
               
-              {/* Illustration */}
-              <div className="w-80 h-80 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible border border-blue-200 mb-8">
-                <img
-                  src="/image-removebg-preview.png"
-                  alt="Debate illustration"
-                  className="w-72 h-72 object-contain rounded-2xl"
-                />
-              </div>
-              
-              <button
-                onClick={() => setShowModal(true)}
-                className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 w-fit"
-              >
-                Get Started
-              </button>
+              <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">
+                ReasynAI
+              </h1>
+              <h2 className="text-2xl md:text-3xl font-semibold text-white/90 mb-4">
+                Your Personal AI Coach
+              </h2>
+              <p className="text-xl text-white/80 mb-4 font-medium">
+                Your personal AI coach that fits in your pocket—anytime, anywhere.
+              </p>
+              <p className="text-md text-white/70 mb-8">
+                Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.
+              </p>
             </div>
 
             {/* Right content - 3D Scene */}
@@ -87,15 +84,39 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
       </div>
       
       {/* Features Section */}
-      <div id="main-content" className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16 px-4">
-        <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div id="main-content" className="bg-gradient-to-br from-blue-900/20 to-indigo-900/30 py-16 px-4 backdrop-blur-sm">
+        <div className="w-full max-w-6xl mx-auto">
+          <h3 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+            Powerful Features
+          </h3>
+          <p className="text-white/70 text-center mb-12 text-lg max-w-2xl mx-auto">
+            Everything you need to become a better debater, powered by advanced AI technology
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {features.map((f, i) => (
-            <div key={i} className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4 border border-blue-200" style={{ borderTopColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
-              <div className="mb-4">{f.icon}</div>
-              <h3 className="text-lg font-bold mb-2 text-blue-900">{f.title}</h3>
-              <p className="text-blue-700 text-center">{f.desc}</p>
+            <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-500/20 border border-white/20">
+                  {f.icon}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold mb-3 text-white group-hover:text-blue-200 transition-colors">{f.title}</h3>
+                  <p className="text-white/70 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
             </div>
           ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xl font-semibold rounded-full shadow-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300/50 backdrop-blur-sm border border-white/20"
+            >
+              Get Started
+            </button>
+          </div>
         </div>
       </div>
     </div>
