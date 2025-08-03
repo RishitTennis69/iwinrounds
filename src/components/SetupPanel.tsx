@@ -3,6 +3,50 @@ import { Speaker } from '../types';
 import { ArrowLeft } from 'lucide-react';
 import RandomTopicSelector from './RandomTopicSelector';
 
+interface DebateFormat {
+  name: string;
+  description: string;
+  peoplePerTeam: number;
+  speechesPerSpeaker: number;
+  firstSpeaker: 'affirmative' | 'negative';
+  icon: string;
+}
+
+const DEBATE_FORMATS: DebateFormat[] = [
+  {
+    name: 'Public Forum',
+    description: '2v2 format with constructive speeches and rebuttals',
+    peoplePerTeam: 2,
+    speechesPerSpeaker: 1,
+    firstSpeaker: 'affirmative',
+    icon: '🏛️'
+  },
+  {
+    name: 'Lincoln Douglas',
+    description: '1v1 value debate format with multiple speeches per speaker',
+    peoplePerTeam: 1,
+    speechesPerSpeaker: 3,
+    firstSpeaker: 'affirmative',
+    icon: '⚖️'
+  },
+  {
+    name: 'Policy Debate',
+    description: '2v2 format with constructives and rebuttals',
+    peoplePerTeam: 2,
+    speechesPerSpeaker: 2,
+    firstSpeaker: 'affirmative',
+    icon: '📋'
+  },
+  {
+    name: 'Parliamentary',
+    description: '2v2 Government vs Opposition format',
+    peoplePerTeam: 2,
+    speechesPerSpeaker: 1,
+    firstSpeaker: 'affirmative',
+    icon: '🏛️'
+  }
+];
+
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[], peoplePerTeam: number, speechesPerSpeaker: number, firstSpeaker: 'affirmative' | 'negative') => void;
   onBack?: () => void;
@@ -11,11 +55,23 @@ interface SetupPanelProps {
 }
 
 const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRoundsUsed = 0, isAdmin = false }) => {
+  const [step, setStep] = useState<'format' | 'setup'>('format');
+  const [selectedFormat, setSelectedFormat] = useState<DebateFormat | null>(null);
   const [topic, setTopic] = useState('');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [speakerNames, setSpeakerNames] = useState<{ [key: string]: string }>({});
+
+  const handleFormatSelect = (format: DebateFormat | null) => {
+    setSelectedFormat(format);
+    if (format) {
+      setPeoplePerTeam(format.peoplePerTeam);
+      setSpeechesPerSpeaker(format.speechesPerSpeaker);
+      setFirstSpeaker(format.firstSpeaker);
+    }
+    setStep('setup');
+  };
 
   // Generate speaker keys
   const getSpeakerKey = (team: 'affirmative' | 'negative', idx: number) => `${team}${idx+1}`;
@@ -81,23 +137,101 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
     onInitialize(topic, speakers, peoplePerTeam, speechesPerSpeaker, firstSpeaker);
   };
 
+  // Format Selection Step
+  if (step === 'format') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative">
+          {/* Back Button */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Mode Selection</span>
+            </button>
+          )}
+          
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Choose Debate Format</h1>
+            <p className="text-gray-600">Select a standard format or customize your own settings</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Standard Formats */}
+            {DEBATE_FORMATS.map((format) => (
+              <button
+                key={format.name}
+                onClick={() => handleFormatSelect(format)}
+                className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
+              >
+                <div className="text-4xl mb-4">{format.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
+                  {format.name}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">{format.description}</p>
+                <div className="space-y-1 text-xs text-gray-500">
+                  <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
+                  <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
+                  <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
+                </div>
+              </button>
+            ))}
+
+            {/* Custom Format Option */}
+            <button
+              onClick={() => handleFormatSelect(null)}
+              className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 hover:border-purple-400 hover:shadow-lg transition-all duration-200 text-left group"
+            >
+              <div className="text-4xl mb-4">⚙️</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-purple-600">
+                Custom Format
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Configure your own debate format with custom settings
+              </p>
+              <div className="space-y-1 text-xs text-gray-500">
+                <div>👥 Choose team size</div>
+                <div>🎤 Set speeches per speaker</div>
+                <div>🥇 Pick speaking order</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Setup Step (existing setup form)
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
         {/* Back Button */}
-        {onBack && (
+        <div className="flex items-center justify-between mb-6">
           <button
-            onClick={onBack}
+            onClick={() => setStep('format')}
             className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Back to Mode Selection</span>
+            <span>Back to Format Selection</span>
           </button>
-        )}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="absolute top-6 right-6 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+            >
+              Exit Setup
+            </button>
+          )}
+        </div>
+        
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">ReasynAI</h1>
           <p className="text-gray-600">Your Personal AI Coach That Fits in Your Pocket</p>
-          <p className="text-blue-600 font-medium mt-2">Debate Mode Setup</p>
+          <p className="text-blue-600 font-medium mt-2">
+            {selectedFormat ? `${selectedFormat.name} Setup` : 'Custom Format Setup'}
+          </p>
           {/* Free Rounds Status */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             {isAdmin ? (
@@ -116,6 +250,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             )}
           </div>
         </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Topic */}
           <div>
@@ -147,7 +282,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               required
             />
           </div>
-          {/* Customization fields */}
+          
+          {/* Customization fields - only show if custom format */}
+          {!selectedFormat && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Number of People per Team</label>
@@ -186,6 +323,20 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
             </div>
           </div>
+          )}
+          
+          {/* Format Summary - show if preset format selected */}
+          {selectedFormat && (
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+                <span className="mr-2">{selectedFormat.icon}</span>
+                {selectedFormat.name} Format
+              </h3>
+              <p className="text-sm text-blue-700 mb-2">{selectedFormat.description}</p>
+              <p className="text-xs text-blue-600">👥 {selectedFormat.peoplePerTeam === 1 ? '1v1' : `${selectedFormat.peoplePerTeam}v${selectedFormat.peoplePerTeam}`} • 🎤 {selectedFormat.speechesPerSpeaker} speech{selectedFormat.speechesPerSpeaker > 1 ? 'es' : ''} per speaker • 🥇 {selectedFormat.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</p>
+            </div>
+          )}
+          
           {/* Speakers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
