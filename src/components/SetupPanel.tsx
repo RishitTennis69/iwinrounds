@@ -62,6 +62,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [speakerNames, setSpeakerNames] = useState<{ [key: string]: string }>({});
+  const [judgingStyle, setJudgingStyle] = useState<'lay' | 'flow' | 'default'>('default');
 
   const handleFormatSelect = (format: DebateFormat | null) => {
     setSelectedFormat(format);
@@ -325,6 +326,107 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
           </div>
           )}
           
+          {/* Judging Style Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judging Style
+            </label>
+            <p className="text-sm text-gray-600 mb-3">
+              Choose how the AI will evaluate speeches and determine the winner
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                judgingStyle === 'lay' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}>
+                <input
+                  type="radio"
+                  name="judgingStyle"
+                  value="lay"
+                  checked={judgingStyle === 'lay'}
+                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
+                  className="sr-only"
+                />
+                <div className="flex items-center mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
+                    judgingStyle === 'lay' 
+                      ? 'border-blue-600 bg-blue-600' 
+                      : 'border-gray-300'
+                  }`}>
+                    {judgingStyle === 'lay' && (
+                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Lay Judge</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Focuses on clarity, pace, and persuasiveness. Penalizes excessive speed and filler words more heavily.
+                </p>
+              </label>
+              
+              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                judgingStyle === 'flow' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}>
+                <input
+                  type="radio"
+                  name="judgingStyle"
+                  value="flow"
+                  checked={judgingStyle === 'flow'}
+                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
+                  className="sr-only"
+                />
+                <div className="flex items-center mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
+                    judgingStyle === 'flow' 
+                      ? 'border-blue-600 bg-blue-600' 
+                      : 'border-gray-300'
+                  }`}>
+                    {judgingStyle === 'flow' && (
+                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Flow Judge</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Technical judging focused on argument quality and clash. Speed and delivery matter less.
+                </p>
+              </label>
+              
+              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                judgingStyle === 'default' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}>
+                <input
+                  type="radio"
+                  name="judgingStyle"
+                  value="default"
+                  checked={judgingStyle === 'default'}
+                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
+                  className="sr-only"
+                />
+                <div className="flex items-center mb-2">
+                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
+                    judgingStyle === 'default' 
+                      ? 'border-blue-600 bg-blue-600' 
+                      : 'border-gray-300'
+                  }`}>
+                    {judgingStyle === 'default' && (
+                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Default Judge</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Balanced approach considering both argument quality and delivery style.
+                </p>
+              </label>
+            </div>
+          </div>
+          
           {/* Format Summary - show if preset format selected */}
           {selectedFormat && (
             <div className="bg-blue-50 rounded-lg p-4">
@@ -334,6 +436,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               </h3>
               <p className="text-sm text-blue-700 mb-2">{selectedFormat.description}</p>
               <p className="text-xs text-blue-600">👥 {selectedFormat.peoplePerTeam === 1 ? '1v1' : `${selectedFormat.peoplePerTeam}v${selectedFormat.peoplePerTeam}`} • 🎤 {selectedFormat.speechesPerSpeaker} speech{selectedFormat.speechesPerSpeaker > 1 ? 'es' : ''} per speaker • 🥇 {selectedFormat.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</p>
+              <p className="text-xs text-blue-600 mt-1">⚖️ {judgingStyle.charAt(0).toUpperCase() + judgingStyle.slice(1)} judging style</p>
             </div>
           )}
           

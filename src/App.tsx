@@ -73,7 +73,8 @@ function App() {
       points: [],
       startTime: new Date(),
       hintsUsed: 0, // Keep this for now, as it's part of DebateSession
-      firstSpeaker: firstSpeaker
+      firstSpeaker: firstSpeaker,
+      judgingStyle: 'default' // Default for now, will be updated when we add judging style to App.tsx
     };
     setSession(newSession);
     

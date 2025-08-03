@@ -140,7 +140,47 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
       `Speech ${point.speechNumber} (${point.team} - ${point.speakerName}): ${point.transcript}`
     ).join('\n\n');
 
+    // Get judging style instructions
+    const getJudgingInstructions = (style: string) => {
+      switch (style) {
+        case 'lay':
+          return `
+JUDGING STYLE: LAY JUDGE
+You are judging as a lay judge (average person, not experienced in debate). Focus on:
+- Clarity and persuasiveness over technical arguments
+- Penalize excessive speed, unclear speech, and filler words more heavily
+- Prefer simple, understandable arguments over complex technical ones
+- Value emotional appeal and relatability
+- Be skeptical of extreme or highly technical impacts (e.g., "this will destroy civilization")
+- Reward speakers who explain things clearly and speak at a reasonable pace`;
+        case 'flow':
+          return `
+JUDGING STYLE: FLOW JUDGE  
+You are judging as a flow judge (experienced debate judge). Focus on:
+- Technical argument quality and logical structure
+- Speed and delivery style matter much less
+- Accept complex and technical arguments, even extreme impacts if well-supported
+- Focus on clash between arguments and who wins each point
+- Reward strategic thinking and advanced debate techniques
+- Less concerned with filler words or speaking pace
+- Value evidence quality and logical reasoning above all`;
+        default:
+          return `
+JUDGING STYLE: DEFAULT JUDGE
+You are judging with a balanced approach. Focus on:
+- Both argument quality and delivery style matter
+- Moderate penalties for speed/filler words
+- Accept reasonable technical arguments but be skeptical of extreme claims
+- Balance logical reasoning with persuasiveness
+- Consider both content and presentation in your evaluation`;
+      }
+    };
+
+    const judgingInstructions = getJudgingInstructions(session.judgingStyle || 'default');
+
     const prompt = `You are an expert debate judge. Analyze the following debate and determine the winner.
+
+${judgingInstructions}
 
 Debate Topic: ${session.topic}
 
@@ -482,7 +522,7 @@ Respond in this exact JSON format:
 
     const combinedSpeeches = speeches.join('\n\n');
 
-    const prompt = `You are an expert debate coach. Provide structured feedback for a debater based on their speeches.
+    const prompt = `You are an expert debate coach providing feedback based on the judging style used in this debate. Provide structured feedback for a debater based on their speeches.
 
 Speaker: ${speakerName}
 Team: ${team}

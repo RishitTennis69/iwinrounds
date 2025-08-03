@@ -97,6 +97,7 @@ export interface DebateSession {
   summary?: string;
   hintsUsed: number; // Track hints used per round
   firstSpeaker: 'affirmative' | 'negative'; // Track which team speaks first
+  judgingStyle?: 'lay' | 'flow' | 'default'; // Track judging style preference
   feedback?: {
     strengths: string[];
     areasForImprovement: string[];
