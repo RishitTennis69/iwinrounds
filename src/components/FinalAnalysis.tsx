@@ -326,12 +326,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
               <div className="text-sm text-green-700">Speakers</div>
             </div>
             
-            <div className="bg-purple-50 rounded-lg p-4 text-center">
-              <Award className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-900">
+            <div className="bg-blue-50 rounded-lg p-4 text-center">
+              <Award className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-blue-900">
                 {session.points.length}
               </div>
-              <div className="text-sm text-purple-700">Speeches Analyzed</div>
+              <div className="text-sm text-blue-700">Speeches Analyzed</div>
             </div>
           </div>
         </div>

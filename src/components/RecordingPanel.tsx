@@ -152,7 +152,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
             <button
               onClick={startRecording}
               disabled={isAnalyzing}
-              className="flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Mic className="w-5 h-5" />
               <span>Start Recording</span>
@@ -161,14 +161,14 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
             <div className="flex space-x-2">
               <button
                 onClick={restartRecording}
-                className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 <RotateCcw className="w-5 h-5" />
                 <span>Restart</span>
               </button>
               <button
                 onClick={stopRecording}
-                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Square className="w-5 h-5" />
                 <span>End Recording</span>

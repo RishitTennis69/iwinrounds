@@ -27,6 +27,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
+  const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -84,6 +85,36 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
       setUserSpeakerNumber(1);
     }
   }, [peoplePerTeam, userSpeakerNumber]);
+
+  // Handler for selecting debate format
+  const handleFormatSelect = (format: string) => {
+    setSelectedFormat(format);
+    
+    switch (format) {
+      case 'lincoln-douglas':
+        setPeoplePerTeam(1);
+        setSpeechesPerSpeaker(3);
+        setFirstSpeaker('affirmative');
+        break;
+      case 'policy':
+        setPeoplePerTeam(2);
+        setSpeechesPerSpeaker(4);
+        setFirstSpeaker('affirmative');
+        break;
+      case 'public-forum':
+        setPeoplePerTeam(2);
+        setSpeechesPerSpeaker(2);
+        setFirstSpeaker('affirmative');
+        break;
+      case 'parliamentary':
+        setPeoplePerTeam(3);
+        setSpeechesPerSpeaker(2);
+        setFirstSpeaker('affirmative');
+        break;
+      default:
+        break;
+    }
+  };
 
   // Debate structure - now configurable
   const totalSpeeches = peoplePerTeam * 2 * speechesPerSpeaker;
@@ -696,6 +727,113 @@ Respond in this exact JSON format:
                 </select>
                 <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
               </div>
+            </div>
+
+            {/* Debate Format Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Choose Debate Format
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div 
+                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
+                    selectedFormat === 'lincoln-douglas' 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                  onClick={() => handleFormatSelect('lincoln-douglas')}
+                >
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold">1</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Lincoln-Douglas</h4>
+                      <p className="text-sm text-gray-600">1v1 format with structured speeches</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div>• 1 speaker per team</div>
+                    <div>• 2-3 speeches per speaker</div>
+                    <div>• Focus on philosophical arguments</div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
+                    selectedFormat === 'policy' 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-200 hover:border-green-300'
+                  }`}
+                  onClick={() => handleFormatSelect('policy')}
+                >
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 font-semibold">2</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Policy Debate</h4>
+                      <p className="text-sm text-gray-600">2v2 format with multiple speeches</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div>• 2 speakers per team</div>
+                    <div>• 2-4 speeches per speaker</div>
+                    <div>• Focus on policy implementation</div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
+                    selectedFormat === 'public-forum' 
+                      ? 'border-indigo-500 bg-indigo-50' 
+                      : 'border-gray-200 hover:border-indigo-300'
+                  }`}
+                  onClick={() => handleFormatSelect('public-forum')}
+                >
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-semibold">3</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Public Forum</h4>
+                      <p className="text-sm text-gray-600">2v2 format with accessible language</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div>• 2 speakers per team</div>
+                    <div>• 2 speeches per speaker</div>
+                    <div>• Focus on current events</div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
+                    selectedFormat === 'parliamentary' 
+                      ? 'border-orange-500 bg-orange-50' 
+                      : 'border-gray-200 hover:border-orange-300'
+                  }`}
+                  onClick={() => handleFormatSelect('parliamentary')}
+                >
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                      <span className="text-orange-600 font-semibold">4</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Parliamentary</h4>
+                      <p className="text-sm text-gray-600">3v3 format with impromptu topics</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div>• 3 speakers per team</div>
+                    <div>• 1-2 speeches per speaker</div>
+                    <div>• Focus on quick thinking</div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Select a format to automatically configure the debate structure. You can still customize the settings above.
+              </p>
             </div>
 
             {/* Your Speaker Position */}

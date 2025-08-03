@@ -191,19 +191,19 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             {/* Custom Format Option */}
             <button
               onClick={() => handleFormatSelect(null)}
-              className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 hover:border-purple-400 hover:shadow-lg transition-all duration-200 text-left group"
+              className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
             >
               <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-purple-600">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
                 Custom Format
               </h3>
               <p className="text-gray-600 text-sm mb-4">
-                Configure your own debate format with custom settings
+                Create your own debate format with custom settings
               </p>
               <div className="space-y-1 text-xs text-gray-500">
-                <div>👥 Choose team size</div>
-                <div>🎤 Set speeches per speaker</div>
-                <div>🥇 Pick speaking order</div>
+                <div>🎛️ Customize team sizes</div>
+                <div>🎤 Set speech counts</div>
+                <div>⚡ Flexible configuration</div>
               </div>
             </button>
           </div>
@@ -212,52 +212,24 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
     );
   }
 
-  // Setup Step (existing setup form)
+  // Setup Step
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative">
         {/* Back Button */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setStep('format')}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Format Selection</span>
-          </button>
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="absolute top-6 right-6 text-gray-600 hover:text-gray-800 transition-colors text-sm"
-            >
-              Exit Setup
-            </button>
-          )}
-        </div>
+        <button
+          onClick={() => setStep('format')}
+          className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back to Format Selection</span>
+        </button>
         
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">ReasynAI</h1>
-          <p className="text-gray-600">Your Personal AI Coach That Fits in Your Pocket</p>
-          <p className="text-blue-600 font-medium mt-2">
-            {selectedFormat ? `${selectedFormat.name} Setup` : 'Custom Format Setup'}
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Debate Setup</h1>
+          <p className="text-gray-600">
+            {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up custom debate format'}
           </p>
-          {/* Free Rounds Status */}
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            {isAdmin ? (
-              <div className="text-green-600 font-medium">
-                ✓ Admin Access - Unlimited Rounds
-              </div>
-            ) : (
-              <div className="text-gray-700">
-                <span className="font-medium">Free Rounds:</span> {freeRoundsUsed}/1 used
-                {freeRoundsUsed >= 1 && (
-                  <div className="text-red-600 text-sm mt-1">
-                    Admin password required for additional rounds
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">

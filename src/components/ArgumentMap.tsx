@@ -60,7 +60,7 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, className = '' }
     const baseColors = {
       claim: '#3B82F6', // blue
       evidence: '#10B981', // green
-      reasoning: '#8B5CF6', // purple
+      reasoning: '#6366F1', // indigo
       'counter-claim': '#EF4444', // red
       rebuttal: '#F59E0B' // amber
     };
@@ -176,7 +176,7 @@ const ArgumentMap: React.FC<ArgumentMapProps> = ({ argumentMap, className = '' }
             <span>Evidence</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
             <span>Reasoning</span>
           </div>
           <div className="flex items-center gap-2">

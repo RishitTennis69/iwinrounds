@@ -113,7 +113,7 @@ export const HeroFuturistic = () => {
     }
   };
   return (
-    <div className="h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
+    <div className="h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800">
       {/* Text content - completely separate from Canvas */}
       <div className="absolute inset-0 z-[9999] flex items-center justify-center pointer-events-none">
         <div className="text-center px-10">
@@ -164,13 +164,16 @@ export const HeroFuturistic = () => {
       </button>
 
       {/* Canvas temporarily removed to test text color */}
-      {/* <Canvas
-        className="absolute inset-0 z-0"
-        gl={createRenderer}
-      >
-        <PostProcessing fullScreenEffect={true} />
-        <Scene />
-      </Canvas> */}
+      <div className="absolute inset-0 z-0">
+        <Canvas
+          gl={createRenderer}
+          camera={{ position: [0, 0, 5], fov: 75 }}
+          style={{ zIndex: 0 }}
+        >
+          <PostProcessing fullScreenEffect={true} />
+          <Scene />
+        </Canvas>
+      </div>
     </div>
   );
 };

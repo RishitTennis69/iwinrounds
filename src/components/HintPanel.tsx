@@ -158,7 +158,7 @@ const HintPanel: React.FC<HintPanelProps> = ({
         <button
           onClick={handleCrossExaminationHint}
           disabled={remainingHints <= 0 || !selectedArgument || isLoading}
-          className="flex items-center justify-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Target className="w-4 h-4" />
           <span>Cross-Examination Questions</span>
@@ -167,7 +167,7 @@ const HintPanel: React.FC<HintPanelProps> = ({
         <button
           onClick={handleRebuttalHint}
           disabled={remainingHints <= 0 || !selectedArgument || isLoading}
-          className="flex items-center justify-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center justify-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <MessageSquare className="w-4 h-4" />
           <span>Rebuttal Hint</span>
@@ -213,7 +213,7 @@ const HintPanel: React.FC<HintPanelProps> = ({
               <div className="space-y-2">
                 {hintContent.map((question, index) => (
                   <div key={index} className="flex items-start space-x-2">
-                    <span className="text-purple-600 font-medium text-sm min-w-[20px]">
+                    <span className="text-blue-600 font-medium text-sm min-w-[20px]">
                       {index + 1}.
                     </span>
                     <p className="text-gray-700 text-sm">{question}</p>

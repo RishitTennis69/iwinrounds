@@ -363,21 +363,21 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-white mb-2">
                 ReasynAI - Your Personal AI Coach
               </h1>
-              <p className="text-gray-600">
+              <p className="text-blue-200">
                 Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
               </p>
             </div>
             <button
               onClick={handleBackToModeSelection}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
               Back to Mode Selection
             </button>
@@ -426,10 +426,10 @@ function App() {
       {/* Completion Popup */}
       {showCompletionPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center border-2 border-blue-200">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Round Complete!</h2>
-            <p className="text-gray-700 mb-6">
+            <h2 className="text-2xl font-bold mb-4 text-blue-900">Round Complete!</h2>
+            <p className="text-blue-700 mb-6">
               Your debate analysis is ready! Scroll down to see your final results and personalized feedback.
             </p>
             <button

@@ -191,9 +191,9 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
             </tr>
             {/* Counter-Counter Points Row */}
             <tr>
-              <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-purple-50 border-r border-gray-200">
+              <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-blue-50 border-r border-gray-200">
                 <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
                   Counter-Counter Points
                 </div>
               </td>
@@ -204,7 +204,7 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
                     {speech ? (
                       <div className="space-y-2">
                         {(speech.counterCounterPoints || []).map((point: string, index: number) => (
-                          <div key={index} className="text-sm bg-purple-50 rounded p-2">
+                          <div key={index} className="text-sm bg-blue-50 rounded p-2">
                             {point}
                           </div>
                         ))}
@@ -220,24 +220,22 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
             </tr>
             {/* Impact Weighing Row */}
             <tr>
-              <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-yellow-50 border-r border-gray-200">
+              <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-blue-50 border-r border-gray-200">
                 <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
                   Impact Weighing
                 </div>
               </td>
               {speechColumns.map((speechNum) => {
                 const speech = session.points.find(p => p.speechNumber === speechNum);
                 return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 align-top">
-                    {speech ? (
-                      <div className="text-sm bg-yellow-50 rounded p-2">
+                  <td key={speechNum} className="px-4 py-4 text-sm text-gray-700 border-r border-gray-200">
+                    {speech?.impactWeighing ? (
+                      <div className="text-sm bg-blue-50 rounded p-2">
                         {speech.impactWeighing}
                       </div>
                     ) : (
-                      <div className="text-gray-400 text-sm italic">
-                        Not recorded yet
-                      </div>
+                      <span className="text-gray-400">-</span>
                     )}
                   </td>
                 );

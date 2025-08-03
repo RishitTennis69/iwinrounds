@@ -32,7 +32,7 @@ const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect
       <button
         type="button"
         onClick={handleRandomTopicClick}
-        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
+        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
       >
         <Shuffle className="w-5 h-5" />
         <span>Get Random Topics</span>
@@ -52,10 +52,10 @@ const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect
                 <button
                   key={index}
                   onClick={() => handleTopicSelect(topic)}
-                  className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 group"
+                  className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group"
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-sm font-medium group-hover:bg-purple-200 transition-colors">
+                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium group-hover:bg-blue-200 transition-colors">
                       {index + 1}
                     </div>
                     <div className="flex-1">
