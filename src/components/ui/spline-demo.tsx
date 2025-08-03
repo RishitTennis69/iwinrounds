@@ -94,7 +94,6 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
               </div>
             </div>
           ))}
-          </div>
           
           <div className="text-center mt-12">
             <button
