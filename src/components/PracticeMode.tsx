@@ -38,7 +38,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
-  const intervalRef = useRef<number | null>(null);
   const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: NodeJS.Timeout}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
