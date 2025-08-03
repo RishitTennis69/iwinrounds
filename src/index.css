@@ -14,4 +14,21 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
-} 
+}
+
+/* Hero animations */
+@keyframes fade-in-delayed {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-delayed {
+  animation: fade-in-delayed 1s ease-out forwards;
+  animation-fill-mode: both;
+}

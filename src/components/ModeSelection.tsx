@@ -42,15 +42,15 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Hero Section */}
       <div className="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between mb-16 mt-12">
         {/* Left: Text */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-2 drop-shadow-lg">ReasynAI</h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-blue-400 mb-4">Your Personal AI Coach</h2>
-          <p className="text-xl text-gray-700 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
-          <p className="text-md text-gray-600 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 drop-shadow-lg">ReasynAI</h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-blue-300 mb-4">Your Personal AI Coach</h2>
+          <p className="text-xl text-gray-200 mb-4 font-medium">Your personal AI coach that fits in your pocket—anytime, anywhere.</p>
+          <p className="text-md text-gray-300 mb-8">Never miss out on judge feedback, practice any speech, and get personalized insights to improve your debating skills.</p>
           <button
             className="px-10 py-4 bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
             onClick={() => setShowModal(true)}
@@ -60,11 +60,11 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
         </div>
         {/* Right: Illustration/Icon */}
         <div className="flex-1 flex justify-center md:justify-end mt-12 md:mt-0">
-          <div className="w-80 h-80 bg-white rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible">
+          <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-xl relative overflow-visible border border-white/20">
             <img
               src="/image-removebg-preview.png"
               alt="Debate illustration"
-              className="w-72 h-72 object-contain rounded-2xl bg-white"
+              className="w-72 h-72 object-contain rounded-2xl"
             />
           </div>
         </div>
@@ -72,10 +72,10 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
       {/* Features Section */}
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
         {features.map((f, i) => (
-          <div key={i} className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4" style={{ borderColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
+          <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl shadow-md p-6 flex flex-col items-center border-t-4 border border-white/20" style={{ borderTopColor: ['#34d399', '#3b82f6', '#a78bfa', '#f59e0b'][i] }}>
             <div className="mb-4">{f.icon}</div>
-            <h3 className="text-lg font-bold mb-2 text-gray-800">{f.title}</h3>
-            <p className="text-gray-600 text-center">{f.desc}</p>
+            <h3 className="text-lg font-bold mb-2 text-white">{f.title}</h3>
+            <p className="text-gray-200 text-center">{f.desc}</p>
           </div>
         ))}
       </div>
