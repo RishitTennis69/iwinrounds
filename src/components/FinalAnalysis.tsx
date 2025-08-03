@@ -128,13 +128,13 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             {/* Strengths */}
                             {speaker.feedback.strengths && speaker.feedback.strengths.length > 0 && (
                               <div className="text-sm">
-                                <div className="font-semibold text-green-700 mb-1 flex items-center">
+                                <div className="font-semibold text-green-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                                   Strengths:
                                 </div>
-                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4">
+                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4 text-sm">
                                   {speaker.feedback.strengths.map((strength, index) => (
-                                    <li key={index} className="text-xs">{strength}</li>
+                                    <li key={index} className="text-sm">{strength}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -143,13 +143,13 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             {/* Areas for Improvement */}
                             {speaker.feedback.areasForImprovement && speaker.feedback.areasForImprovement.length > 0 && (
                               <div className="text-sm">
-                                <div className="font-semibold text-orange-700 mb-1 flex items-center">
+                                <div className="font-semibold text-orange-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                                   Areas for Improvement:
                                 </div>
-                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4">
+                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4 text-sm">
                                   {speaker.feedback.areasForImprovement.map((area, index) => (
-                                    <li key={index} className="text-xs">{area}</li>
+                                    <li key={index} className="text-sm">{area}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -157,12 +157,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Delivery Feedback */}
                             {typeof speaker.feedback === 'object' && speaker.feedback.delivery && (
-                              <div className="text-sm bg-indigo-50 rounded p-2">
-                                <div className="font-semibold text-indigo-700 mb-1 flex items-center">
+                              <div className="bg-indigo-50 rounded p-2">
+                                <div className="font-semibold text-indigo-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                                   Delivery Analysis:
                                 </div>
-                                <div className="space-y-2 text-indigo-600 text-xs">
+                                <div className="space-y-2 text-indigo-600 text-sm">
                                   <div>
                                     <span className="font-medium">Speaking Pace:</span> {speaker.feedback.delivery.wordsPerMinute} words/min
                                     <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.paceAssessment}</div>
@@ -182,9 +182,9 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Overall Assessment */}
                             {speaker.feedback.overallAssessment && (
-                              <div className="text-sm bg-gray-50 rounded p-2">
-                                <div className="font-semibold text-gray-700 mb-1">Overall Assessment:</div>
-                                <p className="text-gray-600 text-xs">{speaker.feedback.overallAssessment}</p>
+                              <div className="bg-gray-50 rounded p-2">
+                                <div className="font-semibold text-gray-700 mb-1 text-base">Overall Assessment:</div>
+                                <p className="text-gray-600 text-sm">{speaker.feedback.overallAssessment}</p>
                               </div>
                             )}
                           </>
@@ -229,13 +229,13 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             {/* Strengths */}
                             {speaker.feedback.strengths && speaker.feedback.strengths.length > 0 && (
                               <div className="text-sm">
-                                <div className="font-semibold text-green-700 mb-1 flex items-center">
+                                <div className="font-semibold text-green-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                                   Strengths:
                                 </div>
-                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4">
+                                <ul className="list-disc list-inside text-green-600 space-y-1 ml-4 text-sm">
                                   {speaker.feedback.strengths.map((strength, index) => (
-                                    <li key={index} className="text-xs">{strength}</li>
+                                    <li key={index} className="text-sm">{strength}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -244,13 +244,13 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             {/* Areas for Improvement */}
                             {speaker.feedback.areasForImprovement && speaker.feedback.areasForImprovement.length > 0 && (
                               <div className="text-sm">
-                                <div className="font-semibold text-orange-700 mb-1 flex items-center">
+                                <div className="font-semibold text-orange-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                                   Areas for Improvement:
                                 </div>
-                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4">
+                                <ul className="list-disc list-inside text-orange-600 space-y-1 ml-4 text-sm">
                                   {speaker.feedback.areasForImprovement.map((area, index) => (
-                                    <li key={index} className="text-xs">{area}</li>
+                                    <li key={index} className="text-sm">{area}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -258,12 +258,12 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Delivery Feedback */}
                             {typeof speaker.feedback === 'object' && speaker.feedback.delivery && (
-                              <div className="text-sm bg-indigo-50 rounded p-2">
-                                <div className="font-semibold text-indigo-700 mb-1 flex items-center">
+                              <div className="bg-indigo-50 rounded p-2">
+                                <div className="font-semibold text-indigo-700 mb-1 flex items-center text-base">
                                   <span className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                                   Delivery Analysis:
                                 </div>
-                                <div className="space-y-2 text-indigo-600 text-xs">
+                                <div className="space-y-2 text-indigo-600 text-sm">
                                   <div>
                                     <span className="font-medium">Speaking Pace:</span> {speaker.feedback.delivery.wordsPerMinute} words/min
                                     <div className="text-indigo-500 mt-1">{speaker.feedback.delivery.paceAssessment}</div>
@@ -283,9 +283,9 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                             
                             {/* Overall Assessment */}
                             {speaker.feedback.overallAssessment && (
-                              <div className="text-sm bg-gray-50 rounded p-2">
-                                <div className="font-semibold text-gray-700 mb-1">Overall Assessment:</div>
-                                <p className="text-gray-600 text-xs">{speaker.feedback.overallAssessment}</p>
+                              <div className="bg-gray-50 rounded p-2">
+                                <div className="font-semibold text-gray-700 mb-1 text-base">Overall Assessment:</div>
+                                <p className="text-gray-600 text-sm">{speaker.feedback.overallAssessment}</p>
                               </div>
                             )}
                           </>
