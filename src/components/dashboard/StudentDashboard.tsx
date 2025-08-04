@@ -1,0 +1,267 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { DebateSession } from '../../lib/supabase';
+import { Calendar, Clock, Users, Trophy, Plus, LogOut } from 'lucide-react';
+
+const StudentDashboard: React.FC = () => {
+  const { user, profile, signOut } = useAuth();
+  const [debateSessions, setDebateSessions] = useState<DebateSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModeSelection, setShowModeSelection] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchDebateSessions();
+    }
+  }, [user]);
+
+  const fetchDebateSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('debate_sessions')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching debate sessions:', error);
+      } else {
+        setDebateSessions(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchDebateSessions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatDuration = (startTime: string, endTime: string | null) => {
+    if (!endTime) return 'In Progress';
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const duration = end.getTime() - start.getTime();
+    const minutes = Math.floor(duration / (1000 * 60));
+    const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+    return `${minutes}m ${seconds}s`;
+  };
+
+  const getSessionStats = () => {
+    const totalSessions = debateSessions.length;
+    const completedSessions = debateSessions.filter(s => s.end_time).length;
+    const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
+    
+    return { totalSessions, completedSessions, totalHints };
+  };
+
+  const stats = getSessionStats();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {profile?.email}</p>
+          </div>
+          <button
+            onClick={signOut}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Debates</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalSessions}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Trophy className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.completedSessions}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Hints Used</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalHints}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* New Debate Button */}
+        <div className="mb-8">
+          <button
+            onClick={() => setShowModeSelection(true)}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Start New Debate</span>
+          </button>
+        </div>
+
+        {/* Debate History */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Debate History</h2>
+          </div>
+          
+          <div className="divide-y divide-gray-200">
+            {debateSessions.length === 0 ? (
+              <div className="px-6 py-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <Calendar className="w-12 h-12 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No debates yet</h3>
+                <p className="text-gray-600">Start your first debate to see your history here</p>
+              </div>
+            ) : (
+              debateSessions.map((session) => (
+                <div key={session.id} className="px-6 py-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                        {session.topic}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(session.created_at)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDuration(session.start_time, session.end_time)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-4 h-4" />
+                          <span>{session.speakers?.length || 0} speakers</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {session.winner && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          session.winner.team === 'affirmative' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {session.winner.team} won
+                        </span>
+                      )}
+                      {!session.end_time && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          In Progress
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {session.summary && (
+                    <p className="text-sm text-gray-600 mt-2">{session.summary}</p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mode Selection Modal */}
+      {showModeSelection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-gray-200">
+            <button
+              onClick={() => setShowModeSelection(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+            
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Mode</h2>
+              <p className="text-gray-600">Select how you'd like to practice and improve your debate skills</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <button
+                onClick={() => {
+                  setShowModeSelection(false);
+                  // Navigate to debate mode
+                  window.location.href = '/debate';
+                }}
+                className="bg-white border-2 border-blue-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
+              >
+                <div className="text-4xl mb-4">🏛️</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
+                  Debate Mode
+                </h3>
+                <p className="text-gray-700">Practice with AI opponents in structured debate formats</p>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowModeSelection(false);
+                  // Navigate to practice mode
+                  window.location.href = '/practice';
+                }}
+                className="bg-white border-2 border-indigo-200 rounded-xl p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-200 text-left group"
+              >
+                <div className="text-4xl mb-4">🎯</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-indigo-600">
+                  Practice Mode
+                </h3>
+                <p className="text-gray-700">Focus on specific skills and receive detailed feedback</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default StudentDashboard; 

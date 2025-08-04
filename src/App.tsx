@@ -1,42 +1,64 @@
-import { useState, useEffect, useRef } from 'react';
-import { DebateSession, Speaker, DebatePoint } from './types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Speaker, DebatePoint, DebateSession } from './types';
 import { WhisperService } from './utils/whisperService';
 import { AIService } from './utils/aiService';
-import SetupPanel from './components/SetupPanel';
+import { TTSService } from './utils/ttsService';
 import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
-import FinalAnalysis from './components/FinalAnalysis';
-import ModeSelection from './components/ModeSelection';
-import PracticeMode from './components/PracticeMode';
 import HintPanel from './components/HintPanel';
+import SetupPanel from './components/SetupPanel';
+import PracticeMode from './components/PracticeMode';
 import { HeroSection } from './components/ui/spline-demo';
+import ModeSelection from './components/ModeSelection';
+import FinalAnalysis from './components/FinalAnalysis';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginForm from './components/auth/LoginForm';
+import StudentDashboard from './components/dashboard/StudentDashboard';
+import CoachDashboard from './components/dashboard/CoachDashboard';
 
-function App() {
+// Main App Component with Authentication
+const AppWithAuth: React.FC = () => {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
+  // Route based on user type
+  if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
+    return <CoachDashboard />;
+  }
+
+  if (profile?.user_type === 'student' || profile?.user_type === 'individual') {
+    return <StudentDashboard />;
+  }
+
+  // Fallback for users without a profile
+  return <StudentDashboard />;
+};
+
+// Original App Component (for debate functionality)
+const App: React.FC = () => {
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<any>(null);
   const [session, setSession] = useState<DebateSession | null>(null);
-  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
+  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [whisperService] = useState(() => new WhisperService());
-  const [peoplePerTeam, setPeoplePerTeam] = useState(2);
-  const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const [whisperService] = useState(() => new WhisperService());
+  const [ttsService] = useState(() => new TTSService());
   const finalAnalysisRef = useRef<HTMLDivElement>(null);
-
-  // Load free rounds count from localStorage on component mount
-  useEffect(() => {
-    const savedRounds = localStorage.getItem('reasynai_free_rounds');
-    const savedAdmin = localStorage.getItem('reasynai_admin');
-    if (savedRounds) {
-      // setFreeRoundsUsed(parseInt(savedRounds)); // Removed
-    }
-    if (savedAdmin === 'true') {
-      // setIsAdmin(true); // Removed
-    }
-  }, []);
 
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     setMode(selectedMode);
@@ -48,8 +70,8 @@ function App() {
     setMode('landing');
     setShowModeModal(true);
     setSession(null);
-    setCurrentSpeaker(null);
     setSpeechNumber(1);
+    setCurrentSpeaker(null);
     setIsAnalyzing(false);
     setHintsUsed(0);
   };
@@ -58,8 +80,8 @@ function App() {
     setMode('landing');
     setShowModeModal(false);
     setSession(null);
-    setCurrentSpeaker(null);
     setSpeechNumber(1);
+    setCurrentSpeaker(null);
     setIsAnalyzing(false);
     setHintsUsed(0);
   };
@@ -69,57 +91,42 @@ function App() {
   };
 
   const handleHintUsed = () => {
-    setHintsUsed(prev => prev + 1);
-    // Update session hints used
-    if (session) {
-      setSession(prev => prev ? { ...prev, hintsUsed: prev.hintsUsed + 1 } : null);
-    }
+    setHintsUsed(h => h + 1);
   };
 
   const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number, firstSpeaker: 'affirmative' | 'negative') => {
-    // Check if user has free rounds or is admin // Removed
-    // if (freeRoundsUsed >= 1 && !isAdmin) { // Removed
-    //   setShowPasswordModal(true); // Removed
-    //   return; // Removed
-    // } // Removed
-    setPeoplePerTeam(people);
-    setSpeechesPerSpeaker(speeches);
-    setHintsUsed(0);
-    
+    const debateOrder = createDebateOrder(speakers, speeches, firstSpeaker);
     const newSession: DebateSession = {
-      id: Date.now().toString(),
+      id: `session-${Date.now()}`,
       topic,
-      speakers,
+      speakers: debateOrder,
       points: [],
       startTime: new Date(),
-      hintsUsed: 0, // Keep this for now, as it's part of DebateSession
+      hintsUsed: 0,
       firstSpeaker: firstSpeaker,
-      judgingStyle: 'default' // Default for now, will be updated when we add judging style to App.tsx
+      summary: 'Debate session started!'
     };
     setSession(newSession);
-    
-    // Create debate order that goes through speakers in sequence
-    const debateOrder = createDebateOrder(speakers, speeches, firstSpeaker);
+    setSpeechNumber(1);
     setCurrentSpeaker(debateOrder[0]);
+    setMode('debate');
   };
 
-  // Create debate order based on people per team and speeches per speaker
   const createDebateOrder = (speakers: Speaker[], speeches: number, firstSpeaker: 'affirmative' | 'negative'): Speaker[] => {
-    // Alternate between teams, each speaker in order, repeat for speeches per speaker
     const aff = speakers.filter(s => s.team === 'affirmative');
     const neg = speakers.filter(s => s.team === 'negative');
     const sequence: Speaker[] = [];
     
     // Create sequence based on first speaker
     if (firstSpeaker === 'affirmative') {
-      for (let i = 0; i < peoplePerTeam; i++) {
+      for (let i = 0; i < aff.length; i++) {
         sequence.push(aff[i]);
-        sequence.push(neg[i]);
+        if (neg[i]) sequence.push(neg[i]);
       }
     } else {
-      for (let i = 0; i < peoplePerTeam; i++) {
+      for (let i = 0; i < neg.length; i++) {
         sequence.push(neg[i]);
-        sequence.push(aff[i]);
+        if (aff[i]) sequence.push(aff[i]);
       }
     }
     
@@ -134,66 +141,52 @@ function App() {
   };
 
   const handleSpeechComplete = async (transcript: string) => {
-    console.log('handleSpeechComplete called with transcript:', transcript);
-    console.log('Current session:', session);
-    console.log('Current speaker:', currentSpeaker);
-    console.log('Current speech number:', speechNumber);
-    
-    if (!session || !currentSpeaker) {
-      console.log('Missing session or currentSpeaker');
-      return;
-    }
+    if (!session || !currentSpeaker) return;
 
     setIsAnalyzing(true);
-    
     try {
-      console.log('Starting AI analysis...');
-      // Analyze the speech with AI
-      const analysis = await AIService.summarizeSpeech(transcript);
-      console.log('AI analysis completed:', analysis);
-      
-      const newPoint: DebatePoint = {
-        id: Date.now().toString(),
+      const summary = await AIService.summarizeSpeech(transcript);
+      const debatePoint: DebatePoint = {
+        id: `point-${Date.now()}`,
         speakerId: currentSpeaker.id,
         speakerName: currentSpeaker.name,
         team: currentSpeaker.team,
         speechNumber,
-        mainPoints: analysis.mainPoints,
-        counterPoints: analysis.counterPoints,
-        counterCounterPoints: analysis.counterCounterPoints,
-        impactWeighing: analysis.impactWeighing,
-        evidence: analysis.evidence,
+        mainPoints: summary.mainPoints,
+        counterPoints: summary.counterPoints,
+        counterCounterPoints: summary.counterCounterPoints,
+        impactWeighing: summary.impactWeighing,
+        evidence: summary.evidence,
         timestamp: new Date(),
-        transcript,
+        transcript
       };
-
-      console.log('Created new point:', newPoint);
 
       const updatedSession = {
         ...session,
-        points: [...session.points, newPoint],
+        points: [...session.points, debatePoint],
+        hintsUsed
       };
-      
-      console.log('Updated session:', updatedSession);
+
       setSession(updatedSession);
-      
-      // Get the debate order and move to next speaker
-      const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker, session.firstSpeaker);
-      console.log('Debate order:', debateOrder);
-      console.log('Looking for speaker at index:', speechNumber);
-      const nextSpeaker = debateOrder[speechNumber]; // speechNumber is 1-indexed, but we want the next speaker
-      console.log('Next speaker:', nextSpeaker);
-      
-      setCurrentSpeaker(nextSpeaker);
-      setSpeechNumber(speechNumber + 1);
-      
-      // If we've completed all 8 speeches, analyze the winner
-      if (speechNumber >= peoplePerTeam * 2 * speechesPerSpeaker) {
-        await analyzeWinner(updatedSession);
+
+      // Move to next speaker
+      const nextSpeechNumber = speechNumber + 1;
+      const nextSpeaker = session.speakers[nextSpeechNumber - 1];
+
+      if (nextSpeaker) {
+        setSpeechNumber(nextSpeechNumber);
+        setCurrentSpeaker(nextSpeaker);
+      } else {
+        // Debate is complete
+        const finalSession = await analyzeWinner(updatedSession);
+        setSession(finalSession);
+        setShowCompletionPopup(true);
+        if (finalAnalysisRef.current) {
+          finalAnalysisRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
       }
-    } catch (error) {
-      console.error('Error analyzing speech:', error);
-      alert('Error analyzing speech. Please check your API key and try again.');
+    } catch (err) {
+      console.error('Error processing speech:', err);
     } finally {
       setIsAnalyzing(false);
     }
@@ -201,143 +194,54 @@ function App() {
 
   const analyzeWinner = async (updatedSession: DebateSession) => {
     try {
-      setIsAnalyzing(true);
-      
-      // Analyze the overall winner
-      const analysis = await AIService.analyzeWinner(updatedSession);
-      
-      // Generate personalized feedback for each speaker
-      const speakersWithPointsAndFeedback = await Promise.all(
-        updatedSession.speakers.map(async (speaker) => {
-          // Use the AI-generated points (already validated to ensure winning team has higher scores)
-          const points = analysis.speakerPoints[speaker.id] || 27;
-          
-          // Gather all speeches for this speaker
-          const speeches = updatedSession.points
-            .filter(p => p.speakerId === speaker.id)
-            .map(p => p.transcript);
-          
-          // Generate personalized feedback
-          let feedback: string | {
-            strengths: string[];
-            areasForImprovement: string[];
-            overallAssessment: string;
-          } = '';
-          
-          try {
-            console.log(`Generating feedback for ${speaker.name} with ${speeches.length} speeches`);
-            feedback = await AIService.generateSpeakerFeedback(
-              speaker.name,
-              speaker.team,
-              updatedSession.topic,
-              speeches
-            );
-            console.log(`Feedback generated for ${speaker.name}:`, feedback);
-          } catch (err) {
-            console.error('Error generating feedback for', speaker.name, err);
-            console.error('Error details:', {
-              speakerName: speaker.name,
-              team: speaker.team,
-              topic: updatedSession.topic,
-              speechCount: speeches.length,
-              speeches: speeches
-            });
-            feedback = {
-              strengths: ['Actively participated in the debate'],
-              areasForImprovement: [
-                'Practice speaking more clearly and confidently',
-                'Develop stronger argumentation skills'
-              ],
-              overallAssessment: 'Unable to generate personalized feedback at this time.'
-            };
-          }
-          
-          return {
-            ...speaker,
-            points,
-            feedback,
-          };
-        })
-      );
-      
-      const finalSession: DebateSession = {
+      const winnerAnalysis = await AIService.analyzeWinner(updatedSession);
+      return {
         ...updatedSession,
-        endTime: new Date(),
         winner: {
-          team: analysis.winner,
-          reasoning: analysis.keyArguments, // Using keyArguments as the main reasoning
-          keyArguments: analysis.keyArguments,
-          clash: analysis.clash,
+          team: winnerAnalysis.winner,
+          reasoning: winnerAnalysis.keyArguments,
+          keyArguments: winnerAnalysis.keyArguments,
+          clash: winnerAnalysis.clash,
         },
-        summary: analysis.summary,
-        speakers: speakersWithPointsAndFeedback,
+        endTime: new Date(),
+        summary: 'Debate completed! Check the final analysis below.'
       };
-      setSession(finalSession);
-      handleDebateComplete(); // Mark debate as completed
-      
-      // Show completion popup and auto-scroll
-      setShowCompletionPopup(true);
-      setTimeout(() => {
-        if (finalAnalysisRef.current) {
-          finalAnalysisRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 500);
     } catch (error) {
       console.error('Error analyzing winner:', error);
-    } finally {
-      setIsAnalyzing(false);
+      return {
+        ...updatedSession,
+        endTime: new Date(),
+        summary: 'Debate completed!'
+      };
     }
   };
 
   const handleDebateComplete = () => {
-    // Increment free rounds count when debate is completed // Removed
-    // if (!isAdmin) { // Removed
-    //   const newCount = freeRoundsUsed + 1; // Removed
-    //   setFreeRoundsUsed(newCount); // Removed
-    //   localStorage.setItem('reasynai_free_rounds', newCount.toString()); // Removed
-    // } // Removed
+    setShowCompletionPopup(false);
   };
 
-  // Reset hints when moving to next speech
-  useEffect(() => {
-    if (session && speechNumber > 1) {
-      setHintsUsed(0);
-      setSession(prev => prev ? { ...prev, hintsUsed: 0 } : null);
-    }
-  }, [speechNumber, session]);
-
-  // Show landing page by default
+  // Landing page with mode selection modal
   if (mode === 'landing') {
     const features = [
       {
-        icon: (
-          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" strokeWidth="2" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
-          </svg>
-        ),
-        title: 'Always-on Judge',
-        desc: 'Get instant, unbiased feedback after every speech—no more waiting for a judge.'
+        icon: '🤖',
+        title: 'AI Opponents',
+        desc: 'Practice with intelligent AI opponents that adapt to your skill level.'
       },
       {
-        icon: (
-          <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2.25a3.75 3.75 0 00-3.75 3.75v6a3.75 3.75 0 007.5 0v-6A3.75 3.75 0 0012 2.25z" />
-            <path d="M19.5 10.5a.75.75 0 01.75.75 7.5 7.5 0 01-7.5 7.5 7.5 7.5 0 01-7.5-7.5.75.75 0 01.75-.75.75.75 0 01.75.75 6 6 0 0012 0 .75.75 0 01.75-.75z" />
-            <path d="M12 21.75a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75z" />
-          </svg>
-        ),
+        icon: '📊',
+        title: 'Real-time Feedback',
+        desc: 'Get instant analysis and feedback on your arguments and delivery.'
+      },
+      {
+        icon: '🎯',
+        title: 'Multiple Formats',
+        desc: 'Practice in various debate formats including Public Forum, Lincoln-Douglas, and more.'
+      },
+      {
+        icon: '🎤',
         title: 'Practice Any Speech',
-        desc: 'Rebuttal, summary, or anything in between—practice any speech, any time.'
-      },
-      {
-        icon: (
-          <svg className="w-8 h-8 text-indigo-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path fillRule="evenodd" d="M2.25 12c0-4.556 4.694-8.25 9.75-8.25s9.75 3.694 9.75 8.25-4.694 8.25-9.75 8.25a10.7 10.7 0 01-3.1-.44c-.37-.11-.77-.04-1.06.19l-2.12 1.7a.75.75 0 01-1.2-.6v-2.13c0-.32-.13-.63-.36-.86A7.48 7.48 0 012.25 12zm7.5-2.25a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75z" clipRule="evenodd" />
-          </svg>
-        ),
-        title: 'Personalized Feedback',
-        desc: 'AI-powered insights tailored to your arguments and speaking style.'
+        desc: 'Practice any speech of the round: rebuttal, summary, or final focus!'
       }
     ];
 
@@ -359,19 +263,17 @@ function App() {
     );
   }
 
-  // Show practice mode
+  // Practice mode
   if (mode === 'practice') {
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}
         selectedFormat={selectedFormat}
-        // freeRoundsUsed={freeRoundsUsed} // Removed
-        // isAdmin={isAdmin} // Removed
       />
     );
   }
 
-  // Show setup panel if no session
+  // Setup panel
   if (!session) {
     return (
       <div>
@@ -379,13 +281,12 @@ function App() {
           onInitialize={initializeSession} 
           onBack={handleBackToModeSelection}
           selectedFormat={selectedFormat}
-          // freeRoundsUsed={freeRoundsUsed} // Removed
-          // isAdmin={isAdmin} // Removed
         />
       </div>
     );
   }
 
+  // Main debate interface
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -396,7 +297,7 @@ function App() {
                 ReasynAI - Your Personal AI Coach
               </h1>
               <p className="text-blue-600">
-                Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
+                Topic: {session.topic} | Speech {speechNumber}/{session.speakers.length}
               </p>
             </div>
             <div>
@@ -416,7 +317,7 @@ function App() {
             <RecordingPanel
               currentSpeaker={currentSpeaker}
               speechNumber={speechNumber}
-              totalSpeeches={peoplePerTeam * 2 * speechesPerSpeaker}
+              totalSpeeches={session.speakers.length}
               onSpeechComplete={handleSpeechComplete}
               speechRecognition={whisperService}
               isAnalyzing={isAnalyzing}
@@ -435,8 +336,8 @@ function App() {
           <div className="lg:col-span-3">
             <DebateFlowTable 
               session={session} 
-              peoplePerTeam={peoplePerTeam} 
-              speechesPerSpeaker={speechesPerSpeaker}
+              peoplePerTeam={session.speakers.filter(s => s.team === 'affirmative').length}
+              speechesPerSpeaker={session.speakers.length / (session.speakers.filter(s => s.team === 'affirmative').length * 2)}
             />
           </div>
         </div>
@@ -459,7 +360,7 @@ function App() {
               Your debate analysis is ready! Scroll down to see your final results and personalized feedback.
             </p>
             <button
-              onClick={() => setShowCompletionPopup(false)}
+              onClick={handleDebateComplete}
               className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
             >
               View Results
@@ -469,6 +370,15 @@ function App() {
       )}
     </div>
   );
-}
+};
 
-export default App; 
+// Root component with AuthProvider
+const AppRoot: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppWithAuth />
+    </AuthProvider>
+  );
+};
+
+export default AppRoot; 
