@@ -11,16 +11,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
-  const { signIn } = useAuth();
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+  const { signIn, checkUserExists } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+    setIsNewUser(null);
 
     try {
-      await signIn(email);
-      setMessage('Check your email for the login link!');
+      const result = await signIn(email);
+      setIsNewUser(result.isNewUser);
+      
+      if (result.isNewUser) {
+        setMessage('Welcome! Check your email for the signup link to create your account.');
+      } else {
+        setMessage('Welcome back! Check your email for the login link.');
+      }
+      
       setMessageType('success');
       if (onSuccess) {
         onSuccess();
@@ -34,12 +43,39 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const handleEmailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Clear previous state
+    setMessage('');
+    setIsNewUser(null);
+    
+    // Check if user exists when email is valid
+    if (newEmail && newEmail.includes('@')) {
+      try {
+        const exists = await checkUserExists(newEmail);
+        setIsNewUser(!exists);
+      } catch (error) {
+        // Silently handle error - don't show to user
+        console.error('Error checking user existence:', error);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-200">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ReasynAI</h1>
-          <p className="text-gray-600">Sign in with your email to continue</p>
+          <p className="text-gray-600">
+            {isNewUser === null 
+              ? 'Enter your email to continue'
+              : isNewUser 
+                ? 'Create your account'
+                : 'Sign in to your account'
+            }
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -55,13 +91,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
                 disabled={loading}
               />
             </div>
+            
+            {/* Show user status indicator */}
+            {isNewUser !== null && email && (
+              <div className="mt-2 text-sm">
+                {isNewUser ? (
+                  <span className="text-blue-600">🆕 New user - will create account</span>
+                ) : (
+                  <span className="text-green-600">✅ Existing user - will sign in</span>
+                )}
+              </div>
+            )}
           </div>
 
           {message && (
@@ -82,17 +129,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Sending login link...</span>
+                <span>Sending magic link...</span>
               </>
             ) : (
-              <span>Send Login Link</span>
+              <span>
+                {isNewUser === null 
+                  ? 'Continue with Email'
+                  : isNewUser 
+                    ? 'Create Account'
+                    : 'Sign In'
+                }
+              </span>
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            We'll send you a magic link to sign in securely
+            {isNewUser === null 
+              ? 'We\'ll send you a magic link to sign in securely'
+              : isNewUser 
+                ? 'We\'ll send you a magic link to create your account'
+                : 'We\'ll send you a magic link to sign in securely'
+            }
           </p>
         </div>
       </div>

@@ -8,9 +8,10 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string) => Promise<void>;
+  signIn: (email: string) => Promise<{ isNewUser: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  checkUserExists: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +35,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle auth callback from magic link
+    const handleAuthCallback = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+      }
+      
+      // Clear URL parameters after processing
+      if (window.location.hash.includes('access_token')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    // Check if this is an auth callback
+    if (window.location.hash.includes('access_token')) {
+      handleAuthCallback();
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -111,18 +133,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string) => {
+  const checkUserExists = async (email: string): Promise<boolean> => {
     try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (error) {
+        // User doesn't exist
+        return false;
+      }
+      
+      return !!data;
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      return false;
+    }
+  };
+
+  const signIn = async (email: string): Promise<{ isNewUser: boolean }> => {
+    try {
+      // Check if user already exists
+      const userExists = await checkUserExists(email);
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}`,
         },
       });
 
       if (error) {
         throw error;
       }
+
+      return { isNewUser: !userExists };
     } catch (error) {
       console.error('Error signing in:', error);
       throw error;
@@ -171,6 +218,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signOut,
     updateProfile,
+    checkUserExists,
   };
 
   return (
