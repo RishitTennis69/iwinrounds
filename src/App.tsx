@@ -46,7 +46,7 @@ function App() {
 
   const handleBackToModeSelection = () => {
     setMode('landing');
-    setShowModeModal(false);
+    setShowModeModal(true);
     setSession(null);
     setCurrentSpeaker(null);
     setSpeechNumber(1);
