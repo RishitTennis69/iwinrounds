@@ -409,7 +409,7 @@ const LandingPage: React.FC<{ setShowModal: (show: boolean) => void }> = ({ setS
     const features = [
       {
         icon: (
-          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+}> = ({ setShowModal, showModeModal, handleModeSelect, handleBackToLanding }) => {
             <circle cx="12" cy="12" r="10" strokeWidth="2" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
           </svg>
