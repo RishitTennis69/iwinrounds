@@ -3,6 +3,7 @@ import { Speaker, DebatePoint, DebateSession } from './types';
 import { WhisperService } from './utils/whisperService';
 import { AIService } from './utils/aiService';
 import { TTSService } from './utils/ttsService';
+import { DebateSessionService } from './utils/debateSessionService';
 import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
 import HintPanel from './components/HintPanel';
@@ -47,6 +48,7 @@ const AppWithAuth: React.FC = () => {
 
 // Original App Component (for debate functionality)
 const App: React.FC = () => {
+  const { user, profile } = useAuth();
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<any>(null);
@@ -195,7 +197,7 @@ const App: React.FC = () => {
   const analyzeWinner = async (updatedSession: DebateSession) => {
     try {
       const winnerAnalysis = await AIService.analyzeWinner(updatedSession);
-      return {
+      const finalSession = {
         ...updatedSession,
         winner: {
           team: winnerAnalysis.winner,
@@ -206,13 +208,44 @@ const App: React.FC = () => {
         endTime: new Date(),
         summary: 'Debate completed! Check the final analysis below.'
       };
+
+      // Save session to database if user is authenticated
+      if (user) {
+        try {
+          await DebateSessionService.saveSession(
+            finalSession, 
+            user.id, 
+            profile?.organization_id || undefined
+          );
+        } catch (error) {
+          console.error('Error saving session to database:', error);
+          // Continue even if saving fails
+        }
+      }
+
+      return finalSession;
     } catch (error) {
       console.error('Error analyzing winner:', error);
-      return {
+      const fallbackSession = {
         ...updatedSession,
         endTime: new Date(),
         summary: 'Debate completed!'
       };
+
+      // Try to save even if analysis failed
+      if (user) {
+        try {
+          await DebateSessionService.saveSession(
+            fallbackSession, 
+            user.id, 
+            profile?.organization_id || undefined
+          );
+        } catch (error) {
+          console.error('Error saving session to database:', error);
+        }
+      }
+
+      return fallbackSession;
     }
   };
 

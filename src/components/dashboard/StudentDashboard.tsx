@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
+import { DebateSessionService } from '../../utils/debateSessionService';
 import { DebateSession } from '../../lib/supabase';
 import { Calendar, Clock, Users, Trophy, Plus, LogOut } from 'lucide-react';
 
@@ -18,17 +18,8 @@ const StudentDashboard: React.FC = () => {
 
   const fetchDebateSessions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('debate_sessions')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching debate sessions:', error);
-      } else {
-        setDebateSessions(data || []);
-      }
+      const data = await DebateSessionService.getUserSessions(user!.id);
+      setDebateSessions(data || []);
     } catch (error) {
       console.error('Error in fetchDebateSessions:', error);
     } finally {
