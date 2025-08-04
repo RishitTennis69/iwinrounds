@@ -12,7 +12,36 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
-  const { signIn, checkUserExists } = useAuth();
+  const { signIn, checkUserExists, supabaseConfigured } = useAuth();
+
+  // If Supabase is not configured, show a message
+  if (!supabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-200">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ReasynAI</h1>
+            <p className="text-gray-600">Authentication is not configured</p>
+          </div>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-700">
+            <p className="text-sm">
+              To enable authentication features, please configure your Supabase environment variables in the <code>.env</code> file.
+            </p>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Continue to App
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

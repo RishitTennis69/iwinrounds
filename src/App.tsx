@@ -19,7 +19,7 @@ import CoachDashboard from './components/dashboard/CoachDashboard';
 
 // Main App Component with Authentication
 const AppWithAuth: React.FC = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, supabaseConfigured } = useAuth();
 
   if (loading) {
     return (
@@ -27,6 +27,11 @@ const AppWithAuth: React.FC = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
+  }
+
+  // If Supabase is not configured, show the original debate app
+  if (!supabaseConfigured) {
+    return <App />;
   }
 
   if (!user) {
