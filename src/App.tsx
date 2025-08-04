@@ -374,7 +374,7 @@ function App() {
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<LandingPage setShowModal={handleShowModal} />} />
+        <Route path="/" element={<LandingPage setShowModal={handleShowModal} showModeModal={showModeModal} handleModeSelect={handleModeSelect} handleBackToLanding={handleBackToLanding} />} />
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/invite/:code" element={<InviteHandler />} />
@@ -442,7 +442,7 @@ const LandingPage: React.FC<{ setShowModal: (show: boolean) => void }> = ({ setS
   return (
       <>
         <HeroSection 
-          setShowModal={handleShowModal}
+          setShowModal={setShowModal}
           features={features}
         />
         {showModeModal && (
