@@ -67,6 +67,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
       setSpeechesPerSpeaker(initialFormat.speechesPerSpeaker);
       setFirstSpeaker(initialFormat.firstSpeaker);
       setStep('setup');
+    } else if (initialFormat === null) {
+      // Custom format selected
+      setSelectedFormat(null);
+      setSelectedFormatData(null);
+      setStep('setup');
     }
   }, [initialFormat]);
 
