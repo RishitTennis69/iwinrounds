@@ -208,6 +208,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                      selectedFormat?.name === 'Policy Debate' ? 'policy' :
                      selectedFormat?.name === 'Parliamentary' ? 'parliamentary' :
                      selectedFormat?.name === 'Spar Debate' ? 'spar' : undefined}
+              showRandomTopics={!selectedFormat || selectedFormat.name === 'Spar Debate' || selectedFormat.name === 'Parliamentary'}
             />
             
             {/* Divider */}

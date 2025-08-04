@@ -774,6 +774,7 @@ Respond in this exact JSON format:
                        selectedFormatData?.name === 'Policy Debate' ? 'policy' :
                        selectedFormatData?.name === 'Parliamentary' ? 'parliamentary' :
                        selectedFormatData?.name === 'Spar Debate' ? 'spar' : undefined}
+                showRandomTopics={!selectedFormatData || selectedFormatData.name === 'Spar Debate' || selectedFormatData.name === 'Parliamentary'}
               />
               
               {/* Divider */}

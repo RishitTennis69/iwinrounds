@@ -5,9 +5,10 @@ import { Shuffle } from 'lucide-react';
 interface RandomTopicSelectorProps {
   onTopicSelect: (topic: string) => void;
   format?: string; // Optional format parameter for format-specific topics
+  showRandomTopics?: boolean; // New prop to control whether to show random topics button
 }
 
-const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect, format }) => {
+const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect, format, showRandomTopics = true }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
 
@@ -29,15 +30,17 @@ const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect
 
   return (
     <div className="space-y-4">
-      {/* Random Topic Button */}
-      <button
-        type="button"
-        onClick={handleRandomTopicClick}
-        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
-      >
-        <Shuffle className="w-5 h-5" />
-        <span>Get Random Topics</span>
-      </button>
+      {/* Random Topic Button - only show if showRandomTopics is true */}
+      {showRandomTopics && (
+        <button
+          type="button"
+          onClick={handleRandomTopicClick}
+          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+        >
+          <Shuffle className="w-5 h-5" />
+          <span>Get Random Topics</span>
+        </button>
+      )}
 
       {/* Topic Options Modal */}
       {showOptions && (
