@@ -112,7 +112,7 @@ const HintPanel: React.FC<HintPanelProps> = ({
   const opponentArguments = getOpponentArguments();
 
   return (
-    <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
+    <div className="bg-white backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-blue-900 flex items-center">
           <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />

@@ -117,16 +117,16 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
   if (!currentSpeaker) {
     return (
-      <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
-        <p className="text-blue-700 text-center">No speaker selected</p>
+      <div className="bg-white backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">
+        <p className="text-gray-700 text-center">No speaker selected</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md p-6 border border-blue-200/30">
+    <div className="bg-white backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Speech {speechNumber}/{totalSpeeches}
         </h3>
         <div className="flex items-center justify-center space-x-2 mb-2">
@@ -137,10 +137,10 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
           }`}>
             {currentSpeaker.team}
           </span>
-          <span className="text-blue-600">•</span>
-          <span className="font-medium text-blue-900">{currentSpeaker.name}</span>
+          <span className="text-gray-600">•</span>
+          <span className="font-medium text-gray-900">{currentSpeaker.name}</span>
         </div>
-        <p className="text-sm text-blue-700">
+        <p className="text-sm text-gray-700">
           {speechNumber % 2 === 1 ? 'First' : 'Second'} {currentSpeaker.team} speaker
         </p>
       </div>
@@ -212,29 +212,28 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
         )}
 
         {/* Transcript Display */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-blue-900">Transcript:</h4>
-          <div className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded-lg p-4 min-h-[100px] max-h-[200px] overflow-y-auto border border-blue-200/30">
-            {transcript ? (
-              <p className="text-blue-800 whitespace-pre-wrap">{transcript}</p>
-            ) : (
-              <p className="text-blue-600 italic">
-                {isRecording ? 'Listening...' : 'No transcript yet'}
-              </p>
-            )}
-          </div>
+        <div className="bg-white backdrop-blur-sm rounded-lg p-4 min-h-[100px] max-h-[200px] overflow-y-auto border border-gray-200">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">Transcript:</h4>
+          <p className="text-sm text-gray-700 leading-relaxed">{transcript}</p>
         </div>
 
         {/* Complete Button */}
-        {transcript.trim() && !isRecording && !isProcessing && (
-          <div className="flex justify-center">
+        {transcript && !isAnalyzing && (
+          <div className="text-center">
             <button
               onClick={handleComplete}
-              className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
             >
-              <CheckCircle className="w-5 h-5" />
-              <span>Complete Speech</span>
+              Complete Speech
             </button>
+          </div>
+        )}
+
+        {/* Analysis Status */}
+        {isAnalyzing && (
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Analyzing speech...</p>
           </div>
         )}
       </div>

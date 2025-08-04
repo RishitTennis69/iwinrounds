@@ -48,199 +48,85 @@ const DebateFlowTable: React.FC<DebateFlowTableProps> = ({ session, peoplePerTea
   const speechColumns = Array.from({ length: peoplePerTeam * 2 * speechesPerSpeaker }, (_, i) => i + 1);
 
   return (
-    <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-lg shadow-md overflow-hidden border border-blue-200/30">
-      <div className="px-6 py-4 border-b border-blue-200/30">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-blue-900">
-              Debate Flow Analysis
-            </h3>
-            <p className="text-sm text-blue-700">
-              AI-generated analysis of each speech - follow the debate flow horizontally
-            </p>
-          </div>
-        </div>
+    <div className="bg-white backdrop-blur-sm rounded-lg shadow-md overflow-hidden border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Debate Flow</h3>
+        <p className="text-sm text-gray-600">Track arguments and responses throughout the debate</p>
       </div>
+      
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-blue-200/30">
-          <thead className="bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm">
+        <table className="w-full">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-blue-600 uppercase tracking-wider border-r border-blue-200/30">
-                Analysis Type
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Speaker
               </th>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                const expectedSpeaker = debateOrder[speechNum - 1];
-                const speaker = speech || expectedSpeaker;
-                return (
-                  <th key={speechNum} className="px-4 py-3 text-center text-xs font-medium text-blue-600 uppercase tracking-wider border-r border-blue-200/30 min-w-[200px]">
-                    <div className="space-y-1">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        speaker?.team === 'affirmative' 
-                          ? 'bg-green-100 text-green-800' 
-                          : speaker?.team === 'negative'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gradient-to-br from-blue-100/80 to-indigo-100/80 text-blue-800'
-                      }`}>
-                        Speech {speechNum}
-                      </div>
-                      <div className="text-xs font-medium text-blue-900">
-                        {speaker?.name || 'Unknown Speaker'}
-                      </div>
-                      <div className="text-xs text-blue-700">
-                        {speaker?.team || 'Unknown Team'}
-                      </div>
-                      {speech && (
-                        <div className="text-xs text-blue-500">
-                          {formatTime(speech.timestamp)}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                );
-              })}
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Main Points
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Counter Points
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Counter-Counter Points
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Impact Weighing
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-gradient-to-br from-blue-50/60 to-indigo-100/60 backdrop-blur-sm divide-y divide-blue-200/30">
-            {/* Main Points Row */}
-            <tr>
-              <td className="px-4 py-4 text-sm font-medium text-blue-900 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border-r border-blue-200/30">
-                <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Main Points
-                </div>
-              </td>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-blue-900 border-r border-blue-200/30 align-top">
-                    {speech ? (
-                      <div className="space-y-2">
-                        {(speech.mainPoints || []).map((point: string, index: number) => (
-                          <div key={index} className="text-sm bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded p-2 border border-blue-200/30">
-                            {point}
-                          </div>
-                        ))}
+          <tbody className="bg-white divide-y divide-gray-200">
+            {session.points.map((point, index) => (
+              <tr key={point.id} className="hover:bg-gray-50">
+                <td className="px-4 py-4 text-sm font-medium text-gray-900 bg-gray-50 border-r border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      point.team === 'affirmative' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {point.team}
+                    </span>
+                    <span className="font-medium">{point.speakerName}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Speech {point.speechNumber}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-900">
+                  <div className="space-y-2">
+                    {point.mainPoints.map((mainPoint, idx) => (
+                      <div key={idx} className="text-sm bg-gray-50 rounded p-2 border border-gray-200">
+                        {mainPoint}
                       </div>
-                    ) : (
-                      <div className="text-blue-500 text-sm italic">
-                        Not recorded yet
+                    ))}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-900">
+                  <div className="space-y-2">
+                    {point.counterPoints.map((counterPoint, idx) => (
+                      <div key={idx} className="text-sm bg-gray-50 rounded p-2 border border-gray-200">
+                        {counterPoint}
                       </div>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-            {/* Evidence Row */}
-            <tr>
-              <td className="px-4 py-4 text-sm font-medium text-blue-900 bg-gradient-to-br from-green-50/80 to-blue-100/80 backdrop-blur-sm border-r border-blue-200/30">
-                <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                  Evidence
-                </div>
-              </td>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-blue-900 border-r border-blue-200/30 align-top">
-                    {speech ? (
-                      <div className="space-y-2">
-                        {(speech.evidence || []).map((evidence: string, index: number) => (
-                          <div key={index} className="text-sm bg-gradient-to-br from-green-50/80 to-blue-100/80 backdrop-blur-sm rounded p-2 border border-green-200/30">
-                            {evidence}
-                          </div>
-                        ))}
+                    ))}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-900">
+                  <div className="space-y-2">
+                    {point.counterCounterPoints.map((counterCounterPoint, idx) => (
+                      <div key={idx} className="text-sm bg-gray-50 rounded p-2 border border-gray-200">
+                        {counterCounterPoint}
                       </div>
-                    ) : (
-                      <div className="text-blue-500 text-sm italic">
-                        Not recorded yet
-                      </div>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-            {/* Counter Points Row */}
-            <tr>
-              <td className="px-4 py-4 text-sm font-medium text-blue-900 bg-gradient-to-br from-orange-50/80 to-red-100/80 backdrop-blur-sm border-r border-blue-200/30">
-                <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
-                  Counter Points
-                </div>
-              </td>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-blue-900 border-r border-blue-200/30 align-top">
-                    {speech ? (
-                      <div className="space-y-2">
-                        {(speech.counterPoints || []).map((point: string, index: number) => (
-                          <div key={index} className="text-sm bg-gradient-to-br from-orange-50/80 to-red-100/80 backdrop-blur-sm rounded p-2 border border-orange-200/30">
-                            {point}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-blue-500 text-sm italic">
-                        Not recorded yet
-                      </div>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-            {/* Counter-Counter Points Row */}
-            <tr>
-              <td className="px-4 py-4 text-sm font-medium text-blue-900 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border-r border-blue-200/30">
-                <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Counter-Counter Points
-                </div>
-              </td>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-blue-900 border-r border-blue-200/30 align-top">
-                    {speech ? (
-                      <div className="space-y-2">
-                        {(speech.counterCounterPoints || []).map((point: string, index: number) => (
-                          <div key={index} className="text-sm bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded p-2 border border-blue-200/30">
-                            {point}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-blue-500 text-sm italic">
-                        Not recorded yet
-                      </div>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-            {/* Impact Weighing Row */}
-            <tr>
-              <td className="px-4 py-4 text-sm font-medium text-blue-900 bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm border-r border-blue-200/30">
-                <div className="flex items-center">
-                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Impact Weighing
-                </div>
-              </td>
-              {speechColumns.map((speechNum) => {
-                const speech = session.points.find(p => p.speechNumber === speechNum);
-                return (
-                  <td key={speechNum} className="px-4 py-4 text-sm text-blue-700 border-r border-blue-200/30">
-                    {speech?.impactWeighing ? (
-                      <div className="text-sm bg-gradient-to-br from-blue-50/80 to-indigo-100/80 backdrop-blur-sm rounded p-2 border border-blue-200/30">
-                        {speech.impactWeighing}
-                      </div>
-                    ) : (
-                      <span className="text-blue-500">-</span>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-900">
+                  <div className="text-sm bg-gray-50 rounded p-2 border border-gray-200">
+                    {point.impactWeighing}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
