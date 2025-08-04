@@ -405,11 +405,11 @@ function App() {
 }
 
 // Landing Page Component
-const LandingPage: React.FC<{ setShowModal: (show: boolean) => void }> = ({ setShowModal }) => {
+const LandingPage: React.FC<{ setShowModal: (show: boolean) => void; showModeModal: boolean; handleModeSelect: (selectedMode: 'debate' | 'practice', format?: any) => void; handleBackToLanding: () => void }> = ({ setShowModal, showModeModal, handleModeSelect, handleBackToLanding }) => {
     const features = [
       {
         icon: (
-}> = ({ setShowModal, showModeModal, handleModeSelect, handleBackToLanding }) => {
+          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="10" strokeWidth="2" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
           </svg>
@@ -538,6 +538,183 @@ const DebateApp: React.FC = () => {
     setSpeechNumber(1);
     setIsAnalyzing(false);
     setHintsUsed(0);
+  };
+
+  const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number, firstSpeaker: 'affirmative' | 'negative') => {
+    setPeoplePerTeam(people);
+    setSpeechesPerSpeaker(speeches);
+    setHintsUsed(0);
+    
+    const newSession: DebateSession = {
+      id: Date.now().toString(),
+      topic,
+      speakers,
+      points: [],
+      startTime: new Date(),
+      hintsUsed: 0,
+      firstSpeaker: firstSpeaker,
+      judgingStyle: 'default'
+    };
+    setSession(newSession);
+    
+    const debateOrder = createDebateOrder(speakers, speeches, firstSpeaker);
+    setCurrentSpeaker(debateOrder[0]);
+  };
+
+  const createDebateOrder = (speakers: Speaker[], speeches: number, firstSpeaker: 'affirmative' | 'negative'): Speaker[] => {
+    const aff = speakers.filter(s => s.team === 'affirmative');
+    const neg = speakers.filter(s => s.team === 'negative');
+    const sequence: Speaker[] = [];
+    
+    if (firstSpeaker === 'affirmative') {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(aff[i]);
+        sequence.push(neg[i]);
+      }
+    } else {
+      for (let i = 0; i < peoplePerTeam; i++) {
+        sequence.push(neg[i]);
+        sequence.push(aff[i]);
+      }
+    }
+    
+    const debateOrder: Speaker[] = [];
+    for (let i = 0; i < speeches; i++) {
+      for (let j = 0; j < sequence.length; j++) {
+        debateOrder.push(sequence[j]);
+      }
+    }
+    return debateOrder;
+  };
+
+  const handleSpeechComplete = async (transcript: string) => {
+    if (!session || !currentSpeaker) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+    
+    try {
+      const analysis = await AIService.summarizeSpeech(transcript);
+      
+      const newPoint: DebatePoint = {
+        id: Date.now().toString(),
+        speakerId: currentSpeaker.id,
+        speakerName: currentSpeaker.name,
+        team: currentSpeaker.team,
+        speechNumber,
+        mainPoints: analysis.mainPoints,
+        counterPoints: analysis.counterPoints,
+        counterCounterPoints: analysis.counterCounterPoints,
+        impactWeighing: analysis.impactWeighing,
+        evidence: analysis.evidence,
+        timestamp: new Date(),
+        transcript,
+      };
+
+      const updatedSession = {
+        ...session,
+        points: [...session.points, newPoint],
+      };
+      
+      setSession(updatedSession);
+      
+      const debateOrder = createDebateOrder(session.speakers, speechesPerSpeaker, session.firstSpeaker);
+      const nextSpeaker = debateOrder[speechNumber];
+      
+      setCurrentSpeaker(nextSpeaker);
+      setSpeechNumber(speechNumber + 1);
+      
+      if (speechNumber >= peoplePerTeam * 2 * speechesPerSpeaker) {
+        await analyzeWinner(updatedSession);
+      }
+    } catch (error) {
+      console.error('Error analyzing speech:', error);
+      alert('Error analyzing speech. Please check your API key and try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const analyzeWinner = async (updatedSession: DebateSession) => {
+    try {
+      setIsAnalyzing(true);
+      
+      const analysis = await AIService.analyzeWinner(updatedSession);
+      
+      const speakersWithPointsAndFeedback = await Promise.all(
+        updatedSession.speakers.map(async (speaker) => {
+          const points = analysis.speakerPoints[speaker.id] || 27;
+          
+          const speeches = updatedSession.points
+            .filter(p => p.speakerId === speaker.id)
+            .map(p => p.transcript);
+          
+          let feedback: string | {
+            strengths: string[];
+            areasForImprovement: string[];
+            overallAssessment: string;
+          } = '';
+          
+          try {
+            feedback = await AIService.generateSpeakerFeedback(
+              speaker.name,
+              speaker.team,
+              updatedSession.topic,
+              speeches
+            );
+          } catch (err) {
+            console.error('Error generating feedback for', speaker.name, err);
+            feedback = {
+              strengths: ['Actively participated in the debate'],
+              areasForImprovement: [
+                'Practice speaking more clearly and confidently',
+                'Develop stronger argumentation skills'
+              ],
+              overallAssessment: 'Unable to generate personalized feedback at this time.'
+            };
+          }
+          
+          return {
+            ...speaker,
+            points,
+            feedback,
+          };
+        })
+      );
+      
+      const finalSession: DebateSession = {
+        ...updatedSession,
+        endTime: new Date(),
+        winner: {
+          team: analysis.winner,
+          reasoning: analysis.keyArguments,
+          keyArguments: analysis.keyArguments,
+          clash: analysis.clash,
+        },
+        summary: analysis.summary,
+        speakers: speakersWithPointsAndFeedback,
+      };
+      setSession(finalSession);
+      
+      setShowCompletionPopup(true);
+      setTimeout(() => {
+        if (finalAnalysisRef.current) {
+          finalAnalysisRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error analyzing winner:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleHintUsed = () => {
+    setHintsUsed(prev => prev + 1);
+    if (session) {
+      setSession(prev => prev ? { ...prev, hintsUsed: prev.hintsUsed + 1 } : null);
+    }
   };
 
   // ... (rest of the existing debate logic)
