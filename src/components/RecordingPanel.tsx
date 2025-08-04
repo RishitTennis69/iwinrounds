@@ -28,7 +28,7 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
   const [processingStatus, setProcessingStatus] = useState('');
 
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
     if (isRecording) {
       interval = setInterval(() => {
         setDuration(prev => prev + 1);
