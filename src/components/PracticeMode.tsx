@@ -42,7 +42,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
-  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: number}>({});
+  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: number | undefined}>({});
   const [speechTimers, setSpeechTimers] = useState<{[key: number]: number}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
@@ -430,7 +430,7 @@ Respond in this exact JSON format:
     const interval = setInterval(() => {
       setSpeechTimers((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
     }, 1000);
-    setSpeechIntervals((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: interval }));
+    setSpeechIntervals((prev: {[key: number]: number | undefined}) => ({ ...prev, [speechNum]: interval as unknown as number }));
   };
 
   // Stop AI speech
@@ -451,7 +451,7 @@ Respond in this exact JSON format:
     const interval = speechIntervals[speechNum];
     if (interval) {
       clearInterval(interval);
-      setSpeechIntervals((prev: {[key: number]: number}) => {
+      setSpeechIntervals((prev: {[key: number]: number | undefined}) => {
         const newIntervals = { ...prev };
         delete newIntervals[speechNum];
         return newIntervals;
