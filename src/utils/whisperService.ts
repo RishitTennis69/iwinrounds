@@ -11,7 +11,7 @@ export class WhisperService {
   private stream: MediaStream | null = null;
   private currentTranscript: string = '';
   private chunkProcessingInterval: number | null = null;
-  private readonly minChunkDurationMs: number = 10000; // Process chunks every 10 seconds
+  private readonly minChunkDurationMs: number = 5000; // Process chunks every 5 seconds for more responsive transcription
   private isProcessingChunk: boolean = false;
 
   constructor() {
@@ -93,6 +93,7 @@ export class WhisperService {
       // Set up interval to process chunks periodically
       this.chunkProcessingInterval = window.setInterval(() => {
         if (this.isRecording && !this.isProcessingChunk && this.audioChunks.length > 0) {
+          console.log(`Processing audio chunk: ${this.audioChunks.length} chunks accumulated`);
           this.sendAccumulatedChunksToWhisper();
         }
       }, this.minChunkDurationMs);
@@ -145,6 +146,7 @@ export class WhisperService {
     }
 
     this.isProcessingChunk = true;
+    console.log(`Starting to process ${this.audioChunks.length} audio chunks`);
 
     try {
       // Notify user that processing has started
@@ -154,13 +156,12 @@ export class WhisperService {
 
       // Create audio blob from current chunks
       const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-      
-      // Clear the chunks array immediately to prevent memory buildup
-      this.audioChunks = [];
+      console.log(`Created audio blob of size: ${audioBlob.size} bytes`);
       
       // Check if audio chunk is too short (less than 1 second of data)
       if (audioBlob.size < 2000) {
         console.log('Audio chunk too short, skipping processing');
+        this.isProcessingChunk = false;
         return;
       }
 
@@ -232,6 +233,9 @@ export class WhisperService {
       console.error('Error in chunk processing:', error);
       // Don't propagate errors from individual chunks to avoid stopping the recording
     } finally {
+      // Clear the chunks array after processing to prevent memory buildup
+      console.log(`Clearing ${this.audioChunks.length} processed chunks`);
+      this.audioChunks = [];
       this.isProcessingChunk = false;
     }
   }

@@ -13,18 +13,20 @@ import { ArrowLeft } from 'lucide-react';
 
 interface PracticeModeProps {
   onBack: () => void;
+  selectedFormat?: any;
   freeRoundsUsed?: number;
   isAdmin?: boolean;
 }
 
-const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
+const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: initialFormat }) => {
   const [step, setStep] = useState<'format' | 'setup' | 'prep' | 'generating' | 'practice' | 'complete'>('format');
-  const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [selectedFormat, setSelectedFormat] = useState<any>(initialFormat || null);
   const [topic, setTopic] = useState('');
   const [userName, setUserName] = useState(() => {
     // Load username from sessionStorage on component mount
     return sessionStorage.getItem('reasynai_user_name') || '';
   });
+  const [userTeam, setUserTeam] = useState<'affirmative' | 'negative'>('affirmative');
   const [firstSpeaker, setFirstSpeaker] = useState<'affirmative' | 'negative'>('affirmative');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
@@ -53,7 +55,20 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   const [ttsService] = useState(() => new TTSService());
   const [isLoading, setIsLoading] = useState(false);
   const [prepTimeUsed, setPrepTimeUsed] = useState(0);
-  const [selectedFormatData, setSelectedFormatData] = useState<typeof DEBATE_FORMATS[0] | null>(null);
+  const [selectedFormatData, setSelectedFormatData] = useState<any>(null);
+  const [prepTime, setPrepTime] = useState(0);
+
+  // Initialize format from props
+  useEffect(() => {
+    if (initialFormat) {
+      setSelectedFormat(initialFormat);
+      setSelectedFormatData(initialFormat);
+      setPeoplePerTeam(initialFormat.peoplePerTeam);
+      setSpeechesPerSpeaker(initialFormat.speechesPerSpeaker);
+      setFirstSpeaker(initialFormat.firstSpeaker);
+      setStep('setup');
+    }
+  }, [initialFormat]);
 
   // Debate formats for practice mode
   const DEBATE_FORMATS = [
@@ -111,7 +126,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   const handleFormatSelect = (format: typeof DEBATE_FORMATS[0] | null) => {
     if (format) {
-      setSelectedFormat(format.name);
+      setSelectedFormat(format);
       setPeoplePerTeam(format.peoplePerTeam);
       setSpeechesPerSpeaker(format.speechesPerSpeaker);
       setFirstSpeaker(format.firstSpeaker);
@@ -141,14 +156,8 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
 
   // Calculate user's team based on speaker number and first speaker
   const getUserTeam = (): 'affirmative' | 'negative' => {
-    if (firstSpeaker === 'affirmative') {
-      return userSpeakerNumber % 2 === 1 ? 'affirmative' : 'negative';
-    } else {
-      return userSpeakerNumber % 2 === 1 ? 'negative' : 'affirmative';
-    }
+    return userTeam;
   };
-
-  const userTeam = getUserTeam();
 
   // Reset userSpeakerNumber when peoplePerTeam changes
   useEffect(() => {
@@ -205,19 +214,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack }) => {
   
   // Find which speeches are the user's
   const calculateUserSpeechPosition = () => {
-    // Convert userSpeakerNumber (1-4) to team and position within team
-    let targetTeam: 'affirmative' | 'negative';
-    let positionInTeam: number;
-    
-    if (firstSpeaker === 'affirmative') {
-      // Order: Aff1, Neg1, Aff2, Neg2, etc.
-      targetTeam = userSpeakerNumber % 2 === 1 ? 'affirmative' : 'negative';
-      positionInTeam = Math.ceil(userSpeakerNumber / 2);
-    } else {
-      // Order: Neg1, Aff1, Neg2, Aff2, etc.
-      targetTeam = userSpeakerNumber % 2 === 1 ? 'negative' : 'affirmative';
-      positionInTeam = Math.ceil(userSpeakerNumber / 2);
-    }
+    // Use the selected team and speaker number
+    let targetTeam: 'affirmative' | 'negative' = userTeam;
+    let positionInTeam: number = userSpeakerNumber;
     
     return { targetTeam, positionInTeam };
   };
@@ -746,11 +745,11 @@ Respond in this exact JSON format:
         <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">
           {/* Back Button */}
           <button
-            onClick={() => setStep('format')}
+            onClick={onBack}
             className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Back to Format Selection</span>
+            <span>Back to Mode Selection</span>
           </button>
           
           <div className="text-center mb-8">
@@ -770,6 +769,11 @@ Respond in this exact JSON format:
               {/* Random Topic Selector */}
               <RandomTopicSelector 
                 onTopicSelect={setTopic}
+                format={selectedFormatData?.name === 'Public Forum' ? 'publicForum' : 
+                       selectedFormatData?.name === 'Lincoln Douglas' ? 'lincolnDouglas' :
+                       selectedFormatData?.name === 'Policy Debate' ? 'policy' :
+                       selectedFormatData?.name === 'Parliamentary' ? 'parliamentary' :
+                       selectedFormatData?.name === 'Spar Debate' ? 'spar' : undefined}
               />
               
               {/* Divider */}
@@ -785,14 +789,118 @@ Respond in this exact JSON format:
               <textarea
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
                 rows={3}
                 placeholder="Enter the debate topic or resolution..."
                 required
               />
             </div>
+            
+            {/* First Speaker Selection - only show for Parliamentary and Public Forum formats */}
+            {selectedFormatData && (selectedFormatData.name === 'Public Forum' || selectedFormatData.name === 'Parliamentary') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Which Side Speaks First</label>
+                <select
+                  value={firstSpeaker}
+                  onChange={e => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="affirmative">Affirmative</option>
+                  <option value="negative">Negative</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
+              </div>
+            )}
+            
+            {/* Format Summary - show if preset format selected */}
+            {selectedFormatData && (
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-indigo-800 mb-2 flex items-center">
+                  <span className="mr-2">{selectedFormatData.icon}</span>
+                  {selectedFormatData.name} Format
+                </h3>
+                <p className="text-sm text-indigo-700 mb-2">{selectedFormatData.description}</p>
+                <p className="text-xs text-indigo-600">👥 {selectedFormatData.peoplePerTeam === 1 ? '1v1' : `${selectedFormatData.peoplePerTeam}v${selectedFormatData.peoplePerTeam}`} • 🎤 {selectedFormatData.speechesPerSpeaker} speech{selectedFormatData.speechesPerSpeaker > 1 ? 'es' : ''} per speaker • 🥇 {selectedFormatData.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</p>
+                <p className="text-xs text-indigo-600 mt-1">⚖️ Default judging style</p>
+              </div>
+            )}
 
-            {/* Your Information */}
+            {/* Custom Format Configuration - show if no preset format selected */}
+            {!selectedFormatData && (
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-indigo-800 mb-2 flex items-center">
+                  <span className="mr-2">⚙️</span>
+                  Custom Format Configuration
+                </h3>
+                <p className="text-sm text-indigo-700 mb-4">Configure your own practice format settings</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* People per Team */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      People per Team
+                    </label>
+                    <select
+                      value={peoplePerTeam}
+                      onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value={1}>1 (1v1)</option>
+                      <option value={2}>2 (2v2)</option>
+                      <option value={3}>3 (3v3)</option>
+                      <option value={4}>4 (4v4)</option>
+                    </select>
+                  </div>
+
+                  {/* Speeches per Speaker */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Speeches per Speaker
+                    </label>
+                    <select
+                      value={speechesPerSpeaker}
+                      onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value={1}>1 speech</option>
+                      <option value={2}>2 speeches</option>
+                      <option value={3}>3 speeches</option>
+                      <option value={4}>4 speeches</option>
+                    </select>
+                  </div>
+
+                  {/* Prep Time */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Prep Time (minutes)
+                    </label>
+                    <select
+                      value={prepTime}
+                      onChange={(e) => setPrepTime(parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value={0}>No prep time</option>
+                      <option value={2}>2 minutes</option>
+                      <option value={3}>3 minutes</option>
+                      <option value={4}>4 minutes</option>
+                      <option value={5}>5 minutes</option>
+                      <option value={8}>8 minutes</option>
+                      <option value={10}>10 minutes</option>
+                      <option value={15}>15 minutes</option>
+                      <option value={20}>20 minutes</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-indigo-100 rounded-lg">
+                  <p className="text-sm text-indigo-800">
+                    <strong>Format Summary:</strong> {peoplePerTeam}v{peoplePerTeam} • {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''} per speaker • {prepTime > 0 ? `${prepTime} min prep time` : 'No prep time'}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* User Information */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Name
@@ -801,306 +909,116 @@ Respond in this exact JSON format:
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="Enter your name..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
 
-            {/* Customization fields */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">People per Team</label>
-                <select
-                  value={peoplePerTeam}
-                  onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value={1}>1 (1v1)</option>
-                  <option value={2}>2 (2v2)</option>
-                  <option value={3}>3 (3v3)</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Total: {peoplePerTeam * 2} speakers</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Speeches per Speaker</label>
-                <select
-                  value={speechesPerSpeaker}
-                  onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Which Side Speaks First</label>
-                <select
-                  value={firstSpeaker}
-                  onChange={(e) => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  <option value="affirmative">Affirmative</option>
-                  <option value="negative">Negative</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
+            {/* Side Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Which Side Are You On?
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  getUserTeam() === 'affirmative' 
+                    ? 'border-indigo-500 bg-indigo-50' 
+                    : 'border-gray-200 hover:border-indigo-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="team"
+                    value="affirmative"
+                    checked={getUserTeam() === 'affirmative'}
+                    onChange={() => setUserTeam('affirmative')}
+                    className="sr-only"
+                  />
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">✅</div>
+                    <div className="font-medium text-indigo-900">Affirmative</div>
+                    <div className="text-xs text-indigo-600">Supporting the resolution</div>
+                  </div>
+                </label>
+                
+                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  getUserTeam() === 'negative' 
+                    ? 'border-indigo-500 bg-indigo-50' 
+                    : 'border-gray-200 hover:border-indigo-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="team"
+                    value="negative"
+                    checked={getUserTeam() === 'negative'}
+                    onChange={() => setUserTeam('negative')}
+                    className="sr-only"
+                  />
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">❌</div>
+                    <div className="font-medium text-indigo-900">Negative</div>
+                    <div className="text-xs text-indigo-600">Opposing the resolution</div>
+                  </div>
+                </label>
               </div>
             </div>
 
-            {/* Prep Time Configuration - only show if custom format */}
-            {!selectedFormat && (
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">Prep Time Configuration</h3>
-                <p className="text-sm text-blue-700 mb-4">
-                  Configure prep time settings for your custom practice format
+            {/* Speaker Number Selection - only for 2v2 formats */}
+            {(selectedFormatData && selectedFormatData.peoplePerTeam === 2) || (!selectedFormatData && peoplePerTeam === 2) ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Speaker Number on Your Team
+                </label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Select which speaker position you want to practice as on your team.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time (minutes)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={60}
-                      value={selectedFormatData?.prepTime || 0}
-                      onChange={e => {
-                        const newPrepTime = Math.max(0, Math.min(60, Number(e.target.value)));
-                        if (selectedFormatData) {
-                          setSelectedFormatData({
-                            ...selectedFormatData,
-                            prepTime: newPrepTime,
-                            prepTimeType: newPrepTime > 0 ? 'flexible' : 'pre-round'
-                          });
-                        }
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Set to 0 for no prep time</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time Type</label>
-                    <select
-                      value={selectedFormatData?.prepTime && selectedFormatData.prepTime > 0 ? 'flexible' : 'none'}
-                      onChange={e => {
-                        if (selectedFormatData) {
-                          if (e.target.value === 'none') {
-                            setSelectedFormatData({
-                              ...selectedFormatData,
-                              prepTime: 0,
-                              prepTimeType: 'pre-round'
-                            });
-                          } else if (selectedFormatData.prepTime === 0) {
-                            setSelectedFormatData({
-                              ...selectedFormatData,
-                              prepTime: 5,
-                              prepTimeType: e.target.value as 'flexible' | 'pre-round'
-                            });
-                          } else {
-                            setSelectedFormatData({
-                              ...selectedFormatData,
-                              prepTimeType: e.target.value as 'flexible' | 'pre-round'
-                            });
-                          }
-                        }
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="none">No Prep Time</option>
-                      <option value="flexible">Flexible (use anytime)</option>
-                      <option value="pre-round">Pre-round (use before round)</option>
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {selectedFormatData?.prepTime && selectedFormatData.prepTime > 0 ? 
-                        (selectedFormatData.prepTime === 1 ? '1 minute of prep time' : 
-                         `${selectedFormatData.prepTime} minutes of prep time`) : 
-                        'No prep time configured'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Debate Format Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Choose Debate Format
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div 
-                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
-                    selectedFormat === 'lincoln-douglas' 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                  onClick={() => handleFormatSelect({ name: 'Lincoln Douglas', description: '1v1 value debate format with multiple speeches per speaker', peoplePerTeam: 1, speechesPerSpeaker: 3, firstSpeaker: 'affirmative' as const, icon: '⚖️', prepTime: 4, prepTimeType: 'flexible' as const })}
-                >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold">1</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Lincoln-Douglas</h4>
-                      <p className="text-sm text-gray-600">1v1 format with structured speeches</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• 1 speaker per team</div>
-                    <div>• 2-3 speeches per speaker</div>
-                    <div>• Focus on philosophical arguments</div>
-                  </div>
-                </div>
-                
-                <div 
-                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
-                    selectedFormat === 'policy' 
-                      ? 'border-green-500 bg-green-50' 
-                      : 'border-gray-200 hover:border-green-300'
-                  }`}
-                  onClick={() => handleFormatSelect({ name: 'Policy Debate', description: '2v2 format with constructives and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 4, firstSpeaker: 'affirmative' as const, icon: '📋', prepTime: 8, prepTimeType: 'flexible' as const })}
-                >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Policy Debate</h4>
-                      <p className="text-sm text-gray-600">2v2 format with multiple speeches</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• 2 speakers per team</div>
-                    <div>• 2-4 speeches per speaker</div>
-                    <div>• Focus on policy implementation</div>
-                  </div>
-                </div>
-                
-                <div 
-                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
-                    selectedFormat === 'public-forum' 
+                <div className="grid grid-cols-2 gap-3">
+                  <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                    userSpeakerNumber === 1 
                       ? 'border-indigo-500 bg-indigo-50' 
                       : 'border-gray-200 hover:border-indigo-300'
-                  }`}
-                  onClick={() => handleFormatSelect({ name: 'Public Forum', description: '2v2 format with constructive speeches and rebuttals', peoplePerTeam: 2, speechesPerSpeaker: 2, firstSpeaker: 'affirmative' as const, icon: '🏛️', prepTime: 3, prepTimeType: 'flexible' as const })}
-                >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <span className="text-indigo-600 font-semibold">3</span>
+                  }`}>
+                    <input
+                      type="radio"
+                      name="speakerNumber"
+                      value={1}
+                      checked={userSpeakerNumber === 1}
+                      onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                      className="sr-only"
+                    />
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">🥇</div>
+                      <div className="font-medium text-indigo-900">1st Speaker</div>
+                      <div className="text-xs text-indigo-600">Constructive speech</div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Public Forum</h4>
-                      <p className="text-sm text-gray-600">2v2 format with accessible language</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• 2 speakers per team</div>
-                    <div>• 2 speeches per speaker</div>
-                    <div>• Focus on current events</div>
-                  </div>
-                </div>
-                
-                <div 
-                  className={`border-2 rounded-lg p-4 transition-colors cursor-pointer ${
-                    selectedFormat === 'parliamentary' 
-                      ? 'border-orange-500 bg-orange-50' 
-                      : 'border-gray-200 hover:border-orange-300'
-                  }`}
-                  onClick={() => handleFormatSelect({ name: 'Parliamentary', description: '2v2 Government vs Opposition format', peoplePerTeam: 2, speechesPerSpeaker: 1, firstSpeaker: 'affirmative' as const, icon: '🏛️', prepTime: 20, prepTimeType: 'pre-round' as const })}
-                >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-orange-600 font-semibold">4</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Parliamentary</h4>
-                      <p className="text-sm text-gray-600">2v2 format with impromptu topics</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• 2 speakers per team</div>
-                    <div>• 1 speech per speaker</div>
-                    <div>• Focus on quick thinking</div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Select a format to automatically configure the debate structure. You can still customize the settings above.
-              </p>
-            </div>
-
-            {/* Your Speaker Position */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Speaker Number (out of {peoplePerTeam * 2} total speakers)
-              </label>
-              <p className="text-sm text-gray-600 mb-3">
-                Select which speaker position you want to practice as. Speaker numbers are assigned in speaking order.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {Array.from({ length: peoplePerTeam * 2 }, (_, i) => {
-                  // Determine team based on speaking order
-                  let team: 'affirmative' | 'negative';
-                  if (firstSpeaker === 'affirmative') {
-                    team = i % 2 === 0 ? 'affirmative' : 'negative';
-                  } else {
-                    team = i % 2 === 0 ? 'negative' : 'affirmative';
-                  }
-                  const speakerNumber = i + 1;
-                  const isSelected = userSpeakerNumber === speakerNumber;
+                  </label>
                   
-                  return (
-                    <label 
-                      key={speakerNumber} 
-                      className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-blue-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="speaker"
-                        value={speakerNumber}
-                        checked={isSelected}
-                        onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
-                        className="sr-only"
-                      />
-                      <div className={`w-8 h-8 rounded-full border-2 mb-2 flex items-center justify-center text-sm font-medium ${
-                        isSelected 
-                          ? 'border-blue-600 bg-blue-600 text-white' 
-                          : 'border-gray-300 text-gray-500'
-                      }`}>
-                        {speakerNumber}
-                      </div>
-                      <div className="text-center">
-                        <div className={`text-xs font-medium ${
-                          team === 'affirmative' ? 'text-blue-600' : 'text-red-600'
-                        }`}>
-                          {team.charAt(0).toUpperCase() + team.slice(1)}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Speaker #{speakerNumber}
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
+                  <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                    userSpeakerNumber === 2 
+                      ? 'border-indigo-500 bg-indigo-50' 
+                      : 'border-gray-200 hover:border-indigo-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="speakerNumber"
+                      value={2}
+                      checked={userSpeakerNumber === 2}
+                      onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                      className="sr-only"
+                    />
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">🥈</div>
+                      <div className="font-medium text-indigo-900">2nd Speaker</div>
+                      <div className="text-xs text-indigo-600">Rebuttal speech</div>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
-
-            {/* Prep Time */}
-            {selectedFormatData && (
-              <PrepTime
-                totalPrepTime={selectedFormatData.prepTime}
-                prepTimeType={selectedFormatData.prepTimeType}
-                onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
-              />
-            )}
-
+            ) : null}
+            
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
             >
               Start Practice Session
             </button>

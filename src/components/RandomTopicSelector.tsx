@@ -4,14 +4,15 @@ import { Shuffle } from 'lucide-react';
 
 interface RandomTopicSelectorProps {
   onTopicSelect: (topic: string) => void;
+  format?: string; // Optional format parameter for format-specific topics
 }
 
-const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect }) => {
+const RandomTopicSelector: React.FC<RandomTopicSelectorProps> = ({ onTopicSelect, format }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
 
   const handleRandomTopicClick = () => {
-    const randomTopics = generateRandomTopics();
+    const randomTopics = generateRandomTopics(format);
     setTopics(randomTopics);
     setShowOptions(true);
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
 import { ArrowLeft } from 'lucide-react';
 import RandomTopicSelector from './RandomTopicSelector';
@@ -71,13 +71,13 @@ const DEBATE_FORMATS: DebateFormat[] = [
 interface SetupPanelProps {
   onInitialize: (topic: string, speakers: Speaker[], peoplePerTeam: number, speechesPerSpeaker: number, firstSpeaker: 'affirmative' | 'negative') => void;
   onBack?: () => void;
+  selectedFormat?: DebateFormat;
   freeRoundsUsed?: number;
   isAdmin?: boolean;
 }
 
-const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRoundsUsed = 0, isAdmin = false }) => {
-  const [step, setStep] = useState<'format' | 'setup'>('format');
-  const [selectedFormat, setSelectedFormat] = useState<DebateFormat | null>(null);
+const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedFormat: initialFormat, freeRoundsUsed = 0, isAdmin = false }) => {
+  const [selectedFormat, setSelectedFormat] = useState<DebateFormat | null>(initialFormat || null);
   const [topic, setTopic] = useState('');
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
@@ -85,6 +85,19 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
   const [speakerNames, setSpeakerNames] = useState<{ [key: string]: string }>({});
   const [judgingStyle, setJudgingStyle] = useState<'lay' | 'flow' | 'default'>('default');
   const [prepTime, setPrepTime] = useState(0);
+  const [userTeam, setUserTeam] = useState<'affirmative' | 'negative'>('affirmative');
+  const [userSpeakerNumber, setUserSpeakerNumber] = useState(1);
+
+  // Initialize format from props
+  useEffect(() => {
+    if (initialFormat) {
+      setSelectedFormat(initialFormat);
+      setPeoplePerTeam(initialFormat.peoplePerTeam);
+      setSpeechesPerSpeaker(initialFormat.speechesPerSpeaker);
+      setFirstSpeaker(initialFormat.firstSpeaker);
+      setPrepTime(initialFormat.prepTime);
+    }
+  }, [initialFormat]);
 
   const handleFormatSelect = (format: DebateFormat | null) => {
     setSelectedFormat(format);
@@ -94,7 +107,6 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
       setFirstSpeaker(format.firstSpeaker);
       setPrepTime(format.prepTime);
     }
-    setStep('setup');
   };
 
   // Generate speaker keys
@@ -161,95 +173,23 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
     onInitialize(topic, speakers, peoplePerTeam, speechesPerSpeaker, firstSpeaker);
   };
 
-  // Format Selection Step
-  if (step === 'format') {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
-          {/* Back Button */}
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Mode Selection</span>
-            </button>
-          )}
-          
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Debate Format</h1>
-            <p className="text-blue-700">Select a standard format or customize your own settings</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Standard Formats */}
-            {DEBATE_FORMATS.map((format) => (
-              <button
-                key={format.name}
-                onClick={() => handleFormatSelect(format)}
-                className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
-              >
-                <div className="text-4xl mb-4">{format.icon}</div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
-                  {format.name}
-                </h3>
-                <p className="text-slate-700 text-sm mb-4">{format.description}</p>
-                <div className="space-y-1 text-xs text-slate-600">
-                  <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
-                  <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
-                  <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
-                  <div className="mt-2 pt-2 border-t border-slate-200">
-                    <div className="font-medium text-slate-700">⏱️ Prep Time: {format.prepTime} min</div>
-                    <div className="text-slate-500">
-                      {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-
-            {/* Custom Format Option */}
-            <button
-              onClick={() => handleFormatSelect(null)}
-              className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
-            >
-              <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
-                Custom Format
-              </h3>
-              <p className="text-slate-700 text-sm mb-4">
-                Create your own debate format with custom settings
-              </p>
-              <div className="space-y-1 text-xs text-slate-600">
-                <div>🎛️ Customize team sizes</div>
-                <div>🎤 Set speech counts</div>
-                <div>⚡ Flexible configuration</div>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Setup Step
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
         {/* Back Button */}
         <button
-          onClick={() => setStep('format')}
+          onClick={onBack}
           className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Format Selection</span>
+          <span>Back to Mode Selection</span>
         </button>
         
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-900 mb-2">Debate Setup</h1>
           <p className="text-blue-700">
-            {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up custom debate format'}
+            {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up debate'}
           </p>
         </div>
         
@@ -263,6 +203,11 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             {/* Random Topic Selector */}
             <RandomTopicSelector 
               onTopicSelect={setTopic}
+              format={selectedFormat?.name === 'Public Forum' ? 'publicForum' : 
+                     selectedFormat?.name === 'Lincoln Douglas' ? 'lincolnDouglas' :
+                     selectedFormat?.name === 'Policy Debate' ? 'policy' :
+                     selectedFormat?.name === 'Parliamentary' ? 'parliamentary' :
+                     selectedFormat?.name === 'Spar Debate' ? 'spar' : undefined}
             />
             
             {/* Divider */}
@@ -285,198 +230,122 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
             />
           </div>
           
-          {/* Customization fields - only show if custom format */}
-          {!selectedFormat && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Number of People per Team</label>
-              <input
-                type="number"
-                min={1}
-                max={6}
-                value={peoplePerTeam}
-                onChange={e => setPeoplePerTeam(Math.max(1, Math.min(6, Number(e.target.value))))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Number of Speeches per Speaker</label>
-              <input
-                type="number"
-                min={1}
-                max={8}
-                value={speechesPerSpeaker}
-                onChange={e => setSpeechesPerSpeaker(Math.max(1, Math.min(8, Number(e.target.value))))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
-            </div>
+          {/* First Speaker Selection - only show for Parliamentary and Public Forum formats */}
+          {selectedFormat && (selectedFormat.name === 'Public Forum' || selectedFormat.name === 'Parliamentary') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Which Side Speaks First</label>
               <select
                 value={firstSpeaker}
                 onChange={e => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="affirmative">Affirmative</option>
                 <option value="negative">Negative</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
             </div>
-          </div>
           )}
           
-          {/* Prep Time Configuration - only show if custom format */}
-          {!selectedFormat && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Prep Time Configuration</h3>
-              <p className="text-sm text-blue-700 mb-4">
-                Configure prep time settings for your custom debate format
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time (minutes)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={60}
-                    value={prepTime}
-                    onChange={e => setPrepTime(Math.max(0, Math.min(60, Number(e.target.value))))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Set to 0 for no prep time</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Prep Time Type</label>
-                  <select
-                    value={prepTime > 0 ? 'flexible' : 'none'}
-                    onChange={e => {
-                      if (e.target.value === 'none') {
-                        setPrepTime(0);
-                      } else if (prepTime === 0) {
-                        setPrepTime(5); // Default to 5 minutes if enabling
-                      }
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="none">No Prep Time</option>
-                    <option value="flexible">Flexible (use anytime)</option>
-                    <option value="pre-round">Pre-round (use before round)</option>
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {prepTime > 0 ? 
-                      (prepTime === 0 ? 'No prep time' : 
-                       prepTime === 1 ? '1 minute of prep time' : 
-                       `${prepTime} minutes of prep time`) : 
-                      'No prep time configured'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Judging Style Selection */}
+          {/* Side Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Judging Style
+              Which Side Are You On?
             </label>
-            <p className="text-sm text-gray-600 mb-3">
-              Choose how the AI will evaluate speeches and determine the winner
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                judgingStyle === 'lay' 
+            <div className="grid grid-cols-2 gap-3">
+              <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                userTeam === 'affirmative' 
                   ? 'border-blue-500 bg-blue-50' 
                   : 'border-gray-200 hover:border-blue-300'
               }`}>
                 <input
                   type="radio"
-                  name="judgingStyle"
-                  value="lay"
-                  checked={judgingStyle === 'lay'}
-                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
+                  name="team"
+                  value="affirmative"
+                  checked={userTeam === 'affirmative'}
+                  onChange={() => setUserTeam('affirmative')}
                   className="sr-only"
                 />
-                <div className="flex items-center mb-2">
-                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
-                    judgingStyle === 'lay' 
-                      ? 'border-blue-600 bg-blue-600' 
-                      : 'border-gray-300'
-                  }`}>
-                    {judgingStyle === 'lay' && (
-                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-900">Lay Judge</span>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">✅</div>
+                  <div className="font-medium text-blue-900">Affirmative</div>
+                  <div className="text-xs text-blue-600">Supporting the resolution</div>
                 </div>
-                <p className="text-xs text-gray-600">
-                  Focuses on clarity, pace, and persuasiveness. Penalizes excessive speed and filler words more heavily.
-                </p>
               </label>
               
-              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                judgingStyle === 'flow' 
+              <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                userTeam === 'negative' 
                   ? 'border-blue-500 bg-blue-50' 
                   : 'border-gray-200 hover:border-blue-300'
               }`}>
                 <input
                   type="radio"
-                  name="judgingStyle"
-                  value="flow"
-                  checked={judgingStyle === 'flow'}
-                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
+                  name="team"
+                  value="negative"
+                  checked={userTeam === 'negative'}
+                  onChange={() => setUserTeam('negative')}
                   className="sr-only"
                 />
-                <div className="flex items-center mb-2">
-                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
-                    judgingStyle === 'flow' 
-                      ? 'border-blue-600 bg-blue-600' 
-                      : 'border-gray-300'
-                  }`}>
-                    {judgingStyle === 'flow' && (
-                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-900">Flow Judge</span>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">❌</div>
+                  <div className="font-medium text-blue-900">Negative</div>
+                  <div className="text-xs text-blue-600">Opposing the resolution</div>
                 </div>
-                <p className="text-xs text-gray-600">
-                  Technical judging focused on argument quality and clash. Speed and delivery matter less.
-                </p>
-              </label>
-              
-              <label className={`flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                judgingStyle === 'default' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-blue-300'
-              }`}>
-                <input
-                  type="radio"
-                  name="judgingStyle"
-                  value="default"
-                  checked={judgingStyle === 'default'}
-                  onChange={(e) => setJudgingStyle(e.target.value as 'lay' | 'flow' | 'default')}
-                  className="sr-only"
-                />
-                <div className="flex items-center mb-2">
-                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${
-                    judgingStyle === 'default' 
-                      ? 'border-blue-600 bg-blue-600' 
-                      : 'border-gray-300'
-                  }`}>
-                    {judgingStyle === 'default' && (
-                      <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-900">Default Judge</span>
-                </div>
-                <p className="text-xs text-gray-600">
-                  Balanced approach considering both argument quality and delivery style.
-                </p>
               </label>
             </div>
           </div>
+
+          {/* Speaker Number Selection - only for 2v2 formats */}
+          {(selectedFormat && selectedFormat.peoplePerTeam === 2) || (!selectedFormat && peoplePerTeam === 2) ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Speaker Number on Your Team
+              </label>
+              <p className="text-sm text-gray-600 mb-3">
+                Select which speaker position you want to practice as on your team.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  userSpeakerNumber === 1 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="speakerNumber"
+                    value={1}
+                    checked={userSpeakerNumber === 1}
+                    onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                    className="sr-only"
+                  />
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">🥇</div>
+                    <div className="font-medium text-blue-900">1st Speaker</div>
+                    <div className="text-xs text-blue-600">Constructive speech</div>
+                  </div>
+                </label>
+                
+                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  userSpeakerNumber === 2 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="speakerNumber"
+                    value={2}
+                    checked={userSpeakerNumber === 2}
+                    onChange={(e) => setUserSpeakerNumber(parseInt(e.target.value))}
+                    className="sr-only"
+                  />
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">🥈</div>
+                    <div className="font-medium text-blue-900">2nd Speaker</div>
+                    <div className="text-xs text-blue-600">Rebuttal speech</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          ) : null}
           
           {/* Format Summary - show if preset format selected */}
           {selectedFormat && (
@@ -488,6 +357,81 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
               <p className="text-sm text-blue-700 mb-2">{selectedFormat.description}</p>
               <p className="text-xs text-blue-600">👥 {selectedFormat.peoplePerTeam === 1 ? '1v1' : `${selectedFormat.peoplePerTeam}v${selectedFormat.peoplePerTeam}`} • 🎤 {selectedFormat.speechesPerSpeaker} speech{selectedFormat.speechesPerSpeaker > 1 ? 'es' : ''} per speaker • 🥇 {selectedFormat.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</p>
               <p className="text-xs text-blue-600 mt-1">⚖️ {judgingStyle.charAt(0).toUpperCase() + judgingStyle.slice(1)} judging style</p>
+            </div>
+          )}
+
+          {/* Custom Format Configuration - show if no preset format selected */}
+          {!selectedFormat && (
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+                <span className="mr-2">⚙️</span>
+                Custom Format Configuration
+              </h3>
+              <p className="text-sm text-blue-700 mb-4">Configure your own debate format settings</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* People per Team */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    People per Team
+                  </label>
+                  <select
+                    value={peoplePerTeam}
+                    onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={1}>1 (1v1)</option>
+                    <option value={2}>2 (2v2)</option>
+                    <option value={3}>3 (3v3)</option>
+                    <option value={4}>4 (4v4)</option>
+                  </select>
+                </div>
+
+                {/* Speeches per Speaker */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Speeches per Speaker
+                  </label>
+                  <select
+                    value={speechesPerSpeaker}
+                    onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={1}>1 speech</option>
+                    <option value={2}>2 speeches</option>
+                    <option value={3}>3 speeches</option>
+                    <option value={4}>4 speeches</option>
+                  </select>
+                </div>
+
+                {/* Prep Time */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prep Time (minutes)
+                  </label>
+                  <select
+                    value={prepTime}
+                    onChange={(e) => setPrepTime(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value={0}>No prep time</option>
+                    <option value={2}>2 minutes</option>
+                    <option value={3}>3 minutes</option>
+                    <option value={4}>4 minutes</option>
+                    <option value={5}>5 minutes</option>
+                    <option value={8}>8 minutes</option>
+                    <option value={10}>10 minutes</option>
+                    <option value={15}>15 minutes</option>
+                    <option value={20}>20 minutes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Format Summary:</strong> {peoplePerTeam}v{peoplePerTeam} • {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''} per speaker • {prepTime > 0 ? `${prepTime} min prep time` : 'No prep time'}
+                </p>
+              </div>
             </div>
           )}
           

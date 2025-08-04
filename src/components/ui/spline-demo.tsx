@@ -179,7 +179,7 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
                 <div>
                   <h4 className="text-xl font-semibold text-orange-900 mb-3">Practice Any Speech</h4>
                   <p className="text-orange-700 leading-relaxed">
-                    Practice any speech of the round, rebuttal, summary, that kind of stuff.
+                    Practice any speech of the round: rebuttal, summary, or final focus!
                   </p>
                 </div>
               </div>

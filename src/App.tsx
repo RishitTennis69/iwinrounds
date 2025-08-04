@@ -14,6 +14,7 @@ import { HeroSection } from './components/ui/spline-demo';
 function App() {
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<any>(null);
   const [session, setSession] = useState<DebateSession | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
@@ -37,8 +38,9 @@ function App() {
     }
   }, []);
 
-  const handleModeSelect = (selectedMode: 'debate' | 'practice') => {
+  const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     setMode(selectedMode);
+    setSelectedFormat(format);
     setShowModeModal(false);
   };
 
@@ -362,6 +364,7 @@ function App() {
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}
+        selectedFormat={selectedFormat}
         // freeRoundsUsed={freeRoundsUsed} // Removed
         // isAdmin={isAdmin} // Removed
       />
@@ -375,6 +378,7 @@ function App() {
         <SetupPanel 
           onInitialize={initializeSession} 
           onBack={handleBackToModeSelection}
+          selectedFormat={selectedFormat}
           // freeRoundsUsed={freeRoundsUsed} // Removed
           // isAdmin={isAdmin} // Removed
         />
