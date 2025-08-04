@@ -3,7 +3,8 @@ import { Map } from 'lucide-react';
 import { HeroSection } from './ui/spline-demo';
 
 interface ModeSelectionProps {
-  onSelectMode: (mode: 'debate' | 'practice' | 'argument-mapping') => void;
+  onSelectMode: (mode: 'debate' | 'practice') => void;
+  onBack?: () => void;
 }
 
 const features = [
@@ -39,73 +40,64 @@ const features = [
   },
 ];
 
-const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
+const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode, onBack }) => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="min-h-screen">
-      {/* Integrated Hero Section with all content */}
-      <HeroSection setShowModal={setShowModal} features={features} />
-      
-      {/* Mode Selection Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-2xl p-4 w-full max-w-5xl relative animate-fade-in border-2 border-blue-200">
-            <button
-              className="absolute top-4 right-4 text-blue-400 hover:text-blue-700 text-2xl font-bold focus:outline-none"
-              onClick={() => setShowModal(false)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="text-3xl font-bold text-blue-900 mb-6">How do you want to use ReasynAI?</h2>
-            <div className="flex flex-row gap-6 justify-center items-stretch w-full">
-              {/* Debate Mode Card */}
-              <button
-                className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-[280px] max-w-[400px]"
-                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('debate'), 200); }}
-              >
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="6" strokeWidth="2" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-blue-800 mb-2">Debate Mode</h3>
-                <p className="text-blue-700 mb-2 text-center">Full debate simulation with real-time speech analysis and AI feedback</p>
-                <ul className="text-sm text-blue-600 space-y-1 text-left mx-auto">
-                  <li>• Real-time speech recording</li>
-                  <li>• AI-powered analysis</li>
-                  <li>• Live debate flow tracking</li>
-                  <li>• Argument mapping</li>
-                  <li>• Winner determination</li>
-                </ul>
-              </button>
-              {/* Practice Mode Card */}
-              <button
-                className="flex-1 bg-gradient-to-br from-indigo-50 to-blue-100 rounded-xl p-6 border-2 border-indigo-200 hover:border-indigo-400 transition-all duration-200 cursor-pointer shadow-md flex flex-col items-center focus:outline-none focus:ring-2 focus:ring-indigo-400 min-w-[280px] max-w-[400px]"
-                onClick={() => { setShowModal(false); setTimeout(() => onSelectMode('practice'), 200); }}
-              >
-                <div className="w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="6" strokeWidth="2" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-indigo-800 mb-2">Practice Mode</h3>
-                <p className="text-indigo-700 mb-2 text-center">Practice with AI-generated context and personalized feedback</p>
-                <ul className="text-sm text-indigo-600 space-y-1 text-left mx-auto">
-                  <li>• AI-generated previous speeches</li>
-                  <li>• Focus on your speeches only</li>
-                  <li>• Full debate context</li>
-                  <li>• Personalized feedback</li>
-                  <li>• No round limitations</li>
-                </ul>
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+      {/* Close Button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Back to Home</span>
+        </button>
       )}
+      
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Your Mode</h1>
+        <p className="text-blue-600">Select how you'd like to practice and improve your debate skills</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Debate Mode Card */}
+        <button
+          onClick={() => onSelectMode('debate')}
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 text-left"
+        >
+          <div className="text-4xl mb-4">🏛️</div>
+          <h3 className="text-xl font-bold mb-2">Debate Mode</h3>
+          <p className="text-blue-100 text-sm mb-4">
+            Practice against AI opponents with realistic debate scenarios and comprehensive analysis.
+          </p>
+          <div className="space-y-1 text-xs text-blue-200">
+            <div>• AI-powered opponents</div>
+            <div>• Real-time feedback</div>
+            <div>• Comprehensive analysis</div>
+          </div>
+        </button>
+        
+        {/* Practice Mode Card */}
+        <button
+          onClick={() => onSelectMode('practice')}
+          className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 text-left"
+        >
+          <div className="text-4xl mb-4">🎤</div>
+          <h3 className="text-xl font-bold mb-2">Practice Mode</h3>
+          <p className="text-indigo-100 text-sm mb-4">
+            Practice specific speeches and get personalized feedback on your delivery and arguments.
+          </p>
+          <div className="space-y-1 text-xs text-indigo-200">
+            <div>• Focused practice</div>
+            <div>• Personalized feedback</div>
+            <div>• Skill development</div>
+          </div>
+        </button>
+      </div>
     </div>
   );
 };

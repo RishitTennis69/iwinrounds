@@ -164,8 +164,8 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
   // Format Selection Step
   if (step === 'format') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
           {/* Back Button */}
           {onBack && (
             <button
@@ -235,8 +235,8 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, freeRound
 
   // Setup Step
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
         {/* Back Button */}
         <button
           onClick={() => setStep('format')}

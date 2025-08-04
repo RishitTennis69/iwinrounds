@@ -669,22 +669,23 @@ Respond in this exact JSON format:
     };
   };
 
+  // Format Selection Step
   if (step === 'format') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">
           {/* Back Button */}
           <button
             onClick={onBack}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+            className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Mode Selection</span>
           </button>
-
+          
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Practice Format</h1>
-            <p className="text-blue-700">Select a standard format or customize your own settings</p>
+            <h1 className="text-4xl font-bold text-indigo-900 mb-2">Choose Practice Format</h1>
+            <p className="text-indigo-700">Select a standard format or customize your own settings</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -738,23 +739,25 @@ Respond in this exact JSON format:
     );
   }
 
+  // Setup Step
   if (step === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">
           {/* Back Button */}
           <button
-            onClick={onBack}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+            onClick={() => setStep('format')}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Back to Mode Selection</span>
+            <span>Back to Format Selection</span>
           </button>
-
+          
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">ReasynAI</h1>
-            <p className="text-blue-700">Your Personal AI Coach That Fits in Your Pocket</p>
-            <p className="text-blue-600 font-medium mt-2">Practice Mode Setup</p>
+            <h1 className="text-4xl font-bold text-indigo-900 mb-2">Practice Setup</h1>
+            <p className="text-indigo-700">
+              {selectedFormatData ? `Setting up ${selectedFormatData.name} practice` : 'Setting up custom practice format'}
+            </p>
           </div>
 
           <form onSubmit={handleStart} className="space-y-6">
@@ -1107,26 +1110,24 @@ Respond in this exact JSON format:
     );
   }
 
+  // Prep Step
   if (step === 'prep') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-100/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-blue-200/30">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">
           {/* Back Button */}
           <button
             onClick={() => setStep('setup')}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+            className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Setup</span>
           </button>
-
+          
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">Prep Time</h1>
-            <p className="text-blue-700">
-              {selectedFormatData && selectedFormatData.prepTime > 0 ? 
-                `You have ${selectedFormatData.prepTime} minutes of prep time before the round starts.` :
-                'No prep time configured for this format.'
-              }
+            <h1 className="text-4xl font-bold text-indigo-900 mb-2">Prep Time</h1>
+            <p className="text-indigo-700">
+              Use your prep time before the practice session begins
             </p>
           </div>
 
@@ -1166,23 +1167,22 @@ Respond in this exact JSON format:
     );
   }
 
+  // Generating Step
   if (step === 'generating') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="max-w-md mx-auto px-6">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            {/* Modern Loading Spinner */}
-            <div className="mb-6">
-              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-            </div>
-            
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Preparing Your Debate</h2>
-            <p className="text-gray-600 mb-6">Our AI is generating realistic speeches for the other debaters...</p>
-            
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                <strong>Tip:</strong> This usually takes 10-30 seconds depending on the debate format.
-              </p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-2xl relative border border-indigo-200/30">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-indigo-900 mb-4">Generating AI Speeches</h2>
+            <p className="text-indigo-700 mb-6">
+              Creating realistic debate scenarios and AI opponent speeches...
+            </p>
+            <div className="space-y-2 text-sm text-indigo-600">
+              <div>• Analyzing debate topic and format</div>
+              <div>• Generating opposing arguments</div>
+              <div>• Creating realistic speech content</div>
+              <div>• Preparing interactive elements</div>
             </div>
           </div>
         </div>
@@ -1232,8 +1232,9 @@ Respond in this exact JSON format:
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left Column - AI Speeches */}
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-white rounded-lg shadow-md p-4">
@@ -1510,6 +1511,7 @@ Respond in this exact JSON format:
         />
       </div>
     </div>
+  </div>
   );
 };
 

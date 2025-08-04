@@ -9,9 +9,11 @@ import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
 import HintPanel from './components/HintPanel';
+import { HeroSection } from './components/ui/spline-demo';
 
 function App() {
-  const [mode, setMode] = useState<'selection' | 'debate' | 'practice' | 'argument-mapping'>('selection');
+  const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
+  const [showModeModal, setShowModeModal] = useState(false);
   const [session, setSession] = useState<DebateSession | null>(null);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
@@ -35,17 +37,33 @@ function App() {
     }
   }, []);
 
-  const handleModeSelect = (selectedMode: 'debate' | 'practice' | 'argument-mapping') => {
+  const handleModeSelect = (selectedMode: 'debate' | 'practice') => {
     setMode(selectedMode);
+    setShowModeModal(false);
   };
 
   const handleBackToModeSelection = () => {
-    setMode('selection');
+    setMode('landing');
+    setShowModeModal(false);
     setSession(null);
     setCurrentSpeaker(null);
     setSpeechNumber(1);
     setIsAnalyzing(false);
     setHintsUsed(0);
+  };
+
+  const handleBackToLanding = () => {
+    setMode('landing');
+    setShowModeModal(false);
+    setSession(null);
+    setCurrentSpeaker(null);
+    setSpeechNumber(1);
+    setIsAnalyzing(false);
+    setHintsUsed(0);
+  };
+
+  const handleShowModal = (show: boolean) => {
+    setShowModeModal(show);
   };
 
   const handleHintUsed = () => {
@@ -286,14 +304,56 @@ function App() {
     }
   }, [speechNumber, session]);
 
-  // Show mode selection if no mode selected
-  if (mode === 'selection') {
+  // Show landing page by default
+  if (mode === 'landing') {
+    const features = [
+      {
+        icon: (
+          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" strokeWidth="2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+          </svg>
+        ),
+        title: 'Always-on Judge',
+        desc: 'Get instant, unbiased feedback after every speech—no more waiting for a judge.'
+      },
+      {
+        icon: (
+          <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2.25a3.75 3.75 0 00-3.75 3.75v6a3.75 3.75 0 007.5 0v-6A3.75 3.75 0 0012 2.25z" />
+            <path d="M19.5 10.5a.75.75 0 01.75.75 7.5 7.5 0 01-7.5 7.5 7.5 7.5 0 01-7.5-7.5.75.75 0 01.75-.75.75.75 0 01.75.75 6 6 0 0012 0 .75.75 0 01.75-.75z" />
+            <path d="M12 21.75a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75z" />
+          </svg>
+        ),
+        title: 'Practice Any Speech',
+        desc: 'Rebuttal, summary, or anything in between—practice any speech, any time.'
+      },
+      {
+        icon: (
+          <svg className="w-8 h-8 text-indigo-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fillRule="evenodd" d="M2.25 12c0-4.556 4.694-8.25 9.75-8.25s9.75 3.694 9.75 8.25-4.694 8.25-9.75 8.25a10.7 10.7 0 01-3.1-.44c-.37-.11-.77-.04-1.06.19l-2.12 1.7a.75.75 0 01-1.2-.6v-2.13c0-.32-.13-.63-.36-.86A7.48 7.48 0 012.25 12zm7.5-2.25a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+          </svg>
+        ),
+        title: 'Personalized Feedback',
+        desc: 'AI-powered insights tailored to your arguments and speaking style.'
+      }
+    ];
+
     return (
-      <ModeSelection 
-        onSelectMode={handleModeSelect}
-        // freeRoundsUsed={freeRoundsUsed} // Removed
-        // isAdmin={isAdmin} // Removed
-      />
+      <>
+        <HeroSection 
+          setShowModal={handleShowModal}
+          features={features}
+        />
+        {showModeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <ModeSelection 
+              onSelectMode={handleModeSelect}
+              onBack={handleBackToLanding}
+            />
+          </div>
+        )}
+      </>
     );
   }
 
@@ -314,73 +374,35 @@ function App() {
       <div>
         <SetupPanel 
           onInitialize={initializeSession} 
+          onBack={handleBackToModeSelection}
           // freeRoundsUsed={freeRoundsUsed} // Removed
           // isAdmin={isAdmin} // Removed
         />
-        {/* {showPasswordModal && ( // Removed
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"> // Removed
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4"> // Removed
-              <h2 className="text-2xl font-bold mb-4">Admin Password Required</h2> // Removed
-              <p className="text-gray-700 mb-4"> // Removed
-                You have used your free round. Please enter the admin password to continue. // Removed
-              </p> // Removed
-              <form onSubmit={handlePasswordSubmit} className="space-y-4"> // Removed
-                <div> // Removed
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700"> // Removed
-                    Password: // Removed
-                  </label> // Removed
-                  <input // Removed
-                    type="password" // Removed
-                    id="password" // Removed
-                    value={passwordInput} // Removed
-                    onChange={(e) => setPasswordInput(e.target.value)} // Removed
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm px-3 py-2 border focus:ring-2 focus:ring-blue-500 focus:border-transparent" // Removed
-                    placeholder="Enter admin password" // Removed
-                  /> // Removed
-                  {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>} // Removed
-                </div> // Removed
-                <div className="flex space-x-3"> // Removed
-                  <button // Removed
-                    type="submit" // Removed
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors" // Removed
-                  > // Removed
-                    Submit // Removed
-                  </button> // Removed
-                  <button // Removed
-                    type="button" // Removed
-                    onClick={() => setShowPasswordModal(false)} // Removed
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors" // Removed
-                  > // Removed
-                    Cancel // Removed
-                  </button> // Removed
-                </div> // Removed
-              </form> // Removed
-            </div> // Removed
-          </div> // Removed
-        )} */}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-blue-900 mb-2">
                 ReasynAI - Your Personal AI Coach
               </h1>
-              <p className="text-blue-200">
+              <p className="text-blue-600">
                 Topic: {session.topic} | Speech {speechNumber}/{peoplePerTeam * 2 * speechesPerSpeaker}
               </p>
             </div>
-            <button
-              onClick={handleBackToModeSelection}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Back to Mode Selection
-            </button>
+            <div>
+              <button
+                onClick={handleBackToModeSelection}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Back to Mode Selection
+              </button>
+            </div>
           </div>
         </header>
 
@@ -426,7 +448,7 @@ function App() {
       {/* Completion Popup */}
       {showCompletionPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center border-2 border-blue-200">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center border-2 border-blue-200">
             <div className="text-6xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold mb-4 text-blue-900">Round Complete!</h2>
             <p className="text-blue-700 mb-6">
