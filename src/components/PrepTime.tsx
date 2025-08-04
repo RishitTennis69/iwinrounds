@@ -28,7 +28,7 @@ const PrepTime: React.FC<PrepTimeProps> = ({
   }
 
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
     
     if (isRunning && timeRemaining > 0) {
       interval = setInterval(() => {
