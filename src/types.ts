@@ -21,6 +21,59 @@ export interface Speaker {
   };
 }
 
+// User and Organization types
+export interface User {
+  id: string;
+  email: string;
+  user_type: 'individual' | 'business_admin' | 'coach' | 'student';
+  organization_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: 'admin' | 'coach' | 'student';
+  created_at: string;
+  user?: User;
+  organization?: Organization;
+}
+
+export interface InviteCode {
+  id: string;
+  organization_id: string;
+  code: string;
+  role: 'coach' | 'student';
+  created_by: string;
+  expires_at: string;
+  used_by?: string;
+  used_at?: string;
+  created_at: string;
+}
+
+export interface StudentActivity {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  total_debates: number;
+  recent_debates: DebateSession[];
+  overall_feedback: {
+    strengths: string[];
+    areasForImprovement: string[];
+    averageScore: number;
+  };
+  last_activity: string;
+}
+
 export interface DebatePoint {
   id: string;
   speakerId: string;

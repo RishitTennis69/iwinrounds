@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { DebateSession, Speaker, DebatePoint } from './types';
 import { WhisperService } from './utils/whisperService';
 import { AIService } from './utils/aiService';
+import { supabase } from './utils/supabaseClient';
 import SetupPanel from './components/SetupPanel';
 import RecordingPanel from './components/RecordingPanel';
 import DebateFlowTable from './components/DebateFlowTable';
@@ -9,9 +11,18 @@ import FinalAnalysis from './components/FinalAnalysis';
 import ModeSelection from './components/ModeSelection';
 import PracticeMode from './components/PracticeMode';
 import HintPanel from './components/HintPanel';
+import AuthForm from './components/auth/AuthForm';
+import AuthCallback from './components/auth/AuthCallback';
+import StudentDashboard from './components/dashboard/StudentDashboard';
+import CoachDashboard from './components/dashboard/CoachDashboard';
+import OrganizationSetup from './components/OrganizationSetup';
+import InviteHandler from './components/InviteHandler';
 import { HeroSection } from './components/ui/spline-demo';
 
 function App() {
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<any>(null);
@@ -26,17 +37,51 @@ function App() {
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const finalAnalysisRef = useRef<HTMLDivElement>(null);
 
-  // Load free rounds count from localStorage on component mount
+  // Auth state management
   useEffect(() => {
-    const savedRounds = localStorage.getItem('reasynai_free_rounds');
-    const savedAdmin = localStorage.getItem('reasynai_admin');
-    if (savedRounds) {
-      // setFreeRoundsUsed(parseInt(savedRounds)); // Removed
-    }
-    if (savedAdmin === 'true') {
-      // setIsAdmin(true); // Removed
-    }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserProfile(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserProfile(session.user.id);
+      } else {
+        setUserProfile(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+      }
+
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     setMode(selectedMode);
@@ -306,8 +351,61 @@ function App() {
     }
   }, [speechNumber, session]);
 
-  // Show landing page by default
-  if (mode === 'landing') {
+  const handleStartNewDebate = () => {
+    setMode('selection');
+    setShowModeModal(true);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setMode('landing');
+    setShowModeModal(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<LandingPage setShowModal={handleShowModal} />} />
+        <Route path="/auth" element={<AuthForm />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/invite/:code" element={<InviteHandler />} />
+        
+        {/* Protected routes */}
+        <Route path="/dashboard" element={
+          user ? <DashboardRouter user={user} userProfile={userProfile} onStartNewDebate={handleStartNewDebate} onSignOut={handleSignOut} /> : <Navigate to="/auth" />
+        } />
+        <Route path="/organization/setup" element={
+          user ? <OrganizationSetup onComplete={() => window.location.reload()} /> : <Navigate to="/auth" />
+        } />
+        <Route path="/debate" element={
+          user ? <DebateApp /> : <Navigate to="/auth" />
+        } />
+      </Routes>
+      
+      {/* Mode Selection Modal */}
+      {showModeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <ModeSelection 
+            onSelectMode={handleModeSelect}
+            onBack={handleBackToLanding}
+          />
+        </div>
+      )}
+    </Router>
+  );
+}
+
+// Landing Page Component
+const LandingPage: React.FC<{ setShowModal: (show: boolean) => void }> = ({ setShowModal }) => {
     const features = [
       {
         icon: (
@@ -341,7 +439,7 @@ function App() {
       }
     ];
 
-    return (
+  return (
       <>
         <HeroSection 
           setShowModal={handleShowModal}
@@ -357,16 +455,98 @@ function App() {
         )}
       </>
     );
+};
+
+// Dashboard Router Component
+const DashboardRouter: React.FC<{ 
+  user: any; 
+  userProfile: any; 
+  onStartNewDebate: () => void;
+  onSignOut: () => void;
+}> = ({ user, userProfile, onStartNewDebate, onSignOut }) => {
+  // If user doesn't have a profile or user_type, they need to set up
+  if (!userProfile || !userProfile.user_type) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 border border-blue-200/30">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to ReasynAI!</h2>
+            <p className="text-gray-600 mb-6">Are you joining as an individual or setting up an organization?</p>
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  await supabase.from('profiles').upsert({
+                    id: user.id,
+                    email: user.email,
+                    user_type: 'individual'
+                  });
+                  window.location.reload();
+                }}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Individual User
+              </button>
+              <button
+                onClick={() => window.location.href = '/organization/setup'}
+                className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Create Organization
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Route based on user type
+  if (userProfile.user_type === 'individual') {
+    return <StudentDashboard onStartNewDebate={onStartNewDebate} />;
+  } else if (['business_admin', 'coach'].includes(userProfile.user_type)) {
+    return <CoachDashboard />;
+  } else if (userProfile.user_type === 'student') {
+    return <StudentDashboard onStartNewDebate={onStartNewDebate} />;
+  }
+
+  return <StudentDashboard onStartNewDebate={onStartNewDebate} />;
+};
+
+// Debate App Component (existing debate functionality)
+const DebateApp: React.FC = () => {
+  const [mode, setMode] = useState<'selection' | 'debate' | 'practice'>('selection');
+  const [selectedFormat, setSelectedFormat] = useState<any>(null);
+  const [session, setSession] = useState<DebateSession | null>(null);
+  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
+  const [speechNumber, setSpeechNumber] = useState(1);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [whisperService] = useState(() => new WhisperService());
+  const [peoplePerTeam, setPeoplePerTeam] = useState(2);
+  const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const finalAnalysisRef = useRef<HTMLDivElement>(null);
+
+  const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
+    setMode(selectedMode);
+    setSelectedFormat(format);
+  };
+
+  const handleBackToModeSelection = () => {
+    setMode('selection');
+    setSession(null);
+    setCurrentSpeaker(null);
+    setSpeechNumber(1);
+    setIsAnalyzing(false);
+    setHintsUsed(0);
+  };
+
+  // ... (rest of the existing debate logic)
   // Show practice mode
   if (mode === 'practice') {
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}
         selectedFormat={selectedFormat}
-        // freeRoundsUsed={freeRoundsUsed} // Removed
-        // isAdmin={isAdmin} // Removed
       />
     );
   }
@@ -379,13 +559,12 @@ function App() {
           onInitialize={initializeSession} 
           onBack={handleBackToModeSelection}
           selectedFormat={selectedFormat}
-          // freeRoundsUsed={freeRoundsUsed} // Removed
-          // isAdmin={isAdmin} // Removed
         />
       </div>
     );
   }
 
+  // ... (rest of existing debate UI)
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -469,6 +648,6 @@ function App() {
       )}
     </div>
   );
-}
+};
 
 export default App; 
