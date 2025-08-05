@@ -688,20 +688,20 @@ Respond in this exact JSON format:
   if (step === 'format') {
     console.log('🔍 PracticeMode: Rendering format selection step');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 animate-in fade-in duration-500">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-indigo-200/40 animate-in slide-in-from-bottom-4 duration-500">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 animate-in fade-in duration-500">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-slate-200/40 animate-in slide-in-from-bottom-4 duration-500">
           {/* Back Button - moved to top right to avoid overlap */}
           <button
             onClick={onBack}
-            className="absolute top-6 right-6 flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
+            className="absolute top-6 right-6 flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Back</span>
           </button>
           
           <div className="text-center mb-10 pt-4">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">Choose Practice Format</h1>
-            <p className="text-indigo-600 text-lg">Select a standard format or customize your own settings</p>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">Choose Practice Format</h1>
+            <p className="text-slate-600 text-lg">Select a standard format or customize your own settings</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -710,18 +710,18 @@ Respond in this exact JSON format:
               <button
                 key={format.name}
                 onClick={() => handleFormatSelect(format)}
-                className="bg-gradient-to-br from-indigo-50/90 to-purple-50/90 backdrop-blur-sm border-2 border-indigo-200/60 rounded-2xl p-6 hover:border-indigo-400 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
+                className="bg-gradient-to-br from-slate-50/90 via-indigo-50/90 to-purple-50/90 backdrop-blur-sm border-2 border-slate-200/60 rounded-2xl p-6 hover:border-indigo-300 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
               >
                 {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <div className="relative z-10">
                   <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{format.icon}</div>
-                  <h3 className="text-xl font-bold text-indigo-900 mb-3 group-hover:text-indigo-700 transition-colors">
+                  <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-indigo-700 transition-colors">
                     {format.name}
                   </h3>
-                  <p className="text-indigo-700 text-sm mb-4 leading-relaxed">{format.description}</p>
-                  <div className="space-y-2 text-xs text-indigo-600">
+                  <p className="text-slate-700 text-sm mb-4 leading-relaxed">{format.description}</p>
+                  <div className="space-y-2 text-xs text-slate-600">
                     <div className="flex items-center space-x-2">
                       <span className="text-indigo-500">👥</span>
                       <span>{format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</span>
@@ -734,9 +734,9 @@ Respond in this exact JSON format:
                       <span className="text-indigo-500">🥇</span>
                       <span>{format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</span>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-indigo-200">
-                      <div className="font-semibold text-indigo-800">⏱️ Prep Time: {format.prepTime} min</div>
-                      <div className="text-indigo-600 mt-1">
+                    <div className="mt-3 pt-3 border-t border-slate-200">
+                      <div className="font-semibold text-slate-800">⏱️ Prep Time: {format.prepTime} min</div>
+                      <div className="text-slate-600 mt-1">
                         {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
                       </div>
                     </div>
@@ -748,10 +748,10 @@ Respond in this exact JSON format:
             {/* Custom Format Option */}
             <button
               onClick={() => handleFormatSelect(null)}
-              className="bg-gradient-to-br from-purple-50/90 to-pink-50/90 backdrop-blur-sm border-2 border-purple-200/60 rounded-2xl p-6 hover:border-purple-400 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
+              className="bg-gradient-to-br from-purple-50/90 to-indigo-50/90 backdrop-blur-sm border-2 border-purple-200/60 rounded-2xl p-6 hover:border-purple-400 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
             >
               {/* Subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               <div className="relative z-10">
                 <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">⚙️</div>
