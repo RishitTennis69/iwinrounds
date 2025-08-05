@@ -79,7 +79,7 @@ export function HeroSection({ setShowModal, features, onShowLogin }: HeroSection
                 Master the art of debating with the power of AI
               </h2>
               <button
-                onClick={() => setShowModal(true)}
+                onClick={() => onShowLogin && onShowLogin()}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-base font-semibold rounded-full shadow-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300/50 backdrop-blur-sm border border-blue-200/20 mb-6"
               >
                 Get Started
@@ -208,7 +208,7 @@ export function HeroSection({ setShowModal, features, onShowLogin }: HeroSection
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => onShowLogin && onShowLogin()}
               className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-semibold rounded-full shadow-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
             >
               Start Your First Debate

@@ -30,12 +30,21 @@ const AppWithAuth: React.FC = () => {
     );
   }
 
-  // If user is not logged in, show landing page with option to login
+  // If user is not logged in, show landing page with login popup
   if (!user) {
-    if (showLogin) {
-      return <LoginForm onSuccess={() => setShowLogin(false)} />;
-    }
-    return <App onShowLogin={() => setShowLogin(true)} />;
+    return (
+      <>
+        <App onShowLogin={() => setShowLogin(true)} />
+        {showLogin && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <LoginForm 
+              onSuccess={() => setShowLogin(false)} 
+              onClose={() => setShowLogin(false)}
+            />
+          </div>
+        )}
+      </>
+    );
   }
 
   // Route based on user type
