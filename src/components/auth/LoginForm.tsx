@@ -66,7 +66,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     setMessage('');
     setIsNewUser(null);
     
-    if (newEmail && newEmail.includes('@')) {
+    // Only check user existence if we have a valid email and user type is selected
+    if (newEmail && newEmail.includes('@') && userType) {
       try {
         const exists = await checkUserExists(newEmail);
         setIsNewUser(!exists);
@@ -82,6 +83,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     setIsAffiliated(null);
     setEntryCode('');
     setShowEntryCodeInput(false);
+    setIsNewUser(null); // Reset user existence check when type changes
+    
+    // Re-check user existence if we have a valid email
+    if (email && email.includes('@')) {
+      checkUserExists(email).then(exists => {
+        setIsNewUser(!exists);
+      }).catch(error => {
+        console.error('Error checking user existence:', error);
+      });
+    }
   };
 
   const handleAffiliationChange = (affiliated: boolean) => {
@@ -359,7 +370,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
             />
           </div>
           
-          {isNewUser !== null && email && (
+          {/* Show user status indicator */}
+          {isNewUser !== null && email && userType && (
             <div className="mt-2 text-sm">
               {isNewUser ? (
                 <span className="text-blue-600">🆕 New user - will create account</span>
