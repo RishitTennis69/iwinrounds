@@ -207,7 +207,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.log('🔍 AuthProvider: Creating organization:', organizationName);
               const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
-                .insert({ name: organizationName })
+                .insert({ 
+                  name: organizationName,
+                  creator_name: `${firstName || ''} ${lastName || ''}`.trim() || null,
+                  creator_email: user?.email || null
+                })
                 .select()
                 .single();
               
@@ -275,7 +279,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('🔍 AuthProvider: Creating organization during profile creation:', organizationName);
             const { data: orgData, error: orgError } = await supabase
               .from('organizations')
-              .insert({ name: organizationName })
+              .insert({ 
+                name: organizationName,
+                creator_name: `${firstName || ''} ${lastName || ''}`.trim() || null,
+                creator_email: user?.email || null
+              })
               .select()
               .single();
             

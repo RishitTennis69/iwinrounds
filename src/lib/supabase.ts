@@ -29,6 +29,11 @@ export interface Database {
           last_name: string | null;
           user_type: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id: string | null;
+          total_debates: number;
+          total_wins: number;
+          total_time_minutes: number;
+          total_hints_used: number;
+          last_debate_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -39,6 +44,11 @@ export interface Database {
           last_name?: string | null;
           user_type: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id?: string | null;
+          total_debates?: number;
+          total_wins?: number;
+          total_time_minutes?: number;
+          total_hints_used?: number;
+          last_debate_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -49,6 +59,11 @@ export interface Database {
           last_name?: string | null;
           user_type?: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id?: string | null;
+          total_debates?: number;
+          total_wins?: number;
+          total_time_minutes?: number;
+          total_hints_used?: number;
+          last_debate_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -57,18 +72,24 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          creator_name: string | null;
+          creator_email: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          creator_name?: string | null;
+          creator_email?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          creator_name?: string | null;
+          creator_email?: string | null;
           created_at?: string;
           updated_at?: string;
         };

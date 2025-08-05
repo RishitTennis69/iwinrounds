@@ -54,6 +54,18 @@ const StudentDashboard: React.FC = () => {
   };
 
   const getSessionStats = () => {
+    // Use profile statistics if available, otherwise fall back to calculating from sessions
+    if (profile) {
+      return {
+        totalSessions: profile.total_debates || 0,
+        completedSessions: profile.total_debates || 0, // For now, assume all saved debates are completed
+        totalHints: profile.total_hints_used || 0,
+        totalWins: profile.total_wins || 0,
+        totalTimeMinutes: profile.total_time_minutes || 0
+      };
+    }
+    
+    // Fallback to calculating from debate sessions
     const totalSessions = debateSessions.length;
     const completedSessions = debateSessions.filter(s => s.end_time).length;
     const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
