@@ -86,6 +86,17 @@ const StudentDashboard: React.FC = () => {
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
+  // Get first letter for avatar
+  const getAvatarLetter = () => {
+    if (profile?.first_name) {
+      return profile.first_name.charAt(0).toUpperCase();
+    }
+    if (profile?.email) {
+      return profile.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -107,7 +118,7 @@ const StudentDashboard: React.FC = () => {
               <Avatar className="h-12 w-12">
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-semibold">
-                  {getFirstName().charAt(0)}
+                  {getAvatarLetter()}
                 </AvatarFallback>
               </Avatar>
               <div>
