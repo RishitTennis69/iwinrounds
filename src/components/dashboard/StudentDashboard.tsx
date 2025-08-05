@@ -58,15 +58,38 @@ const StudentDashboard: React.FC = () => {
     const completedSessions = debateSessions.filter(s => s.end_time).length;
     const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
     const totalWins = debateSessions.filter(s => s.winner && s.winner.team === 'affirmative').length;
+    
+    // Debug logging
+    console.log('🔍 StudentDashboard: Session stats calculation:', {
+      totalSessions,
+      completedSessions,
+      sessionsWithEndTime: debateSessions.filter(s => s.end_time).map(s => ({
+        id: s.id,
+        start_time: s.start_time,
+        end_time: s.end_time,
+        topic: s.topic
+      }))
+    });
+    
     const totalTimeMinutes = completedSessions > 0 
       ? Math.round(debateSessions
           .filter(s => s.end_time)
           .reduce((sum, s) => {
             const start = new Date(s.start_time);
             const end = new Date(s.end_time!);
-            return sum + (end.getTime() - start.getTime());
+            const duration = end.getTime() - start.getTime();
+            console.log('🔍 StudentDashboard: Session duration calculation:', {
+              sessionId: s.id,
+              start: s.start_time,
+              end: s.end_time,
+              durationMs: duration,
+              durationMinutes: Math.round(duration / (1000 * 60))
+            });
+            return sum + duration;
           }, 0) / (1000 * 60))
       : 0;
+    
+    console.log('🔍 StudentDashboard: Final total time calculation:', totalTimeMinutes, 'minutes');
     
     return { totalSessions, completedSessions, totalHints, totalWins, totalTimeMinutes };
   };
