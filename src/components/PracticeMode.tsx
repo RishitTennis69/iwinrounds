@@ -58,6 +58,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [prepTimeUsed, setPrepTimeUsed] = useState(0);
   const [selectedFormatData, setSelectedFormatData] = useState<any>(null);
   const [prepTime, setPrepTime] = useState(0);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
   console.log('🔍 PracticeMode: Initial step state:', step);
   console.log('🔍 PracticeMode: Initial selectedFormat state:', selectedFormat);
@@ -625,7 +626,8 @@ Respond in this exact JSON format:
           setCurrentSpeechIdx(currentSpeechIdx + 1);
           setStep('practice');
         } else {
-          setStep('complete');
+          // Show completion popup instead of going directly to results
+          setShowCompletionPopup(true);
           // Generate feedback for the user
           setIsGeneratingFeedback(true);
           try {
@@ -1227,41 +1229,43 @@ Respond in this exact JSON format:
 
   if (step === 'complete') {
     return (
-      <div className="max-w-6xl mx-auto p-6">
-        {isGeneratingFeedback ? (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating Your Feedback</h2>
-              <p className="text-gray-600">Analyzing your performance and creating personalized feedback...</p>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto p-6">
+          {isGeneratingFeedback ? (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating Your Feedback</h2>
+                <p className="text-gray-600">Analyzing your performance and creating personalized feedback...</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Practice Complete!</h2>
-              <DebateFlowTable 
-                session={composeSession()} 
-                peoplePerTeam={peoplePerTeam}
-                speechesPerSpeaker={speechesPerSpeaker}
-              />
-            </div>
-            
-            {/* Final Analysis with Feedback */}
-            <div className="mb-6">
-              <FinalAnalysis session={composeSession()} />
-            </div>
-            
-            <div className="flex justify-center">
-              <button
-                onClick={onBack}
-                className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Back to Menu
-              </button>
-            </div>
-          </>
-        )}
+          ) : (
+            <>
+              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Practice Complete!</h2>
+                <DebateFlowTable 
+                  session={composeSession()} 
+                  peoplePerTeam={peoplePerTeam}
+                  speechesPerSpeaker={speechesPerSpeaker}
+                />
+              </div>
+              
+              {/* Final Analysis with Feedback */}
+              <div className="mb-6">
+                <FinalAnalysis session={composeSession()} />
+              </div>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={onBack}
+                  className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Back to Menu
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     );
   }
@@ -1376,7 +1380,6 @@ Respond in this exact JSON format:
                         <button
                           onClick={() => {
                             setSpeechPlayStates(prev => ({ ...prev, [speech.speechNumber]: 'idle' }));
-                            // setSpeechTimers(prev => ({ ...prev, [speech.speechNumber]: 0 }));
                           }}
                           className="flex-1 bg-gray-600 text-white py-1 px-2 rounded text-xs hover:bg-gray-700 transition-colors"
                         >
@@ -1510,6 +1513,7 @@ Respond in this exact JSON format:
           </div>
         )}
       </div>
+      </div>
 
       {/* Debate Flow Table Summary */}
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -1520,8 +1524,29 @@ Respond in this exact JSON format:
           speechesPerSpeaker={speechesPerSpeaker}
         />
       </div>
+
+      {/* Completion Popup */}
+      {showCompletionPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center border-2 border-blue-200">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Practice Complete!</h2>
+            <p className="text-gray-700 mb-6">
+              Great job! Your practice session is finished. Click below to see your detailed results and personalized feedback.
+            </p>
+            <button
+              onClick={() => {
+                setShowCompletionPopup(false);
+                setStep('complete');
+              }}
+              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+            >
+              Go to Final Results
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
   );
 };
 
