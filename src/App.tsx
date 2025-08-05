@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/auth/LoginForm';
 import StudentDashboard from './components/dashboard/StudentDashboard';
 import CoachDashboard from './components/dashboard/CoachDashboard';
+import { ArrowLeft } from 'lucide-react';
 
 // Global navigation state
 let globalNavigationTarget: 'debate' | 'practice' | null = null;
@@ -150,6 +151,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<any>(null);
+  const [showFormatSelection, setShowFormatSelection] = useState(false);
   const [session, setSession] = useState<DebateSession | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
@@ -169,6 +171,66 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
     user: !!user,
     profile: !!profile
   });
+
+  // Debate formats for debate mode
+  const DEBATE_FORMATS = [
+    {
+      name: 'Public Forum',
+      description: '2v2 format with constructive speeches and rebuttals',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 1,
+      firstSpeaker: 'affirmative' as const,
+      icon: '🏛️',
+      prepTime: 3,
+      prepTimeType: 'flexible' as const
+    },
+    {
+      name: 'Lincoln Douglas',
+      description: '1v1 value debate format with multiple speeches per speaker',
+      peoplePerTeam: 1,
+      speechesPerSpeaker: 3,
+      firstSpeaker: 'affirmative' as const,
+      icon: '⚖️',
+      prepTime: 4,
+      prepTimeType: 'flexible' as const
+    },
+    {
+      name: 'Policy Debate',
+      description: '2v2 format with constructives and rebuttals',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 2,
+      firstSpeaker: 'affirmative' as const,
+      icon: '📋',
+      prepTime: 8,
+      prepTimeType: 'flexible' as const
+    },
+    {
+      name: 'Parliamentary',
+      description: '2v2 Government vs Opposition format',
+      peoplePerTeam: 2,
+      speechesPerSpeaker: 1,
+      firstSpeaker: 'affirmative' as const,
+      icon: '🏛️',
+      prepTime: 20,
+      prepTimeType: 'pre-round' as const
+    },
+    {
+      name: 'Spar Debate',
+      description: '1v1 short format with quick constructive and rebuttal rounds',
+      peoplePerTeam: 1,
+      speechesPerSpeaker: 2,
+      firstSpeaker: 'affirmative' as const,
+      icon: '⚡',
+      prepTime: 2,
+      prepTimeType: 'pre-round' as const
+    }
+  ];
+
+  const handleFormatSelect = (format: typeof DEBATE_FORMATS[0] | null) => {
+    console.log('🔍 App: handleFormatSelect called with format:', format);
+    setSelectedFormat(format);
+    setShowFormatSelection(false);
+  };
 
   // Check for navigation targets from localStorage
   useEffect(() => {
@@ -493,6 +555,83 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
         onBack={handleBackToModeSelection}
         selectedFormat={selectedFormat}
       />
+    );
+  }
+
+  // Format selection for debate mode
+  if (mode === 'debate' && !selectedFormat && !showFormatSelection) {
+    console.log('🔍 App: Rendering format selection for debate mode');
+    setShowFormatSelection(true);
+  }
+
+  // Format selection step
+  if (showFormatSelection) {
+    console.log('🔍 App: Rendering format selection step');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+          {/* Back Button */}
+          <button
+            onClick={handleBackToModeSelection}
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Mode Selection</span>
+          </button>
+          
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Debate Format</h1>
+            <p className="text-blue-700">Select a standard format or customize your own settings</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Standard Formats */}
+            {DEBATE_FORMATS.map((format) => (
+              <button
+                key={format.name}
+                onClick={() => handleFormatSelect(format)}
+                className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
+              >
+                <div className="text-4xl mb-4">{format.icon}</div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
+                  {format.name}
+                </h3>
+                <p className="text-slate-700 text-sm mb-4">{format.description}</p>
+                <div className="space-y-1 text-xs text-slate-600">
+                  <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
+                  <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
+                  <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <div className="font-medium text-slate-700">⏱️ Prep Time: {format.prepTime} min</div>
+                    <div className="text-slate-500">
+                      {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+
+            {/* Custom Format Option */}
+            <button
+              onClick={() => handleFormatSelect(null)}
+              className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
+            >
+              <div className="text-4xl mb-4">⚙️</div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
+                Custom Format
+              </h3>
+              <p className="text-slate-700 text-sm mb-4">
+                Create your own debate format with custom settings
+              </p>
+              <div className="space-y-1 text-xs text-slate-600">
+                <div>🎛️ Customize team sizes</div>
+                <div>🎤 Set speech counts</div>
+                <div>⚡ Flexible configuration</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 

@@ -76,16 +76,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
       setFirstSpeaker(initialFormat.firstSpeaker);
       setStep('setup');
       console.log('🔍 PracticeMode: Set step to setup');
-    } else if (initialFormat === null) {
-      console.log('🔍 PracticeMode: initialFormat is null (custom format selected)');
-      // Custom format selected
-      setSelectedFormat(null);
-      setSelectedFormatData(null);
-      setStep('setup');
-      console.log('🔍 PracticeMode: Set step to setup for custom format');
     } else {
-      console.log('🔍 PracticeMode: initialFormat is undefined (navigating from dashboard)');
-      // No format provided (navigating from dashboard), show format selection
+      console.log('🔍 PracticeMode: initialFormat is null/undefined (navigating from dashboard or custom format)');
+      // Always show format selection first, regardless of initialFormat value
       setSelectedFormat(null);
       setSelectedFormatData(null);
       setStep('format');
