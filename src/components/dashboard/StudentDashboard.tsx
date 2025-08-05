@@ -6,6 +6,7 @@ import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Zap, Star, Trendin
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { supabase } from '../../lib/supabase';
 
 const StudentDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -142,6 +143,32 @@ const StudentDashboard: React.FC = () => {
             className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-200 shadow-sm"
           >
             <span className="text-sm font-medium">Debug Profile</span>
+          </button>
+          <button
+            onClick={async () => {
+              if (profile) {
+                try {
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ user_type: 'business_admin' })
+                    .eq('id', profile.id);
+                  
+                  if (error) {
+                    console.error('Error updating profile:', error);
+                    alert('Error updating profile: ' + error.message);
+                  } else {
+                    alert('Profile updated! Refresh the page to see the CoachDashboard.');
+                    window.location.reload();
+                  }
+                } catch (error) {
+                  console.error('Error:', error);
+                  alert('Error updating profile');
+                }
+              }
+            }}
+            className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg border border-green-200 shadow-sm"
+          >
+            <span className="text-sm font-medium">Fix User Type (Test)</span>
           </button>
         </div>
       </header>

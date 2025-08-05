@@ -239,6 +239,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Check for pending user info to get the correct user_type
+      const pendingInfo = localStorage.getItem('pending_user_info');
+      let userType = 'individual';
+      let organizationId = null;
+      
+      if (pendingInfo) {
+        try {
+          const { userType: pendingUserType, organizationName } = JSON.parse(pendingInfo);
+          userType = pendingUserType || 'individual';
+          
+          // If it's an organization user, create the organization first
+          if (userType === 'organization' && organizationName) {
+            console.log('🔍 AuthProvider: Creating organization during profile creation:', organizationName);
+            const { data: orgData, error: orgError } = await supabase
+              .from('organizations')
+              .insert({ name: organizationName })
+              .select()
+              .single();
+            
+            if (orgError) {
+              console.error('🔍 AuthProvider: Error creating organization:', orgError);
+            } else {
+              organizationId = orgData.id;
+              console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
+            }
+          }
+        } catch (error) {
+          console.error('🔍 AuthProvider: Error parsing pending user info:', error);
+        }
+      }
+
+      console.log('🔍 AuthProvider: Creating profile with user_type:', userType, 'organization_id:', organizationId);
+
       const { data, error } = await supabase
         .from('profiles')
         .insert({
@@ -246,8 +279,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: user.email!,
           first_name: firstName || null,
           last_name: lastName || null,
-          user_type: 'individual',
-          organization_id: null,
+          user_type: userType as 'individual' | 'business_admin' | 'coach' | 'student',
+          organization_id: organizationId,
         })
         .select()
         .single();
@@ -255,7 +288,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         console.error('🔍 AuthProvider: Error creating profile:', error);
       } else {
+        console.log('🔍 AuthProvider: Profile created successfully:', data);
         setProfile(data);
+        
+        // Clear pending user info after successful creation
+        if (pendingInfo) {
+          localStorage.removeItem('pending_user_info');
+          console.log('🔍 AuthProvider: Cleared pending user info');
+        }
       }
     } catch (error) {
       console.error('🔍 AuthProvider: Error in createProfile:', error);
