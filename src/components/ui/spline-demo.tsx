@@ -46,7 +46,7 @@ export function HeroSection({ setShowModal, features, onShowLogin }: HeroSection
             {onShowLogin && (
               <button
                 onClick={onShowLogin}
-                className="px-4 py-2 text-blue-600 hover:text-blue-800 transition-all duration-300 hover:scale-105"
+                className="px-4 py-2 text-blue-600 hover:text-blue-800 transition-all duration-300 hover:scale-105 border border-blue-600 rounded-lg"
               >
                 Sign In
               </button>
