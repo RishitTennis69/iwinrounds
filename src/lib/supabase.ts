@@ -14,8 +14,31 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 console.log('🔍 Supabase: Creating client with URL:', supabaseUrl);
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Create client with better error handling
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+});
+
 console.log('🔍 Supabase: Client created successfully');
+
+// Test the connection
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    console.error('🔍 Supabase: Connection test failed:', error);
+  } else {
+    console.log('🔍 Supabase: Connection test successful');
+  }
+});
 
 // Database types
 export interface Database {

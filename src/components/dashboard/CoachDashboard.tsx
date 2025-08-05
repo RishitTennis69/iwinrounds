@@ -35,6 +35,7 @@ const CoachDashboard: React.FC = () => {
   const [inviteCode, setInviteCode] = useState<string>('');
   const [invitedEmail, setInvitedEmail] = useState<string>('');
   const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+  const [isProcessingOrganization, setIsProcessingOrganization] = useState(false);
 
   const checkExistingOrganization = async () => {
     console.log('🔍 CoachDashboard: Checking for existing organization');
@@ -255,7 +256,7 @@ const CoachDashboard: React.FC = () => {
           } else {
             console.log('🔍 CoachDashboard: Profile updated to business_admin');
             alert('Profile updated to business admin. You can now invite members.');
-            await refreshProfileData();
+            await forceRefreshAuthProfile();
           }
         }
         return;
@@ -284,7 +285,7 @@ const CoachDashboard: React.FC = () => {
           console.log('🔍 CoachDashboard: Profile updated with organization_id:', organizationId);
           alert('Organization ID fixed successfully!');
           // Refresh the profile data
-          await refreshProfileData();
+          await forceRefreshAuthProfile();
         }
       } else if (!memberships || memberships.length === 0) {
         console.log('🔍 CoachDashboard: No memberships found, updating to business_admin');
@@ -303,7 +304,7 @@ const CoachDashboard: React.FC = () => {
         } else {
           console.log('🔍 CoachDashboard: Profile updated to business_admin');
           alert('Profile updated to business admin. You can now invite members.');
-          await refreshProfileData();
+          await forceRefreshAuthProfile();
         }
       }
       
@@ -341,6 +342,33 @@ const CoachDashboard: React.FC = () => {
       
     } catch (error) {
       console.error('🔍 CoachDashboard: Error refreshing profile data:', error);
+    }
+  };
+
+  const forceRefreshAuthProfile = async () => {
+    console.log('🔍 CoachDashboard: Force refreshing auth profile');
+    
+    try {
+      // Fetch the latest profile data
+      const { data: updatedProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      
+      if (profileError) {
+        console.error('🔍 CoachDashboard: Error fetching updated profile:', profileError);
+        return;
+      }
+      
+      console.log('🔍 CoachDashboard: Latest profile data:', updatedProfile);
+      
+      // Force a page reload to refresh the auth context
+      console.log('🔍 CoachDashboard: Forcing page reload to refresh auth context');
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('🔍 CoachDashboard: Error in forceRefreshAuthProfile:', error);
     }
   };
 
@@ -462,12 +490,30 @@ const CoachDashboard: React.FC = () => {
       }
 
       console.log('🔍 CoachDashboard: Organization setup complete');
-      alert('Organization created successfully! You can now invite members.');
       
-      // Wait a moment for the database changes to be reflected, then refresh profile data
+      // Check if the organization was actually created and profile updated
+      const { data: finalProfile, error: finalProfileError } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', user?.id)
+        .single();
+      
+      if (finalProfileError) {
+        console.error('🔍 CoachDashboard: Error checking final profile:', finalProfileError);
+      } else {
+        console.log('🔍 CoachDashboard: Final profile organization_id:', finalProfile?.organization_id);
+        
+        if (finalProfile?.organization_id) {
+          alert('Organization created successfully! You can now invite members.');
+        } else {
+          alert('Organization created but profile not updated. Please try again or contact support.');
+        }
+      }
+      
+      // Force refresh the auth profile to get the updated organization_id
       setTimeout(async () => {
-        console.log('🔍 CoachDashboard: Refreshing profile data after organization creation');
-        await refreshProfileData();
+        console.log('🔍 CoachDashboard: Force refreshing auth profile after organization creation');
+        await forceRefreshAuthProfile();
       }, 1000);
       
     } catch (error) {
@@ -492,11 +538,13 @@ const CoachDashboard: React.FC = () => {
       console.log('🔍 CoachDashboard: user exists:', !!user);
       
       // Check if user needs to create an organization
-      if (!profile?.organization_id) {
+      if (!profile?.organization_id && !isProcessingOrganization) {
+        setIsProcessingOrganization(true);
         const shouldCreate = confirm('You need to create an organization first before you can invite members. Would you like to create one now?');
         if (shouldCreate) {
-          createOrganizationForUser();
+          await createOrganizationForUser();
         }
+        setIsProcessingOrganization(false);
         return;
       }
       
