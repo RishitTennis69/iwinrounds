@@ -156,9 +156,20 @@ const CoachDashboard: React.FC = () => {
     console.log('🔍 CoachDashboard: inviteEmail:', inviteEmail);
     console.log('🔍 CoachDashboard: profile?.organization_id:', profile?.organization_id);
     console.log('🔍 CoachDashboard: user:', user);
+    console.log('🔍 CoachDashboard: Full profile data:', profile);
     
     if (!inviteEmail || !profile?.organization_id || !user) {
       console.log('🔍 CoachDashboard: Missing required data, returning early');
+      console.log('🔍 CoachDashboard: inviteEmail exists:', !!inviteEmail);
+      console.log('🔍 CoachDashboard: profile?.organization_id exists:', !!profile?.organization_id);
+      console.log('🔍 CoachDashboard: user exists:', !!user);
+      
+      // Check if user needs to create an organization
+      if (!profile?.organization_id) {
+        alert('You need to create an organization first before you can invite members. Please contact support to set up your organization.');
+        return;
+      }
+      
       return;
     }
 
