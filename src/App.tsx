@@ -277,6 +277,19 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
     setShowFormatSelection(false);
   };
 
+  // Clear all setup state when going back to mode selection
+  const clearSetupState = () => {
+    setSelectedFormat(null);
+    setShowFormatSelection(false);
+    setSession(null);
+    setSpeechNumber(1);
+    setCurrentSpeaker(null);
+    setIsAnalyzing(false);
+    setHintsUsed(0);
+    setShowCompletionPopup(false);
+    globalNavigationTarget = null;
+  };
+
   // Check for navigation targets from localStorage
   useEffect(() => {
     const navigationTarget = localStorage.getItem('navigationTarget');
@@ -335,6 +348,9 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
 
   const handleBackToModeSelection = () => {
     console.log('🔍 App: handleBackToModeSelection called');
+    // Clear all setup state
+    clearSetupState();
+    
     // Call the callback to go back to mode selection
     if (onBackToModeSelection) {
       onBackToModeSelection();
@@ -342,27 +358,15 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
       // Fallback: navigate back to mode selection popup instantly
       setMode('landing');
       setShowModeModal(true);
-      setSelectedFormat(null);
-      setShowFormatSelection(false);
-      setSession(null);
-      setSpeechNumber(1);
-      setCurrentSpeaker(null);
-      setIsAnalyzing(false);
-      setHintsUsed(0);
-      // Clear global navigation target
-      globalNavigationTarget = null;
     }
   };
 
   const handleBackToLanding = () => {
     console.log('🔍 App: handleBackToLanding called');
+    // Clear all setup state
+    clearSetupState();
     setMode('landing');
     setShowModeModal(false);
-    setSession(null);
-    setSpeechNumber(1);
-    setCurrentSpeaker(null);
-    setIsAnalyzing(false);
-    setHintsUsed(0);
   };
 
   const handleShowModal = (show: boolean) => {

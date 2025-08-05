@@ -152,6 +152,27 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
     setStep('setup');
   };
 
+  // Clear all setup state when going back to format selection
+  const clearSetupState = () => {
+    setTopic('');
+    setUserName('');
+    setUserTeam('affirmative');
+    setFirstSpeaker('affirmative');
+    setPeoplePerTeam(2);
+    setSpeechesPerSpeaker(2);
+    setUserSpeakerNumber(1);
+    setPrepTime(0);
+    setSelectedFormat(null);
+    setSelectedFormatData(null);
+    setStep('format');
+  };
+
+  // Override the onBack prop to clear state
+  const handleBack = () => {
+    clearSetupState();
+    onBack();
+  };
+
   useEffect(() => {
     if (userName) {
       sessionStorage.setItem('reasynai_user_name', userName);
@@ -742,7 +763,7 @@ Respond in this exact JSON format:
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-slate-200/40 animate-in slide-in-from-bottom-4 duration-500">
           {/* Back Button - moved to top right to avoid overlap */}
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="absolute top-6 right-6 flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-colors bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -840,7 +861,7 @@ Respond in this exact JSON format:
         <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">
           {/* Back Button */}
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
