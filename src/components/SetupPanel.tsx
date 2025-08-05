@@ -175,29 +175,29 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
 
   // Setup Step
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-blue-200/40">
         {/* Back Button */}
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+          className="absolute top-6 left-6 flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Mode Selection</span>
+          <span className="font-medium">Back to Mode Selection</span>
         </button>
         
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Debate Setup</h1>
-          <p className="text-blue-700">
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">Debate Setup</h1>
+          <p className="text-blue-600 text-lg">
             {selectedFormat ? `Setting up ${selectedFormat.name} debate` : 'Setting up debate'}
           </p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Topic */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Debate Topic
+          <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-200/50">
+            <label className="block text-lg font-semibold text-blue-900 mb-3">
+              🎯 Debate Topic
             </label>
             
             {/* Random Topic Selector */}
@@ -214,17 +214,17 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-blue-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or enter your own topic</span>
+                <span className="px-4 bg-blue-50/50 text-blue-600 font-medium">or enter your own topic</span>
               </div>
             </div>
             
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-400 resize-none bg-white/80 backdrop-blur-sm"
               rows={3}
               placeholder="Enter the debate topic or resolution..."
               required
@@ -233,30 +233,30 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
           
           {/* First Speaker Selection - only show for Parliamentary and Public Forum formats */}
           {selectedFormat && (selectedFormat.name === 'Public Forum' || selectedFormat.name === 'Parliamentary') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Which Side Speaks First</label>
+            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-200/50">
+              <label className="block text-lg font-semibold text-blue-900 mb-3">🥇 Which Side Speaks First</label>
               <select
                 value={firstSpeaker}
                 onChange={e => setFirstSpeaker(e.target.value as 'affirmative' | 'negative')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white/80 backdrop-blur-sm"
               >
                 <option value="affirmative">Affirmative</option>
                 <option value="negative">Negative</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Determines the speaking order</p>
+              <p className="text-sm text-blue-600 mt-2">Determines the speaking order</p>
             </div>
           )}
           
           {/* Side Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Which Side Are You On?
+          <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-200/50">
+            <label className="block text-lg font-semibold text-blue-900 mb-4">
+              🎭 Which Side Are You On?
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+            <div className="grid grid-cols-2 gap-4">
+              <label className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 ${
                 userTeam === 'affirmative' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-blue-300'
+                  ? 'border-blue-500 bg-blue-100 shadow-lg' 
+                  : 'border-blue-200 hover:border-blue-400 bg-white/80'
               }`}>
                 <input
                   type="radio"
@@ -267,16 +267,16 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                   className="sr-only"
                 />
                 <div className="text-center">
-                  <div className="text-2xl mb-2">✅</div>
-                  <div className="font-medium text-blue-900">Affirmative</div>
-                  <div className="text-xs text-blue-600">Supporting the resolution</div>
+                  <div className="text-3xl mb-3">✅</div>
+                  <div className="font-bold text-blue-900 text-lg">Affirmative</div>
+                  <div className="text-sm text-blue-600 mt-1">Supporting the resolution</div>
                 </div>
               </label>
               
-              <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+              <label className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 ${
                 userTeam === 'negative' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-blue-300'
+                  ? 'border-blue-500 bg-blue-100 shadow-lg' 
+                  : 'border-blue-200 hover:border-blue-400 bg-white/80'
               }`}>
                 <input
                   type="radio"
@@ -287,9 +287,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                   className="sr-only"
                 />
                 <div className="text-center">
-                  <div className="text-2xl mb-2">❌</div>
-                  <div className="font-medium text-blue-900">Negative</div>
-                  <div className="text-xs text-blue-600">Opposing the resolution</div>
+                  <div className="text-3xl mb-3">❌</div>
+                  <div className="font-bold text-blue-900 text-lg">Negative</div>
+                  <div className="text-sm text-blue-600 mt-1">Opposing the resolution</div>
                 </div>
               </label>
             </div>
@@ -297,18 +297,18 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
 
           {/* Speaker Number Selection - only for 2v2 formats */}
           {(selectedFormat && selectedFormat.peoplePerTeam === 2) || (!selectedFormat && peoplePerTeam === 2) ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Speaker Number on Your Team
+            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-200/50">
+              <label className="block text-lg font-semibold text-blue-900 mb-3">
+                🎤 Your Speaker Number on Your Team
               </label>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-blue-600 mb-4">
                 Select which speaker position you want to practice as on your team.
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+              <div className="grid grid-cols-2 gap-4">
+                <label className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 ${
                   userSpeakerNumber === 1 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-blue-300'
+                    ? 'border-blue-500 bg-blue-100 shadow-lg' 
+                    : 'border-blue-200 hover:border-blue-400 bg-white/80'
                 }`}>
                   <input
                     type="radio"
@@ -319,16 +319,16 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-2xl mb-2">🥇</div>
-                    <div className="font-medium text-blue-900">1st Speaker</div>
-                    <div className="text-xs text-blue-600">Constructive speech</div>
+                    <div className="text-3xl mb-3">🥇</div>
+                    <div className="font-bold text-blue-900 text-lg">1st Speaker</div>
+                    <div className="text-sm text-blue-600 mt-1">Constructive speech</div>
                   </div>
                 </label>
                 
-                <label className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                <label className={`flex flex-col items-center justify-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-105 ${
                   userSpeakerNumber === 2 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-blue-300'
+                    ? 'border-blue-500 bg-blue-100 shadow-lg' 
+                    : 'border-blue-200 hover:border-blue-400 bg-white/80'
                 }`}>
                   <input
                     type="radio"
@@ -339,9 +339,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-2xl mb-2">🥈</div>
-                    <div className="font-medium text-blue-900">2nd Speaker</div>
-                    <div className="text-xs text-blue-600">Rebuttal speech</div>
+                    <div className="text-3xl mb-3">🥈</div>
+                    <div className="font-bold text-blue-900 text-lg">2nd Speaker</div>
+                    <div className="text-sm text-blue-600 mt-1">Rebuttal speech</div>
                   </div>
                 </label>
               </div>
@@ -350,36 +350,52 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
           
           {/* Format Summary - show if preset format selected */}
           {selectedFormat && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
-                <span className="mr-2">{selectedFormat.icon}</span>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200/50">
+              <h3 className="text-xl font-bold text-blue-800 mb-3 flex items-center">
+                <span className="mr-3 text-2xl">{selectedFormat.icon}</span>
                 {selectedFormat.name} Format
               </h3>
-              <p className="text-sm text-blue-700 mb-2">{selectedFormat.description}</p>
-              <p className="text-xs text-blue-600">👥 {selectedFormat.peoplePerTeam === 1 ? '1v1' : `${selectedFormat.peoplePerTeam}v${selectedFormat.peoplePerTeam}`} • 🎤 {selectedFormat.speechesPerSpeaker} speech{selectedFormat.speechesPerSpeaker > 1 ? 'es' : ''} per speaker • 🥇 {selectedFormat.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</p>
-              <p className="text-xs text-blue-600 mt-1">⚖️ {judgingStyle.charAt(0).toUpperCase() + judgingStyle.slice(1)} judging style</p>
+              <p className="text-blue-700 mb-3 leading-relaxed">{selectedFormat.description}</p>
+              <div className="space-y-2 text-sm text-blue-600">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">👥</span>
+                  <span>{selectedFormat.peoplePerTeam === 1 ? '1v1' : `${selectedFormat.peoplePerTeam}v${selectedFormat.peoplePerTeam}`}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">🎤</span>
+                  <span>{selectedFormat.speechesPerSpeaker} speech{selectedFormat.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">🥇</span>
+                  <span>{selectedFormat.firstSpeaker === 'affirmative' ? 'Affirmative' : 'Negative'} speaks first</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">⚖️</span>
+                  <span>{judgingStyle.charAt(0).toUpperCase() + judgingStyle.slice(1)} judging style</span>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Custom Format Configuration - show if no preset format selected */}
           {!selectedFormat && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
-                <span className="mr-2">⚙️</span>
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200/50">
+              <h3 className="text-xl font-bold text-indigo-800 mb-3 flex items-center">
+                <span className="mr-3 text-2xl">⚙️</span>
                 Custom Format Configuration
               </h3>
-              <p className="text-sm text-blue-700 mb-4">Configure your own debate format settings</p>
+              <p className="text-indigo-700 mb-4 leading-relaxed">Configure your own debate format settings</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* People per Team */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-indigo-700 mb-2">
                     People per Team
                   </label>
                   <select
                     value={peoplePerTeam}
                     onChange={(e) => setPeoplePerTeam(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 bg-white/80"
                   >
                     <option value={1}>1 (1v1)</option>
                     <option value={2}>2 (2v2)</option>
@@ -390,13 +406,13 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
 
                 {/* Speeches per Speaker */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-indigo-700 mb-2">
                     Speeches per Speaker
                   </label>
                   <select
                     value={speechesPerSpeaker}
                     onChange={(e) => setSpeechesPerSpeaker(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 bg-white/80"
                   >
                     <option value={1}>1 speech</option>
                     <option value={2}>2 speeches</option>
@@ -407,13 +423,13 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
 
                 {/* Prep Time */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-indigo-700 mb-2">
                     Prep Time (minutes)
                   </label>
                   <select
                     value={prepTime}
                     onChange={(e) => setPrepTime(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 bg-white/80"
                   >
                     <option value={0}>No prep time</option>
                     <option value={2}>2 minutes</option>
@@ -428,8 +444,8 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                 </div>
               </div>
 
-              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="mt-4 p-4 bg-indigo-100 rounded-xl border border-indigo-200">
+                <p className="text-sm text-indigo-800 font-medium">
                   <strong>Format Summary:</strong> {peoplePerTeam}v{peoplePerTeam} • {speechesPerSpeaker} speech{speechesPerSpeaker > 1 ? 'es' : ''} per speaker • {prepTime > 0 ? `${prepTime} min prep time` : 'No prep time'}
                 </p>
               </div>
@@ -438,21 +454,22 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
           
           {/* Speakers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-blue-600">Affirmative Team</h3>
-              <p className="text-sm text-gray-600 mb-3">Enter names for each speaker position</p>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200/50">
+              <h3 className="text-xl font-bold text-blue-600 mb-4">✅ Affirmative Team</h3>
+              <p className="text-sm text-blue-600 mb-4">Enter names for each speaker position</p>
               {speakerInputs('affirmative')}
             </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-red-600">Negative Team</h3>
-              <p className="text-sm text-gray-600 mb-3">Enter names for each speaker position</p>
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl p-6 border border-red-200/50">
+              <h3 className="text-xl font-bold text-red-600 mb-4">❌ Negative Team</h3>
+              <p className="text-sm text-red-600 mb-4">Enter names for each speaker position</p>
               {speakerInputs('negative')}
             </div>
           </div>
+          
           {/* Debate Order Preview */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Debate Order & Speaker Numbers</h3>
-            <div className="mb-3">
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200/50">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">🎯 Debate Order & Speaker Numbers</h3>
+            <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
                 <strong>Total Speakers:</strong> {peoplePerTeam * 2} ({peoplePerTeam} per team)
               </p>
@@ -460,7 +477,7 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                 <strong>Speaking Order:</strong> {firstSpeaker.charAt(0).toUpperCase() + firstSpeaker.slice(1)} team speaks first
               </p>
             </div>
-            <div className="grid grid-cols-{peoplePerTeam * 2} gap-2 text-sm">
+            <div className="grid grid-cols-{peoplePerTeam * 2} gap-3 text-sm">
               {Array.from({ length: peoplePerTeam * 2 }).map((_, idx) => {
                 // Determine team based on first speaker
                 let team: 'affirmative' | 'negative';
@@ -474,34 +491,34 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
                 const speakerNumber = idx + 1; // Global speaker number
                 const isFirstSpeaker = idx === 0;
                 return (
-                  <div className="text-center" key={key}>
-                    <div className={`font-medium text-${team === 'affirmative' ? 'blue' : 'red'}-600`}>
+                  <div className="text-center bg-white/80 rounded-xl p-3 border border-gray-200" key={key}>
+                    <div className={`font-bold text-${team === 'affirmative' ? 'blue' : 'red'}-600 text-lg`}>
                       Speaker #{speakerNumber}
                       {isFirstSpeaker && (
-                        <div className="text-xs text-green-600 font-bold mt-1">FIRST</div>
+                        <div className="text-xs text-green-600 font-bold mt-1 bg-green-100 px-2 py-1 rounded-full">FIRST</div>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 mt-1">
                       {speakerIdx+1}{speakerIdx === 0 ? 'st' : speakerIdx === 1 ? 'nd' : speakerIdx === 2 ? 'rd' : 'th'} {team.charAt(0).toUpperCase() + team.slice(1)}
                     </div>
-                    <div className="text-gray-600 text-xs">{speakerNames[key] || `Speaker ${speakerNumber}`}</div>
+                    <div className="text-gray-600 text-xs mt-1 font-medium">{speakerNames[key] || `Speaker ${speakerNumber}`}</div>
                   </div>
                 );
               })}
             </div>
-            <div className="text-xs text-gray-500 mt-2 text-center">
+            <div className="text-xs text-gray-500 mt-3 text-center">
               This order repeats for a total of {peoplePerTeam * 2 * speechesPerSpeaker} speeches
             </div>
-            <div className="text-xs text-green-600 mt-2 text-center font-medium">
+            <div className="text-xs text-green-600 mt-2 text-center font-bold bg-green-100 px-3 py-1 rounded-full">
               {firstSpeaker.charAt(0).toUpperCase() + firstSpeaker.slice(1)} team speaks first
             </div>
           </div>
           
           {/* Prep Time Component */}
           {selectedFormat && selectedFormat.prepTimeType === 'flexible' && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Prep Time</h3>
-              <p className="text-sm text-blue-700 mb-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200/50">
+              <h3 className="text-xl font-bold text-blue-800 mb-3">⏱️ Prep Time</h3>
+              <p className="text-blue-700 mb-4 leading-relaxed">
                 This format includes {selectedFormat.prepTime} minutes of flexible prep time that can be used anytime during the debate.
               </p>
               <PrepTime
@@ -514,9 +531,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
           
           {/* Prep Time Component for Custom Format */}
           {!selectedFormat && prepTime > 0 && (
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Prep Time</h3>
-              <p className="text-sm text-blue-700 mb-4">
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200/50">
+              <h3 className="text-xl font-bold text-indigo-800 mb-3">⏱️ Prep Time</h3>
+              <p className="text-indigo-700 mb-4 leading-relaxed">
                 Your custom format includes {prepTime} minutes of prep time.
               </p>
               <PrepTime
@@ -529,9 +546,9 @@ const SetupPanel: React.FC<SetupPanelProps> = ({ onInitialize, onBack, selectedF
           
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-5 px-8 rounded-2xl font-bold text-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Start Debate
+            🚀 Start Debate Session
           </button>
         </form>
       </div>

@@ -610,20 +610,20 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
   if (showFormatSelection) {
     console.log('🔍 App: Rendering format selection step');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-blue-200/30">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-blue-200/40">
           {/* Back Button */}
           <button
             onClick={handleBackToModeSelection}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-700 hover:text-blue-900 transition-colors"
+            className="absolute top-6 left-6 flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Back to Mode Selection</span>
+            <span className="font-medium">Back to Mode Selection</span>
           </button>
           
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-900 mb-2">Choose Debate Format</h1>
-            <p className="text-blue-700">Select a standard format or customize your own settings</p>
+          <div className="text-center mb-10">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">Choose Debate Format</h1>
+            <p className="text-blue-600 text-lg">Select a standard format or customize your own settings</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -632,21 +632,35 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
               <button
                 key={format.name}
                 onClick={() => handleFormatSelect(format)}
-                className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
+                className="bg-gradient-to-br from-blue-50/90 to-indigo-50/90 backdrop-blur-sm border-2 border-blue-200/60 rounded-2xl p-6 hover:border-blue-400 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
               >
-                <div className="text-4xl mb-4">{format.icon}</div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
-                  {format.name}
-                </h3>
-                <p className="text-slate-700 text-sm mb-4">{format.description}</p>
-                <div className="space-y-1 text-xs text-slate-600">
-                  <div>👥 {format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</div>
-                  <div>🎤 {format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</div>
-                  <div>🥇 {format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</div>
-                  <div className="mt-2 pt-2 border-t border-slate-200">
-                    <div className="font-medium text-slate-700">⏱️ Prep Time: {format.prepTime} min</div>
-                    <div className="text-slate-500">
-                      {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative z-10">
+                  <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{format.icon}</div>
+                  <h3 className="text-xl font-bold text-blue-900 mb-3 group-hover:text-blue-700 transition-colors">
+                    {format.name}
+                  </h3>
+                  <p className="text-blue-700 text-sm mb-4 leading-relaxed">{format.description}</p>
+                  <div className="space-y-2 text-xs text-blue-600">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-blue-500">👥</span>
+                      <span>{format.peoplePerTeam === 1 ? '1v1' : `${format.peoplePerTeam}v${format.peoplePerTeam}`}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-blue-500">🎤</span>
+                      <span>{format.speechesPerSpeaker} speech{format.speechesPerSpeaker > 1 ? 'es' : ''} per speaker</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-blue-500">🥇</span>
+                      <span>{format.firstSpeaker === 'affirmative' ? 'Aff' : 'Neg'} speaks first</span>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-blue-200">
+                      <div className="font-semibold text-blue-800">⏱️ Prep Time: {format.prepTime} min</div>
+                      <div className="text-blue-600 mt-1">
+                        {format.prepTimeType === 'flexible' ? 'Use anytime during round' : 'Use before round starts'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -656,19 +670,33 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
             {/* Custom Format Option */}
             <button
               onClick={() => handleFormatSelect(null)}
-              className="bg-gradient-to-br from-slate-50/80 to-gray-100/80 backdrop-blur-sm border-2 border-slate-200/50 rounded-xl p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 text-left group"
+              className="bg-gradient-to-br from-indigo-50/90 to-purple-50/90 backdrop-blur-sm border-2 border-indigo-200/60 rounded-2xl p-6 hover:border-indigo-400 hover:shadow-xl hover:scale-105 transition-all duration-300 text-left group relative overflow-hidden"
             >
-              <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-slate-600">
-                Custom Format
-              </h3>
-              <p className="text-slate-700 text-sm mb-4">
-                Create your own debate format with custom settings
-              </p>
-              <div className="space-y-1 text-xs text-slate-600">
-                <div>🎛️ Customize team sizes</div>
-                <div>🎤 Set speech counts</div>
-                <div>⚡ Flexible configuration</div>
+              {/* Subtle gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="relative z-10">
+                <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">⚙️</div>
+                <h3 className="text-xl font-bold text-indigo-900 mb-3 group-hover:text-indigo-700 transition-colors">
+                  Custom Format
+                </h3>
+                <p className="text-indigo-700 text-sm mb-4 leading-relaxed">
+                  Create your own debate format with custom settings
+                </p>
+                <div className="space-y-2 text-xs text-indigo-600">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-indigo-500">🎛️</span>
+                    <span>Customize team sizes</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-indigo-500">🎤</span>
+                    <span>Set speech counts</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-indigo-500">⚡</span>
+                    <span>Flexible configuration</span>
+                  </div>
+                </div>
               </div>
             </button>
           </div>
