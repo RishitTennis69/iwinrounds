@@ -128,7 +128,7 @@ const AppWithAuth: React.FC = () => {
       onShowLogin={() => setShowLogin(true)} 
       onBackToModeSelection={() => {
         setCurrentView('dashboard');
-        setShowModeSelection(true);
+        setShowModeSelection(false); // Don't show mode selection popup
         globalNavigationTarget = null;
       }}
     />;
@@ -140,7 +140,7 @@ const AppWithAuth: React.FC = () => {
       onShowLogin={() => setShowLogin(true)} 
       onBackToModeSelection={() => {
         setCurrentView('dashboard');
-        setShowModeSelection(true);
+        setShowModeSelection(false); // Don't show mode selection popup
         globalNavigationTarget = null;
       }}
     />;
