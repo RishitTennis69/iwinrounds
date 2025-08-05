@@ -10,12 +10,15 @@ export interface InviteData {
 export class EmailService {
   static async sendInviteEmail(inviteData: InviteData): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('🔍 EmailService: Sending invite email to:', inviteData.email);
+      console.log('🔍 EmailService: Starting sendInviteEmail');
+      console.log('🔍 EmailService: Invite data:', inviteData);
       
       // Generate a unique invite code
       const inviteCode = this.generateInviteCode();
+      console.log('🔍 EmailService: Generated invite code:', inviteCode);
       
       // Create invite record in database
+      console.log('🔍 EmailService: Creating invite record in database...');
       const { data: inviteRecord, error: dbError } = await supabase
         .from('invites')
         .insert({
@@ -35,21 +38,30 @@ export class EmailService {
         return { success: false, error: 'Failed to create invite record' };
       }
 
+      console.log('🔍 EmailService: Invite record created successfully:', inviteRecord);
+
       // Get organization details
+      console.log('🔍 EmailService: Fetching organization details...');
       const { data: organization } = await supabase
         .from('organizations')
         .select('name, creator_name')
         .eq('id', inviteData.organization_id)
         .single();
 
+      console.log('🔍 EmailService: Organization details:', organization);
+
       // Get inviter details
+      console.log('🔍 EmailService: Fetching inviter details...');
       const { data: inviter } = await supabase
         .from('profiles')
         .select('first_name, last_name, email')
         .eq('id', inviteData.invited_by)
         .single();
 
+      console.log('🔍 EmailService: Inviter details:', inviter);
+
       // Generate email HTML
+      console.log('🔍 EmailService: Generating email HTML...');
       const emailHTML = this.generateInviteEmailHTML({
         inviteCode,
         organizationName: organization?.name || 'our organization',
@@ -59,7 +71,21 @@ export class EmailService {
       });
 
       // Send email using Supabase Edge Function
+      console.log('🔍 EmailService: Preparing to call Edge Function...');
       const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invite-email`;
+      console.log('🔍 EmailService: Edge Function URL:', edgeFunctionUrl);
+      
+      const requestBody = {
+        to: inviteData.email,
+        subject: `You're invited to join ${organization?.name || 'our organization'}!`,
+        html: emailHTML,
+        inviteCode,
+        organizationName: organization?.name || 'our organization',
+        inviterName: inviter ? `${inviter.first_name} ${inviter.last_name}`.trim() : 'A team member',
+        userType: inviteData.user_type
+      };
+      
+      console.log('🔍 EmailService: Request body:', requestBody);
       
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -67,16 +93,11 @@ export class EmailService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({
-          to: inviteData.email,
-          subject: `You're invited to join ${organization?.name || 'our organization'}!`,
-          html: emailHTML,
-          inviteCode,
-          organizationName: organization?.name || 'our organization',
-          inviterName: inviter ? `${inviter.first_name} ${inviter.last_name}`.trim() : 'A team member',
-          userType: inviteData.user_type
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('🔍 EmailService: Response status:', response.status);
+      console.log('🔍 EmailService: Response ok:', response.ok);
 
       if (!response.ok) {
         const errorData = await response.json();

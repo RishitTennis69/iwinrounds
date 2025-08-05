@@ -152,7 +152,15 @@ const CoachDashboard: React.FC = () => {
   };
 
   const sendInvite = async () => {
-    if (!inviteEmail || !profile?.organization_id || !user) return;
+    console.log('🔍 CoachDashboard: sendInvite function called');
+    console.log('🔍 CoachDashboard: inviteEmail:', inviteEmail);
+    console.log('🔍 CoachDashboard: profile?.organization_id:', profile?.organization_id);
+    console.log('🔍 CoachDashboard: user:', user);
+    
+    if (!inviteEmail || !profile?.organization_id || !user) {
+      console.log('🔍 CoachDashboard: Missing required data, returning early');
+      return;
+    }
 
     setInviteLoading(true);
     try {
@@ -165,6 +173,8 @@ const CoachDashboard: React.FC = () => {
         user_type: inviteType,
         invited_by: user.id
       });
+
+      console.log('🔍 CoachDashboard: EmailService result:', result);
 
       if (!result.success) {
         console.error('🔍 CoachDashboard: Error sending invite:', result.error);
@@ -185,12 +195,16 @@ const CoachDashboard: React.FC = () => {
         .limit(1)
         .single();
 
+      console.log('🔍 CoachDashboard: Invite record from database:', inviteRecord);
+
       if (inviteRecord) {
         setInviteCode(inviteRecord.code);
         setInvitedEmail(inviteEmail);
         setShowSuccessPopup(true);
+        console.log('🔍 CoachDashboard: Showing success popup with code:', inviteRecord.code);
       } else {
         alert(`Invite sent to ${inviteEmail}! They will receive an email with instructions to join your organization.`);
+        console.log('🔍 CoachDashboard: No invite record found, showing alert');
       }
       
       setInviteEmail('');
