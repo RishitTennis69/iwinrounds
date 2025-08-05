@@ -14,8 +14,10 @@ import ModeSelection from './components/ModeSelection';
 import FinalAnalysis from './components/FinalAnalysis';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/auth/LoginForm';
+import ResetPasswordPage from './components/auth/ResetPasswordPage';
 import StudentDashboard from './components/dashboard/StudentDashboard';
 import CoachDashboard from './components/dashboard/CoachDashboard';
+import OrganizerDashboard from './components/dashboard/OrganizerDashboard';
 import { ArrowLeft } from 'lucide-react';
 
 // Global navigation state
@@ -39,6 +41,15 @@ const AppWithAuth: React.FC = () => {
     currentView,
     showModeSelection
   });
+
+  // Check if we're on the reset password page
+  const isResetPasswordPage = window.location.pathname === '/auth/reset-password';
+
+  // If we're on the reset password page, render it directly
+  if (isResetPasswordPage) {
+    console.log('🔍 AppWithAuth: Rendering reset password page');
+    return <ResetPasswordPage />;
+  }
 
   // Listen for custom navigation events from StudentDashboard
   useEffect(() => {
@@ -97,13 +108,18 @@ const AppWithAuth: React.FC = () => {
     }
   }, [user, profile]);
 
+  // Check if this is an auth callback to prevent landing page flash
+  const isAuthCallback = window.location.hash.includes('access_token');
+  
   if (loading && !loadingTimeout) {
     console.log('🔍 AppWithAuth: Showing loading spinner');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-slate-600">Loading your dashboard...</p>
+          <p className="text-slate-600">
+            {isAuthCallback ? 'Signing you in...' : 'Loading your dashboard...'}
+          </p>
         </div>
       </div>
     );
@@ -200,30 +216,35 @@ const AppWithAuth: React.FC = () => {
     first_name: profile?.first_name
   });
 
-  // If profile is null but user exists, show landing page (fallback for failed profile loading)
+  // If profile is null but user exists, show dashboard (don't show landing page)
   if (!profile) {
-    console.log('🔍 AppWithAuth: Profile is null but user exists, showing landing page as fallback');
-    return (
-      <>
-        <App onShowLogin={() => setShowLogin(true)} />
-        {showLogin && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <LoginForm 
-              onSuccess={() => setShowLogin(false)} 
-              onClose={() => setShowLogin(false)}
-            />
-          </div>
-        )}
-      </>
-    );
+    console.log('🔍 AppWithAuth: Profile is null but user exists, showing dashboard');
+    return <App 
+      onShowLogin={() => setShowLogin(true)} 
+      onBackToModeSelection={() => {
+        setCurrentView('dashboard');
+        setShowModeSelection(false);
+        globalNavigationTarget = null;
+      }}
+    />;
   }
 
-  if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
+  console.log('🔍 AppWithAuth: Checking user_type:', profile?.user_type);
+  console.log('🔍 AppWithAuth: Is organizer?', String(profile?.user_type) === 'organizer');
+  console.log('🔍 AppWithAuth: Is student?', String(profile?.user_type) === 'student');
+  console.log('🔍 AppWithAuth: Is business_admin?', String(profile?.user_type) === 'business_admin');
+
+  if (String(profile?.user_type) === 'business_admin') {
     console.log('🔍 AppWithAuth: Routing to CoachDashboard - user_type:', profile?.user_type);
     return <CoachDashboard />;
   }
   
-  if (profile?.user_type === 'student' || profile?.user_type === 'individual') {
+  if (String(profile?.user_type) === 'organizer') {
+    console.log('🔍 AppWithAuth: Routing to OrganizerDashboard - user_type:', profile?.user_type);
+    return <OrganizerDashboard />;
+  }
+  
+  if (String(profile?.user_type) === 'student') {
     console.log('🔍 AppWithAuth: Routing to StudentDashboard - user_type:', profile?.user_type);
     return (
       <>
@@ -543,16 +564,16 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
         points: [...session.points, debatePoint],
         hintsUsed
       };
-
+      
       setSession(updatedSession);
-
+      
       // Move to next speaker
       const nextSpeechNumber = speechNumber + 1;
       const nextSpeaker = session.speakers[nextSpeechNumber - 1];
 
       if (nextSpeaker) {
         setSpeechNumber(nextSpeechNumber);
-        setCurrentSpeaker(nextSpeaker);
+      setCurrentSpeaker(nextSpeaker);
       } else {
         // Debate is complete
         const finalSession = await analyzeWinner(updatedSession);
@@ -666,10 +687,10 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
         />
         {showModeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <ModeSelection 
-              onSelectMode={handleModeSelect}
+      <ModeSelection 
+        onSelectMode={handleModeSelect}
               onBack={handleBackToLanding}
-            />
+      />
           </div>
         )}
       </>
@@ -827,12 +848,12 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
               </p>
             </div>
             <div>
-              <button
-                onClick={handleBackToModeSelection}
+            <button
+              onClick={handleBackToModeSelection}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Back to Mode Selection
-              </button>
+            >
+              Back to Mode Selection
+            </button>
             </div>
           </div>
         </header>

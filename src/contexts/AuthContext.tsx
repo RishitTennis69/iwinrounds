@@ -8,10 +8,14 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, firstName?: string, lastName?: string, userType?: 'individual' | 'organization', organizationName?: string, entryCode?: string) => Promise<{ isNewUser: boolean }>;
+  supabase: typeof supabase;
+  signIn: (email: string, password: string, firstName?: string, lastName?: string, userType?: 'organizer' | 'student', organizationName?: string, inviteCode?: string) => Promise<{ isNewUser: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   checkUserExists: (email: string) => Promise<boolean>;
+  resetPassword: (email: string) => Promise<void>;
+  createInviteCode: (organizationId: string, email: string) => Promise<string>;
+  useInviteCode: (code: string, userId: string) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +34,8 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   console.log('🔍 AuthProvider: Component rendering');
+  console.log('🔍 AuthProvider: Current URL:', window.location.href);
+  
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -48,47 +54,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     }, 3000); // Reduced to 3 seconds
     
-    // Handle auth callback from magic link
-    const handleAuthCallback = async () => {
-      console.log('🔍 AuthProvider: Handling auth callback');
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('🔍 AuthProvider: Error getting session in callback:', error);
-          setLoading(false);
-          return;
-        }
-        
-        if (session) {
-          console.log('🔍 AuthProvider: Session found in callback');
-          setSession(session);
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else {
-          console.log('🔍 AuthProvider: No session in callback');
-          setLoading(false);
-        }
-        
-        // Clear URL parameters after processing
-        if (window.location.hash.includes('access_token')) {
-          console.log('🔍 AuthProvider: Clearing URL parameters');
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      } catch (error) {
-        console.error('🔍 AuthProvider: Error in handleAuthCallback:', error);
-        setLoading(false);
-      }
-    };
-
-    // Check if this is an auth callback
-    if (window.location.hash.includes('access_token')) {
-      console.log('🔍 AuthProvider: Auth callback detected in URL');
-      handleAuthCallback();
-    } else {
-      console.log('🔍 AuthProvider: No auth callback, getting initial session');
-    }
-
     // Get initial session with better error handling
     const getInitialSession = async () => {
       try {
@@ -117,37 +82,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Call with timeout
-    const sessionTimeout = setTimeout(() => {
-      console.log('🔍 AuthProvider: Session fetch timeout, setting loading to false');
-      setLoading(false);
-    }, 2000);
-
-    getInitialSession().finally(() => {
-      clearTimeout(sessionTimeout);
-    });
-
+    // Get initial session
+    getInitialSession();
+    
     // Listen for auth changes with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔍 AuthProvider: Auth state change event:', event, 'session:', !!session);
+      console.log('🔍 AuthProvider: Auth state change details:', {
+        event,
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email
+      });
       
       try {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('🔍 AuthProvider: User in auth state change, fetching profile');
-          await fetchProfile(session.user.id);
-        } else {
-          console.log('🔍 AuthProvider: No user in auth state change, clearing profile');
+        // Handle different auth events
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('🔍 AuthProvider: User signed in or token refreshed');
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            console.log('🔍 AuthProvider: User in auth state change, fetching profile');
+            await fetchProfile(session.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🔍 AuthProvider: User signed out');
+          setSession(null);
+          setUser(null);
           setProfile(null);
           setLoading(false);
+        } else {
+          console.log('🔍 AuthProvider: Other auth event:', event);
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            console.log('🔍 AuthProvider: User in auth state change, fetching profile');
+            await fetchProfile(session.user.id);
+          } else {
+            console.log('🔍 AuthProvider: No user in auth state change, clearing profile');
+            setProfile(null);
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error('🔍 AuthProvider: Error in auth state change:', error);
         setLoading(false);
       }
     });
+    
+    console.log('🔍 AuthProvider: Auth state change listener set up successfully');
     
     return () => {
       console.log('🔍 AuthProvider: Cleaning up subscription and timeout');
@@ -172,11 +158,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('🔍 AuthProvider: Fetching profile from database');
       
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+      
+      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000);
+      });
+      
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
 
       if (error) {
         console.error('🔍 AuthProvider: Error fetching profile:', error);
@@ -214,10 +207,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setProfileCache(prev => new Map(prev.set(userId, data)));
         setLoading(false);
       }
-    } catch (error) {
-      console.error('🔍 AuthProvider: Error in fetchProfile:', error);
-      // Even if profile fetch fails, set loading to false and continue
-      console.log('🔍 AuthProvider: Profile fetch failed, setting loading to false and continuing');
+    } catch (timeoutError) {
+      console.error('🔍 AuthProvider: Profile fetch timed out:', timeoutError);
+      console.log('🔍 AuthProvider: Setting loading to false due to timeout');
+      
+      // Even if profile fetch fails, keep the user logged in
+      console.log('🔍 AuthProvider: Keeping user logged in despite profile fetch timeout');
       setLoading(false);
     } finally {
       setProfileLoading(false);
@@ -238,57 +233,122 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Check for pending user info to get the correct user_type
       const pendingInfo = localStorage.getItem('pending_user_info');
-      let userType = 'individual';
+      let userType = 'student'; // Default to student
       let organizationId = null;
+      let inviteCode = null;
       
       console.log('🔍 AuthProvider: Pending info from localStorage:', pendingInfo);
       
       if (pendingInfo) {
         try {
-          const { userType: pendingUserType, organizationName } = JSON.parse(pendingInfo);
-          userType = pendingUserType || 'individual';
+          const { userType: pendingUserType, organizationName, inviteCode: pendingInviteCode } = JSON.parse(pendingInfo);
+          userType = pendingUserType || 'student';
+          inviteCode = pendingInviteCode;
           
-          console.log('🔍 AuthProvider: Parsed pending info:', { userType, organizationName });
+          console.log('🔍 AuthProvider: Parsed pending info:', { userType, organizationName, inviteCode });
           
-          // If it's an organization user, create the organization first
-          if (userType === 'organization' && organizationName) {
-            console.log('🔍 AuthProvider: Creating organization during profile creation:', organizationName);
+          // If it's an organizer, check for existing organization first
+          if (userType === 'organizer' && organizationName) {
+            console.log('🔍 AuthProvider: Checking for existing organization for email:', user.email);
             
-            const { data: orgData, error: orgError } = await supabase
+            // Check if user already has an organization
+            const { data: existingOrg, error: orgCheckError } = await supabase
               .from('organizations')
-              .insert({ 
-                name: organizationName,
-                creator_name: `${firstName || ''} ${lastName || ''}`.trim() || null,
-                creator_email: user?.email || null
-              })
-              .select()
+              .select('id, name')
+              .eq('creator_email', user.email)
               .single();
             
-            if (orgError) {
-              console.error('🔍 AuthProvider: Error creating organization:', orgError);
-              // Don't throw error, just log it and continue with profile creation
-              console.log('🔍 AuthProvider: Continuing with profile creation without organization');
-            } else {
-              organizationId = orgData.id;
-              console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
-              // Change user type to business_admin for organization creators
-              userType = 'business_admin';
+            if (orgCheckError && orgCheckError.code !== 'PGRST116') {
+              console.error('🔍 AuthProvider: Error checking existing organization:', orgCheckError);
+            }
+            
+            if (existingOrg) {
+              console.log('🔍 AuthProvider: Found existing organization:', existingOrg);
+              organizationId = existingOrg.id;
               
-              // Add the creator as a member of the organization
-              const { error: memberError } = await supabase
+              // Check if user is already a member
+              const { data: existingMember, error: memberCheckError } = await supabase
                 .from('organization_members')
-                .insert({
-                  organization_id: organizationId,
-                  user_id: userId,
-                  role: 'business_admin'
-                });
+                .select('id')
+                .eq('organization_id', organizationId)
+                .eq('user_id', userId)
+                .single();
               
-              if (memberError) {
-                console.error('🔍 AuthProvider: Error adding organization member:', memberError);
-                // Don't throw here, as the profile creation should still succeed
-              } else {
-                console.log('🔍 AuthProvider: Organization member record created');
+              if (memberCheckError && memberCheckError.code !== 'PGRST116') {
+                console.error('🔍 AuthProvider: Error checking existing membership:', memberCheckError);
               }
+              
+              if (!existingMember) {
+                // Add user as organizer to existing organization
+                const { error: addMemberError } = await supabase
+                  .from('organization_members')
+                  .insert({
+                    organization_id: organizationId,
+                    user_id: userId,
+                    role: 'organizer'
+                  });
+                
+                if (addMemberError) {
+                  console.error('🔍 AuthProvider: Error adding user to existing organization:', addMemberError);
+                } else {
+                  console.log('🔍 AuthProvider: User added to existing organization');
+                }
+              } else {
+                console.log('🔍 AuthProvider: User already a member of existing organization');
+              }
+            } else {
+              // Create new organization
+              console.log('🔍 AuthProvider: Creating new organization:', organizationName);
+              
+              const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .insert({ 
+                  name: organizationName,
+                  creator_name: `${firstName || ''} ${lastName || ''}`.trim() || null,
+                  creator_email: user?.email || null
+                })
+                .select()
+                .single();
+              
+              if (orgError) {
+                console.error('🔍 AuthProvider: Error creating organization:', orgError);
+                console.log('🔍 AuthProvider: Continuing with profile creation without organization');
+              } else {
+                organizationId = orgData.id;
+                console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
+                
+                // Add the creator as a member of the organization
+                const { error: memberError } = await supabase
+                  .from('organization_members')
+                  .insert({
+                    organization_id: organizationId,
+                    user_id: userId,
+                    role: 'organizer'
+                  });
+                
+                if (memberError) {
+                  console.error('🔍 AuthProvider: Error adding organization member:', memberError);
+                } else {
+                  console.log('🔍 AuthProvider: Organization member record created');
+                }
+              }
+            }
+          }
+          
+          // If there's an invite code, use it
+          if (inviteCode) {
+            console.log('🔍 AuthProvider: Using invite code:', inviteCode);
+            try {
+              const result = await useInviteCode(inviteCode, userId);
+              if (result === 'success') {
+                console.log('🔍 AuthProvider: Invite code used successfully');
+                // The useInviteCode function will handle adding to organization
+              } else if (result === 'already_member') {
+                console.log('🔍 AuthProvider: User already a member of the organization');
+              }
+            } catch (inviteError) {
+              console.error('🔍 AuthProvider: Error using invite code:', inviteError);
+              // Continue with profile creation even if invite code fails
             }
           }
         } catch (error) {
@@ -305,7 +365,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: user.email!,
           first_name: firstName || null,
           last_name: lastName || null,
-          user_type: userType === 'organization' ? 'business_admin' : userType as 'individual' | 'business_admin' | 'coach' | 'student',
+          user_type: userType as 'organizer' | 'student',
           organization_id: organizationId,
         })
         .select()
@@ -313,6 +373,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         console.error('🔍 AuthProvider: Error creating profile:', error);
+        
+        // If profile already exists (from trigger), try to update it instead
+        if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+          console.log('🔍 AuthProvider: Profile already exists, updating instead');
+          
+          const { data: updateData, error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              first_name: firstName || null,
+              last_name: lastName || null,
+              user_type: userType as 'organizer' | 'student',
+              organization_id: organizationId,
+            })
+            .eq('id', userId)
+            .select()
+            .single();
+          
+          if (updateError) {
+            console.error('🔍 AuthProvider: Error updating existing profile:', updateError);
+            return;
+          } else {
+            console.log('🔍 AuthProvider: Profile updated successfully:', updateData);
+            setProfile(updateData);
+            
+            // Clear pending user info after successful update
+            if (pendingInfo) {
+              localStorage.removeItem('pending_user_info');
+              console.log('🔍 AuthProvider: Cleared pending user info');
+            }
+            return;
+          }
+        }
+        
         console.error('🔍 AuthProvider: Profile creation failed with details:', {
           userId,
           email: user.email,
@@ -323,7 +416,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           error: error.message,
           code: error.code
         });
-        // Don't throw the error, just log it and continue
         return;
       } else {
         console.log('🔍 AuthProvider: Profile created successfully:', data);
@@ -337,7 +429,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('🔍 AuthProvider: Error in createProfile:', error);
-      // Don't throw the error, just log it and continue
     }
   };
 
@@ -361,49 +452,111 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string, firstName?: string, lastName?: string, userType?: 'individual' | 'organization', organizationName?: string, entryCode?: string): Promise<{ isNewUser: boolean }> => {
+  const resetPassword = async (email: string): Promise<void> => {
     try {
-      console.log('🔍 AuthProvider: signIn called with email:', email);
+      console.log('🔍 AuthProvider: resetPassword called for email:', email);
       
-      // Temporarily skip user existence check due to RLS issues
-      // const userExists = await checkUserExists(email);
-      // console.log('🔍 AuthProvider: User exists check result:', userExists);
-      const userExists = false; // Assume new user for now
-      console.log('🔍 AuthProvider: Skipping user existence check due to RLS issues');
-      
-      // Prepare the redirect URL
-      const redirectUrl = window.location.origin;
-      console.log('🔍 AuthProvider: Using redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: redirectUrl,
-          shouldCreateUser: true, // Allow creating new users
-        },
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
       });
-
+      
       if (error) {
-        console.error('🔍 AuthProvider: Error in signInWithOtp:', error);
+        console.error('🔍 AuthProvider: Error resetting password:', error);
         throw error;
       }
+      
+      console.log('🔍 AuthProvider: Password reset email sent successfully');
+    } catch (error) {
+      console.error('🔍 AuthProvider: Error in resetPassword:', error);
+      throw error;
+    }
+  };
 
-      console.log('🔍 AuthProvider: Magic link sent successfully:', data);
-
-      // If it's a new user, store additional info for profile creation
-      if (!userExists && firstName && lastName) {
-        const pendingInfo = {
-          firstName,
-          lastName,
-          userType: userType || 'individual',
-          organizationName,
-          entryCode
-        };
-        localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
-        console.log('🔍 AuthProvider: Stored pending user info:', pendingInfo);
+  const signIn = async (email: string, password: string, firstName?: string, lastName?: string, userType?: 'organizer' | 'student', organizationName?: string, inviteCode?: string): Promise<{ isNewUser: boolean }> => {
+    try {
+      console.log('🔍 AuthProvider: signIn called with email:', email);
+      console.log('🔍 AuthProvider: signIn parameters:', {
+        email,
+        firstName,
+        lastName,
+        userType,
+        organizationName,
+        inviteCode
+      });
+      
+      // Validate email
+      if (!email || !email.includes('@')) {
+        throw new Error('Invalid email address');
       }
-
-      return { isNewUser: !userExists };
+      
+      // Check if user exists first
+      const userExists = await checkUserExists(email);
+      console.log('🔍 AuthProvider: User exists check result:', userExists);
+      
+      if (userExists) {
+        // User exists, try to sign in with password
+        console.log('🔍 AuthProvider: User exists, attempting sign in');
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) {
+          console.error('🔍 AuthProvider: Error signing in existing user:', error);
+          
+          // Check if this is a magic link only user (no password set)
+          if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid email or password')) {
+            // This might be a magic link only user
+            console.log('🔍 AuthProvider: User might be magic link only, checking...');
+            
+            // For now, we'll throw a specific error that the UI can handle
+            throw new Error('This account was created with magic links. Please use the "Forgot Password" option to set a new password.');
+          }
+          
+          throw new Error('Invalid email or password');
+        }
+        
+        console.log('🔍 AuthProvider: Existing user signed in successfully');
+        return { isNewUser: false };
+      } else {
+        // New user, create account
+        console.log('🔍 AuthProvider: Creating new user account');
+        
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              user_type: userType || 'student'
+            }
+          }
+        });
+        
+        if (error) {
+          console.error('🔍 AuthProvider: Error creating new user:', error);
+          throw error;
+        }
+        
+        console.log('🔍 AuthProvider: New user created successfully');
+        
+        // Store additional info for profile creation
+        if (firstName && lastName) {
+          const pendingInfo = {
+            firstName,
+            lastName,
+            userType: userType || 'student',
+            organizationName,
+            inviteCode
+          };
+          localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
+          console.log('🔍 AuthProvider: Stored pending user info:', pendingInfo);
+        }
+        
+        return { isNewUser: true };
+      }
     } catch (error) {
       console.error('🔍 AuthProvider: Error signing in:', error);
       throw error;
@@ -444,15 +597,106 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const createInviteCode = async (organizationId: string, email: string) => {
+    try {
+      console.log('🔍 AuthProvider: createInviteCode called for organizationId:', organizationId, 'email:', email);
+      const { data, error } = await supabase
+        .from('invite_codes')
+        .insert({
+          organization_id: organizationId,
+          email: email,
+          code: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15), // Simple random code
+          created_by: user?.id,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('🔍 AuthProvider: Error creating invite code:', error);
+        throw error;
+      }
+      console.log('🔍 AuthProvider: Invite code created successfully:', data);
+      return data.code;
+    } catch (error) {
+      console.error('🔍 AuthProvider: Error in createInviteCode:', error);
+      throw error;
+    }
+  };
+
+  const useInviteCode = async (code: string, userId: string) => {
+    try {
+      console.log('🔍 AuthProvider: useInviteCode called for code:', code, 'userId:', userId);
+      const { data, error } = await supabase
+        .from('invite_codes')
+        .select('organization_id, email')
+        .eq('code', code)
+        .single();
+
+      if (error) {
+        console.error('🔍 AuthProvider: Error using invite code:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Invite code not found or expired.');
+      }
+
+      const { organization_id, email } = data;
+
+      // Check if the user is already a member of the organization
+      const { data: existingMember, error: memberError } = await supabase
+        .from('organization_members')
+        .select('id')
+        .eq('organization_id', organization_id)
+        .eq('user_id', userId)
+        .single();
+
+      if (memberError) {
+        console.error('🔍 AuthProvider: Error checking existing member:', memberError);
+        throw memberError;
+      }
+
+      if (existingMember) {
+        console.log('🔍 AuthProvider: User already a member of the organization.');
+        return 'already_member';
+      }
+
+      // Add the user as a member of the organization
+      const { error: addMemberError } = await supabase
+        .from('organization_members')
+        .insert({
+          organization_id: organization_id,
+          user_id: userId,
+          role: 'student', // Default role for new members
+        });
+
+      if (addMemberError) {
+        console.error('🔍 AuthProvider: Error adding member to organization:', addMemberError);
+        throw addMemberError;
+      }
+
+      console.log('🔍 AuthProvider: User added to organization successfully.');
+      return 'success';
+    } catch (error) {
+      console.error('🔍 AuthProvider: Error in useInviteCode:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     profile,
     session,
     loading,
+    supabase,
     signIn,
     signOut,
     updateProfile,
     checkUserExists,
+    resetPassword,
+    createInviteCode,
+    useInviteCode,
   };
 
   return (

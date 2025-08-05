@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { testMagicLink } from '../../utils/testEmail';
-import { Mail, Loader2, Building, User, Key } from 'lucide-react';
+import { Mail, Loader2, Building, User, Key, Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -10,6 +9,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,48 +17,40 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('signup');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   // Organization signup fields
-  const [userType, setUserType] = useState<'individual' | 'organization' | null>(null);
+  const [userType, setUserType] = useState<'organizer' | 'student' | null>(null);
   const [organizationName, setOrganizationName] = useState('');
-  const [isAffiliated, setIsAffiliated] = useState<boolean | null>(null);
-  const [entryCode, setEntryCode] = useState('');
-  const [showEntryCodeInput, setShowEntryCodeInput] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [showInviteCodeInput, setShowInviteCodeInput] = useState(false);
   
-  const { signIn, checkUserExists } = useAuth();
-
-  const testMagicLinkFunction = async () => {
-    if (!email) {
-      setMessage('Please enter an email first');
-      setMessageType('error');
-      return;
-    }
-    
-    setLoading(true);
-    setMessage('');
-    
-    try {
-      console.log('🔍 LoginForm: Testing magic link for:', email);
-      const result = await testMagicLink(email);
-      
-      if (result.success) {
-        setMessage('Test magic link sent successfully! Check your email.');
-        setMessageType('success');
-      } else {
-        setMessage(`Test failed: ${result.error}`);
-        setMessageType('error');
-      }
-    } catch (error) {
-      console.error('🔍 LoginForm: Test error:', error);
-      setMessage(`Test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { signIn, checkUserExists, resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (loading) {
+      console.log('🔍 LoginForm: Already loading, ignoring submit');
+      return;
+    }
+    
+    console.log('🔍 LoginForm: Form submitted');
+    console.log('🔍 LoginForm: Form validation:', isFormValid());
+    console.log('🔍 LoginForm: Current state:', {
+      email,
+      mode,
+      userType,
+      firstName,
+      lastName,
+      organizationName,
+      inviteCode,
+      showInviteCodeInput,
+      loading
+    });
+    
     setLoading(true);
     setMessage('');
     setIsNewUser(null);
@@ -70,28 +62,39 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       console.log('🔍 LoginForm: User type:', userType);
       console.log('🔍 LoginForm: Organization name:', organizationName);
       
+      // Add a small delay to ensure any pending state updates are complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const result = await signIn(
-        email, 
+        email,
+        password,
         mode === 'signup' ? firstName : undefined,
         mode === 'signup' ? lastName : undefined,
         mode === 'signup' ? (userType || undefined) : undefined,
         mode === 'signup' ? organizationName : undefined,
-        mode === 'signup' ? entryCode : undefined
+        mode === 'signup' ? inviteCode : undefined
       );
       
       console.log('🔍 LoginForm: Sign in result:', result);
       setIsNewUser(result.isNewUser);
       
       if (result.isNewUser) {
-        setMessage('Magic link sent! Check your email to create your account.');
+        setMessage('Account created successfully! You are now signed in.');
       } else {
-        setMessage('Magic link sent! Check your email to sign in.');
+        setMessage('Signed in successfully!');
       }
       
       setMessageType('success');
+      
+      // Close the form after successful sign in
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 2000);
     } catch (error) {
       console.error('🔍 LoginForm: Error in handleSubmit:', error);
-      setMessage(`Error sending login link: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -105,8 +108,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     setMessage('');
     setIsNewUser(null);
     
-    // Only check user existence if we have a valid email and user type is selected
-    if (newEmail && newEmail.includes('@') && userType) {
+    // Check user existence if we have a valid email
+    if (newEmail && newEmail.includes('@')) {
       try {
         const exists = await checkUserExists(newEmail);
         setIsNewUser(!exists);
@@ -116,12 +119,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     }
   };
 
-  const handleUserTypeChange = (type: 'individual' | 'organization') => {
+  const handleUserTypeChange = (type: 'organizer' | 'student') => {
     setUserType(type);
     setOrganizationName('');
-    setIsAffiliated(null);
-    setEntryCode('');
-    setShowEntryCodeInput(false);
+    setInviteCode('');
+    setShowInviteCodeInput(false);
     setIsNewUser(null); // Reset user existence check when type changes
     
     // Re-check user existence if we have a valid email
@@ -134,18 +136,37 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     }
   };
 
-  const handleAffiliationChange = (affiliated: boolean) => {
-    setIsAffiliated(affiliated);
+  const handleInviteCodeChange = (affiliated: boolean) => {
+    setShowInviteCodeInput(affiliated);
     if (affiliated) {
-      setShowEntryCodeInput(true);
-    } else {
-      setShowEntryCodeInput(false);
-      setEntryCode('');
+      setInviteCode('');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage('Please enter your email address first');
+      setMessageType('error');
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      await resetPassword(email);
+      setMessage('Password reset email sent! Check your inbox.');
+      setMessageType('success');
+    } catch (error) {
+      setMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
     }
   };
 
   const getButtonText = () => {
-    if (loading) return 'Sending magic link...';
+    if (loading) return 'Signing in...';
     if (mode === 'signup') return 'Create Account';
     return 'Sign In';
   };
@@ -167,17 +188,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   };
 
   const isFormValid = () => {
-    if (mode === 'login') return email;
+    if (mode === 'login') return email && password;
     
     // Signup validation
-    if (!email || !firstName || !lastName) return false;
+    if (!email || !password || !firstName || !lastName) return false;
     
     // Require user type selection
     if (!userType) return false;
     
-    if (userType === 'organization' && !organizationName) return false;
+    if (userType === 'organizer' && !organizationName) return false;
+    if (userType === 'student' && !organizationName) return false;
     
-    if (userType === 'individual' && isAffiliated === true && !entryCode) return false;
+    if (userType === 'organizer' && showInviteCodeInput && !inviteCode) return false;
+    if (userType === 'student' && showInviteCodeInput && !inviteCode) return false;
     
     return true;
   };
@@ -279,34 +302,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => handleUserTypeChange('individual')}
+                onClick={() => handleUserTypeChange('organizer')}
                 className={`p-3 rounded-lg border-2 transition-all ${
-                  userType === 'individual'
+                  userType === 'organizer'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <User className="w-5 h-5 mx-auto mb-2" />
-                <span className="text-sm font-medium">Individual</span>
+                <span className="text-sm font-medium">Organizer</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleUserTypeChange('organization')}
+                onClick={() => handleUserTypeChange('student')}
                 className={`p-3 rounded-lg border-2 transition-all ${
-                  userType === 'organization'
+                  userType === 'student'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <Building className="w-5 h-5 mx-auto mb-2" />
-                <span className="text-sm font-medium">Organization</span>
+                <User className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium">Student</span>
               </button>
             </div>
           </div>
         )}
 
         {/* Organization Name - only for organization signup */}
-        {mode === 'signup' && userType === 'organization' && (
+        {mode === 'signup' && (userType === 'organizer' || userType === 'student') && (
           <div>
             <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
               Organization Name
@@ -322,69 +345,36 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
                 onChange={(e) => setOrganizationName(e.target.value)}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter organization name"
-                required={userType === 'organization'}
+                required={userType === 'organizer' || userType === 'student'}
                 disabled={loading}
               />
             </div>
           </div>
         )}
 
-        {/* Affiliation Question - only for individual signup */}
-        {mode === 'signup' && userType === 'individual' && (
+        {/* Invite Code Input - only for students with invite codes */}
+        {mode === 'signup' && userType === 'student' && showInviteCodeInput && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Are you affiliated with any organizations that use ReasynAI?
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleAffiliationChange(true)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  isAffiliated === true
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className="text-sm font-medium">Yes</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAffiliationChange(false)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  isAffiliated === false
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className="text-sm font-medium">No</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Entry Code Input - only for affiliated individuals */}
-        {mode === 'signup' && userType === 'individual' && showEntryCodeInput && (
-          <div>
-            <label htmlFor="entryCode" className="block text-sm font-medium text-gray-700 mb-2">
-              Organization Entry Code
+            <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-2">
+              Invite Code
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Key className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                id="entryCode"
+                id="inviteCode"
                 type="text"
-                value={entryCode}
-                onChange={(e) => setEntryCode(e.target.value)}
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your organization code"
-                required={showEntryCodeInput}
+                placeholder="Enter your invite code"
+                required={showInviteCodeInput}
                 disabled={loading}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              You can also join an organization later from your dashboard
+              Enter the invite code you received from your organization
             </p>
           </div>
         )}
@@ -421,6 +411,48 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
           )}
         </div>
 
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Key className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your password"
+              required
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Forgot Password Link - only show in login mode */}
+        {mode === 'login' && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={loading || !email}
+              className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
+
         {message && (
           <div className={`p-3 rounded-lg text-sm ${
             messageType === 'success' 
@@ -439,27 +471,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Sending magic link...</span>
+              <span>Signing in...</span>
             </>
           ) : (
             <span>{getButtonText()}</span>
           )}
         </button>
-
-        {/* Test button for debugging */}
-        <button
-          type="button"
-          onClick={testMagicLinkFunction}
-          disabled={loading || !email}
-          className="w-full flex items-center justify-center space-x-2 bg-gray-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Test Magic Link
-        </button>
       </form>
 
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-600">
-          We'll send you a magic link to {mode === 'signup' ? 'create your account' : 'sign in securely'}
+          {mode === 'signup' ? 'Create your account to get started' : 'Sign in to your account'}
         </p>
       </div>
     </div>

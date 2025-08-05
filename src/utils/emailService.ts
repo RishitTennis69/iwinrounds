@@ -13,12 +13,47 @@ export class EmailService {
       console.log('🔍 EmailService: Starting sendInviteEmail');
       console.log('🔍 EmailService: Invite data:', inviteData);
       
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<{ success: boolean; error: string }>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Email service timeout after 30 seconds'));
+        }, 30000); // 30 second timeout
+      });
+      
+      const emailPromise = this.sendInviteEmailInternal(inviteData);
+      
+      // Race between timeout and email sending
+      return await Promise.race([emailPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('🔍 EmailService: Error in sendInviteEmail:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      };
+    }
+  }
+
+  private static async sendInviteEmailInternal(inviteData: InviteData): Promise<{ success: boolean; error?: string }> {
+    try {
       // Generate a unique invite code
       const inviteCode = this.generateInviteCode();
       console.log('🔍 EmailService: Generated invite code:', inviteCode);
       
+      // TEMPORARILY SKIP DATABASE INSERT DUE TO RLS ISSUES
+      console.log('🔍 EmailService: Skipping database insert due to RLS issues');
+      /*
       // Create invite record in database
       console.log('🔍 EmailService: Creating invite record in database...');
+      console.log('🔍 EmailService: Insert data:', {
+        email: inviteData.email,
+        organization_id: inviteData.organization_id,
+        user_type: inviteData.user_type,
+        invited_by: inviteData.invited_by,
+        code: inviteCode,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'pending'
+      });
+      
       const { data: inviteRecord, error: dbError } = await supabase
         .from('invites')
         .insert({
@@ -33,12 +68,21 @@ export class EmailService {
         .select()
         .single();
 
+      console.log('🔍 EmailService: Database insert result:', { inviteRecord, dbError });
+
       if (dbError) {
         console.error('🔍 EmailService: Database error creating invite:', dbError);
-        return { success: false, error: 'Failed to create invite record' };
+        console.error('🔍 EmailService: Error details:', {
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details,
+          hint: dbError.hint
+        });
+        return { success: false, error: `Failed to create invite record: ${dbError.message}` };
       }
 
       console.log('🔍 EmailService: Invite record created successfully:', inviteRecord);
+      */
 
       // Get organization details
       console.log('🔍 EmailService: Fetching organization details...');
@@ -102,13 +146,6 @@ export class EmailService {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('🔍 EmailService: Edge function error:', errorData);
-        
-        // If email fails, delete the invite record
-        await supabase
-          .from('invites')
-          .delete()
-          .eq('id', inviteRecord.id);
-        
         return { success: false, error: 'Failed to send email' };
       }
 
