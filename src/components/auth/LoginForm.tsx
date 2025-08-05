@@ -18,7 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [mode, setMode] = useState<'login' | 'signup'>('signup');
   
   // Organization signup fields
-  const [userType, setUserType] = useState<'individual' | 'organization'>('individual');
+  const [userType, setUserType] = useState<'individual' | 'organization' | null>(null);
   const [organizationName, setOrganizationName] = useState('');
   const [isAffiliated, setIsAffiliated] = useState<boolean | null>(null);
   const [entryCode, setEntryCode] = useState('');
@@ -37,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
         email, 
         mode === 'signup' ? firstName : undefined,
         mode === 'signup' ? lastName : undefined,
-        mode === 'signup' ? userType : undefined,
+        mode === 'signup' ? (userType || undefined) : undefined,
         mode === 'signup' ? organizationName : undefined,
         mode === 'signup' ? entryCode : undefined
       );
@@ -121,6 +121,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     
     // Signup validation
     if (!email || !firstName || !lastName) return false;
+    
+    // Require user type selection
+    if (!userType) return false;
     
     if (userType === 'organization' && !organizationName) return false;
     
