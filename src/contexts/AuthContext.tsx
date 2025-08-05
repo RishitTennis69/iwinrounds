@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileCache, setProfileCache] = useState<Map<string, Profile>>(new Map());
 
   console.log('🔍 AuthProvider: Initial state:', { user: !!user, profile: !!profile, loading, profileLoading });
 
@@ -45,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loadingTimeout = setTimeout(() => {
       console.log('🔍 AuthProvider: Loading timeout reached, forcing loading to false');
       setLoading(false);
-    }, 10000); // 10 second timeout
+    }, 5000); // Reduced to 5 seconds
     
     // Handle auth callback from magic link
     const handleAuthCallback = async () => {
@@ -60,6 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await fetchProfile(session.user.id);
         } else {
           console.log('🔍 AuthProvider: No session in callback');
+          setLoading(false);
         }
         
         // Clear URL parameters after processing
@@ -81,22 +83,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔍 AuthProvider: No auth callback, getting initial session');
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔍 AuthProvider: Initial session result:', !!session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        console.log('🔍 AuthProvider: User found, fetching profile');
-        fetchProfile(session.user.id);
-      } else {
-        console.log('🔍 AuthProvider: No user in initial session');
+    // Get initial session with timeout
+    const sessionPromise = supabase.auth.getSession();
+    const sessionTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Session fetch timeout')), 3000)
+    );
+
+    Promise.race([sessionPromise, sessionTimeout])
+      .then((result: any) => {
+        const { data: { session } } = result;
+        console.log('🔍 AuthProvider: Initial session result:', !!session);
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          console.log('🔍 AuthProvider: User found, fetching profile');
+          fetchProfile(session.user.id);
+        } else {
+          console.log('🔍 AuthProvider: No user in initial session');
+          setLoading(false);
+        }
+      })
+      .catch(error => {
+        console.error('🔍 AuthProvider: Error getting initial session:', error);
         setLoading(false);
-      }
-    }).catch(error => {
-      console.error('🔍 AuthProvider: Error getting initial session:', error);
-      setLoading(false);
-    });
+      });
 
     // Listen for auth changes
     const {
@@ -125,6 +135,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchProfile = async (userId: string) => {
     console.log('🔍 AuthProvider: fetchProfile called for userId:', userId);
+    
+    // Check cache first
+    if (profileCache.has(userId)) {
+      console.log('🔍 AuthProvider: Using cached profile');
+      setProfile(profileCache.get(userId)!);
+      setLoading(false);
+      return;
+    }
+
     setProfileLoading(true);
     
     try {
@@ -136,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000) // Reduced to 3 seconds
       );
 
       const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
@@ -155,6 +174,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         console.log('🔍 AuthProvider: Profile fetched successfully:', data);
         setProfile(data);
+        
+        // Cache the profile
+        setProfileCache(prev => new Map(prev.set(userId, data)));
         
         // Check if there's pending user info from signup
         const pendingInfo = localStorage.getItem('pending_user_info');

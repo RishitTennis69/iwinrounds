@@ -34,23 +34,33 @@ export class DebateSessionService {
     }
   }
 
-  static async getUserSessions(userId: string) {
+  static async getUserSessions(userId: string): Promise<DebateSession[]> {
     try {
-      const { data, error } = await supabase
+      console.log('🔍 DebateSessionService: Fetching sessions for user:', userId);
+      
+      // Add timeout to the query
+      const queryPromise = supabase
         .from('debate_sessions')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Debate sessions fetch timeout')), 5000)
+      );
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
       if (error) {
-        console.error('Error fetching user sessions:', error);
-        throw error;
+        console.error('🔍 DebateSessionService: Error fetching sessions:', error);
+        return [];
       }
 
+      console.log('🔍 DebateSessionService: Successfully fetched sessions:', data?.length || 0);
       return data || [];
     } catch (error) {
-      console.error('Error in getUserSessions:', error);
-      throw error;
+      console.error('🔍 DebateSessionService: Error in getUserSessions:', error);
+      return [];
     }
   }
 

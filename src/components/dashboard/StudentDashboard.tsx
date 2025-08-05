@@ -21,10 +21,14 @@ const StudentDashboard: React.FC = () => {
 
   const fetchDebateSessions = async () => {
     try {
+      console.log('🔍 StudentDashboard: Fetching debate sessions');
       const data = await DebateSessionService.getUserSessions(user!.id);
       setDebateSessions(data || []);
+      console.log('🔍 StudentDashboard: Debate sessions loaded:', data?.length || 0);
     } catch (error) {
-      console.error('Error in fetchDebateSessions:', error);
+      console.error('🔍 StudentDashboard: Error in fetchDebateSessions:', error);
+      // Set empty array on error to prevent endless loading
+      setDebateSessions([]);
     } finally {
       setLoading(false);
     }
