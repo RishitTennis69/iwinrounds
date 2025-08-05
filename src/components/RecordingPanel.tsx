@@ -103,6 +103,12 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
 
   const handleComplete = () => {
     if (transcript.trim()) {
+      // Stop recording if it's still running
+      if (isRecording) {
+        speechRecognition.stopRecording();
+        setIsRecording(false);
+      }
+      
       onSpeechComplete(transcript);
       setTranscript('');
       setDuration(0);
@@ -158,22 +164,13 @@ const RecordingPanel: React.FC<RecordingPanelProps> = ({
               <span>Start Recording</span>
             </button>
           ) : (
-            <div className="flex space-x-2">
-              <button
-                onClick={restartRecording}
-                className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <RotateCcw className="w-5 h-5" />
-                <span>Restart</span>
-              </button>
-              <button
-                onClick={stopRecording}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Square className="w-5 h-5" />
-                <span>End Recording</span>
-              </button>
-            </div>
+            <button
+              onClick={restartRecording}
+              className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span>Restart</span>
+            </button>
           )}
         </div>
 
