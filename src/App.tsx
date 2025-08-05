@@ -19,10 +19,19 @@ import CoachDashboard from './components/dashboard/CoachDashboard';
 
 // Main App Component with Authentication
 const AppWithAuth: React.FC = () => {
+  console.log('🔍 AppWithAuth: Component rendering');
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
+  console.log('🔍 AppWithAuth: Auth state:', { 
+    user: !!user, 
+    profile: !!profile, 
+    loading,
+    showLogin 
+  });
+
   if (loading) {
+    console.log('🔍 AppWithAuth: Showing loading spinner');
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -30,8 +39,11 @@ const AppWithAuth: React.FC = () => {
     );
   }
 
+  console.log('🔍 AppWithAuth: Loading complete, checking user state');
+
   // If user is not logged in, show landing page with login popup
   if (!user) {
+    console.log('🔍 AppWithAuth: No user, showing landing page');
     return (
       <>
         <App onShowLogin={() => setShowLogin(true)} />
@@ -47,22 +59,26 @@ const AppWithAuth: React.FC = () => {
     );
   }
 
-  // Route based on user type
+  console.log('🔍 AppWithAuth: User logged in, checking profile:', profile);
+
+  // Route based on user type (if logged in)
   if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
+    console.log('🔍 AppWithAuth: Routing to CoachDashboard');
     return <CoachDashboard />;
   }
-
   if (profile?.user_type === 'student' || profile?.user_type === 'individual') {
+    console.log('🔍 AppWithAuth: Routing to StudentDashboard');
     return <StudentDashboard />;
   }
-
-  // Fallback for users without a profile
-  return <StudentDashboard />;
+  
+  console.log('🔍 AppWithAuth: Fallback to StudentDashboard');
+  return <StudentDashboard />; // Fallback
 };
 
 // Original App Component (for debate functionality)
 const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
-  const { user, profile } = useAuth();
+  console.log('🔍 App: Component rendering with onShowLogin:', !!onShowLogin);
+  
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<any>(null);
@@ -76,13 +92,25 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   const [ttsService] = useState(() => new TTSService());
   const finalAnalysisRef = useRef<HTMLDivElement>(null);
 
+  const { user, profile } = useAuth();
+
+  console.log('🔍 App: State initialized:', { 
+    mode, 
+    showModeModal, 
+    selectedFormat: !!selectedFormat,
+    user: !!user,
+    profile: !!profile
+  });
+
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
+    console.log('🔍 App: handleModeSelect called with selectedMode:', selectedMode, 'and format:', format);
     setMode(selectedMode);
     setSelectedFormat(format);
     setShowModeModal(false);
   };
 
   const handleBackToModeSelection = () => {
+    console.log('🔍 App: handleBackToModeSelection called');
     setMode('landing');
     setShowModeModal(true);
     setSession(null);
@@ -93,6 +121,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   };
 
   const handleBackToLanding = () => {
+    console.log('🔍 App: handleBackToLanding called');
     setMode('landing');
     setShowModeModal(false);
     setSession(null);
@@ -103,14 +132,17 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   };
 
   const handleShowModal = (show: boolean) => {
+    console.log('🔍 App: handleShowModal called with show:', show);
     setShowModeModal(show);
   };
 
   const handleHintUsed = () => {
+    console.log('🔍 App: handleHintUsed called');
     setHintsUsed(h => h + 1);
   };
 
   const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number, firstSpeaker: 'affirmative' | 'negative') => {
+    console.log('🔍 App: initializeSession called with topic:', topic, 'speakers:', speakers, 'people:', people, 'speeches:', speeches, 'firstSpeaker:', firstSpeaker);
     const debateOrder = createDebateOrder(speakers, speeches, firstSpeaker);
     const newSession: DebateSession = {
       id: `session-${Date.now()}`,
@@ -129,6 +161,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   };
 
   const createDebateOrder = (speakers: Speaker[], speeches: number, firstSpeaker: 'affirmative' | 'negative'): Speaker[] => {
+    console.log('🔍 App: createDebateOrder called with speakers:', speakers, 'speeches:', speeches, 'firstSpeaker:', firstSpeaker);
     const aff = speakers.filter(s => s.team === 'affirmative');
     const neg = speakers.filter(s => s.team === 'negative');
     const sequence: Speaker[] = [];
@@ -157,6 +190,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   };
 
   const handleSpeechComplete = async (transcript: string) => {
+    console.log('🔍 App: handleSpeechComplete called with transcript:', transcript);
     if (!session || !currentSpeaker) return;
 
     setIsAnalyzing(true);
@@ -202,13 +236,14 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
         }
       }
     } catch (err) {
-      console.error('Error processing speech:', err);
+      console.error('🔍 App: Error processing speech:', err);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const analyzeWinner = async (updatedSession: DebateSession) => {
+    console.log('🔍 App: analyzeWinner called with updatedSession:', updatedSession);
     try {
       const winnerAnalysis = await AIService.analyzeWinner(updatedSession);
       const finalSession = {
@@ -231,15 +266,16 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
             user.id, 
             profile?.organization_id || undefined
           );
+          console.log('🔍 App: Debate session saved successfully to database');
         } catch (error) {
-          console.error('Error saving session to database:', error);
+          console.error('🔍 App: Error saving session to database:', error);
           // Continue even if saving fails
         }
       }
 
       return finalSession;
     } catch (error) {
-      console.error('Error analyzing winner:', error);
+      console.error('🔍 App: Error analyzing winner:', error);
       const fallbackSession = {
         ...updatedSession,
         endTime: new Date(),
@@ -255,7 +291,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
             profile?.organization_id || undefined
           );
         } catch (error) {
-          console.error('Error saving session to database:', error);
+          console.error('🔍 App: Error saving session to database:', error);
         }
       }
 
@@ -264,11 +300,13 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   };
 
   const handleDebateComplete = () => {
+    console.log('🔍 App: handleDebateComplete called');
     setShowCompletionPopup(false);
   };
 
   // Landing page with mode selection modal
   if (mode === 'landing') {
+    console.log('🔍 App: Rendering landing page');
     const features = [
       {
         icon: '🤖',
@@ -313,6 +351,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
 
   // Practice mode
   if (mode === 'practice') {
+    console.log('🔍 App: Rendering practice mode');
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}
@@ -323,6 +362,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
 
   // Setup panel
   if (!session) {
+    console.log('🔍 App: Rendering SetupPanel');
     return (
       <div>
         <SetupPanel 
@@ -335,6 +375,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   }
 
   // Main debate interface
+  console.log('🔍 App: Rendering main debate interface');
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -422,6 +463,7 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
 
 // Root component with AuthProvider
 const AppRoot: React.FC = () => {
+  console.log('🔍 AppRoot: Component rendering');
   return (
     <AuthProvider>
       <AppWithAuth />

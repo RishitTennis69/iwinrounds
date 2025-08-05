@@ -4,15 +4,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Debug environment variables
-console.log('Environment variables check:');
-console.log('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
+console.log('🔍 Supabase: Environment variables check:');
+console.log('🔍 Supabase: VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+console.log('🔍 Supabase: VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('🔍 Supabase: Missing environment variables, throwing error');
   throw new Error('Missing Supabase environment variables');
 }
 
+console.log('🔍 Supabase: Creating client with URL:', supabaseUrl);
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+console.log('🔍 Supabase: Client created successfully');
 
 // Database types
 export interface Database {

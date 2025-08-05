@@ -29,40 +29,60 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  console.log('🔍 AuthProvider: Component rendering');
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log('🔍 AuthProvider: Initial state:', { user: !!user, profile: !!profile, loading });
+
   useEffect(() => {
+    console.log('🔍 AuthProvider: useEffect running');
+    
     // Handle auth callback from magic link
     const handleAuthCallback = async () => {
+      console.log('🔍 AuthProvider: Handling auth callback');
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (session) {
+        console.log('🔍 AuthProvider: Session found in callback');
         setSession(session);
         setUser(session.user);
         await fetchProfile(session.user.id);
+      } else {
+        console.log('🔍 AuthProvider: No session in callback');
       }
       
       // Clear URL parameters after processing
       if (window.location.hash.includes('access_token')) {
+        console.log('🔍 AuthProvider: Clearing URL parameters');
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
 
     // Check if this is an auth callback
     if (window.location.hash.includes('access_token')) {
+      console.log('🔍 AuthProvider: Auth callback detected in URL');
       handleAuthCallback();
+    } else {
+      console.log('🔍 AuthProvider: No auth callback, getting initial session');
     }
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔍 AuthProvider: Initial session result:', !!session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        console.log('🔍 AuthProvider: User found, fetching profile');
         fetchProfile(session.user.id);
+      } else {
+        console.log('🔍 AuthProvider: No user in initial session');
       }
+      setLoading(false);
+    }).catch(error => {
+      console.error('🔍 AuthProvider: Error getting initial session:', error);
       setLoading(false);
     });
 
@@ -70,22 +90,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔍 AuthProvider: Auth state change event:', event, 'session:', !!session);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('🔍 AuthProvider: User in auth state change, fetching profile');
         await fetchProfile(session.user.id);
       } else {
+        console.log('🔍 AuthProvider: No user in auth state change, clearing profile');
         setProfile(null);
       }
       
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🔍 AuthProvider: Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    console.log('🔍 AuthProvider: fetchProfile called for userId:', userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -94,23 +121,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('🔍 AuthProvider: Error fetching profile:', error);
         // If profile doesn't exist, create one
         if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
+          console.log('🔍 AuthProvider: Profile not found, creating new profile');
           await createProfile(userId);
         }
       } else {
+        console.log('🔍 AuthProvider: Profile fetched successfully:', data);
         setProfile(data);
         
         // Check if there's pending user info from signup
         const pendingInfo = localStorage.getItem('pending_user_info');
         if (pendingInfo && !data.first_name) {
+          console.log('🔍 AuthProvider: Found pending user info, updating profile');
           try {
             const { firstName, lastName, userType, organizationName, entryCode } = JSON.parse(pendingInfo);
             
             // Handle organization creation if needed
             let organizationId = null;
             if (userType === 'organization' && organizationName) {
+              console.log('🔍 AuthProvider: Creating organization:', organizationName);
               const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
                 .insert({ name: organizationName })
@@ -118,16 +149,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .single();
               
               if (orgError) {
-                console.error('Error creating organization:', orgError);
+                console.error('🔍 AuthProvider: Error creating organization:', orgError);
               } else {
                 organizationId = orgData.id;
+                console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
               }
             }
             
             // Handle entry code if provided
             if (entryCode) {
+              console.log('🔍 AuthProvider: Entry code provided:', entryCode);
               // TODO: Implement entry code validation and organization joining
-              console.log('Entry code provided:', entryCode);
             }
             
             await updateProfile({ 
@@ -137,13 +169,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               organization_id: organizationId
             });
             localStorage.removeItem('pending_user_info');
+            console.log('🔍 AuthProvider: Profile updated with pending info');
           } catch (error) {
-            console.error('Error updating profile with pending info:', error);
+            console.error('🔍 AuthProvider: Error updating profile with pending info:', error);
           }
         }
       }
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('🔍 AuthProvider: Error in fetchProfile:', error);
     }
   };
 
@@ -166,12 +199,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.error('Error creating profile:', error);
+        console.error('🔍 AuthProvider: Error creating profile:', error);
       } else {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error in createProfile:', error);
+      console.error('🔍 AuthProvider: Error in createProfile:', error);
     }
   };
 
@@ -190,7 +223,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return !!data;
     } catch (error) {
-      console.error('Error checking user existence:', error);
+      console.error('🔍 AuthProvider: Error checking user existence:', error);
       return false;
     }
   };
@@ -225,7 +258,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return { isNewUser: !userExists };
     } catch (error) {
-      console.error('Error signing in:', error);
+      console.error('🔍 AuthProvider: Error signing in:', error);
       throw error;
     }
   };
@@ -237,7 +270,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('🔍 AuthProvider: Error signing out:', error);
       throw error;
     }
   };
@@ -259,7 +292,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setProfile(data);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('🔍 AuthProvider: Error updating profile:', error);
       throw error;
     }
   };
