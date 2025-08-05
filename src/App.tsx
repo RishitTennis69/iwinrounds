@@ -27,6 +27,7 @@ const AppWithAuth: React.FC = () => {
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [profileLoadingTimeout, setProfileLoadingTimeout] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'debate' | 'practice'>('dashboard');
   const [showModeSelection, setShowModeSelection] = useState(false);
 
@@ -82,6 +83,20 @@ const AppWithAuth: React.FC = () => {
     }
   }, [loading]);
 
+  // Fallback timeout for profile loading
+  useEffect(() => {
+    if (user && !profile) {
+      const timeout = setTimeout(() => {
+        console.log('🔍 AppWithAuth: Profile loading timeout reached, forcing fallback');
+        setProfileLoadingTimeout(true);
+      }, 5000); // 5 second timeout for profile loading
+
+      return () => clearTimeout(timeout);
+    } else {
+      setProfileLoadingTimeout(false);
+    }
+  }, [user, profile]);
+
   if (loading && !loadingTimeout) {
     console.log('🔍 AppWithAuth: Showing loading spinner');
     return (
@@ -120,7 +135,7 @@ const AppWithAuth: React.FC = () => {
   }
 
   // If user is logged in but profile is not loaded yet, show loading
-  if (!profile) {
+  if (!profile && !profileLoadingTimeout) {
     console.log('🔍 AppWithAuth: User logged in but profile not loaded, showing loading');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -129,6 +144,24 @@ const AppWithAuth: React.FC = () => {
           <p className="text-slate-600">Loading your profile...</p>
         </div>
       </div>
+    );
+  }
+
+  // If profile loading times out, show landing page with login option
+  if (profileLoadingTimeout) {
+    console.log('🔍 AppWithAuth: Profile loading timed out, showing landing page');
+    return (
+      <>
+        <App onShowLogin={() => setShowLogin(true)} />
+        {showLogin && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <LoginForm 
+              onSuccess={() => setShowLogin(false)} 
+              onClose={() => setShowLogin(false)}
+            />
+          </div>
+        )}
+      </>
     );
   }
 
@@ -166,6 +199,24 @@ const AppWithAuth: React.FC = () => {
     email: profile?.email,
     first_name: profile?.first_name
   });
+
+  // If profile is null but user exists, show landing page (fallback for failed profile loading)
+  if (!profile) {
+    console.log('🔍 AppWithAuth: Profile is null but user exists, showing landing page as fallback');
+    return (
+      <>
+        <App onShowLogin={() => setShowLogin(true)} />
+        {showLogin && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <LoginForm 
+              onSuccess={() => setShowLogin(false)} 
+              onClose={() => setShowLogin(false)}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
 
   if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
     console.log('🔍 AppWithAuth: Routing to CoachDashboard - user_type:', profile?.user_type);
