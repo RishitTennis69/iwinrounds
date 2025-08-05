@@ -32,7 +32,15 @@ const CoachDashboard: React.FC = () => {
 
   useEffect(() => {
     if (user && profile) {
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.log('🔍 CoachDashboard: Loading timeout reached, forcing loading to false');
+        setLoading(false);
+      }, 5000); // 5 second timeout
+      
       fetchOrganizationMembers();
+      
+      return () => clearTimeout(timeout);
     }
   }, [user, profile]);
 
@@ -57,6 +65,8 @@ const CoachDashboard: React.FC = () => {
 
       if (error) {
         console.error('🔍 CoachDashboard: Error fetching members:', error);
+        // Set loading to false even if there's an error
+        setLoading(false);
         return;
       }
 
