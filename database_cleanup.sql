@@ -204,28 +204,15 @@ WHERE ic.is_active = true AND ic.expires_at > NOW();
 
 GRANT SELECT ON active_invite_codes_view TO authenticated;
 
--- 17. Fix the profile creation trigger to handle new roles
+-- 17. Remove the profile creation trigger to let our createProfile function handle it
 -- Drop the existing trigger if it exists
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
--- Create a new trigger that handles the simplified roles
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, user_type)
-  VALUES (NEW.id, NEW.email, 'student'); -- Default to student for new users
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Drop the function as well
+DROP FUNCTION IF EXISTS public.handle_new_user();
 
--- Create the trigger
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- 18. Grant necessary permissions for the trigger function
-GRANT EXECUTE ON FUNCTION public.handle_new_user() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role;
+-- Note: We'll handle profile creation in our createProfile function instead
+-- This ensures the correct user_type is set based on the signup form
 
 -- Summary of what this migration does:
 -- 1. Simplifies user roles to: organizer, coach, student

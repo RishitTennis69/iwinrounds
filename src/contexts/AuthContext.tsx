@@ -419,6 +419,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       } else {
         console.log('🔍 AuthProvider: Profile created successfully:', data);
+        console.log('🔍 AuthProvider: Profile user_type is:', data.user_type);
         setProfile(data);
         
         // Clear pending user info after successful creation
