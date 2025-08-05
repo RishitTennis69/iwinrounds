@@ -89,6 +89,42 @@ const FinalAnalysis: React.FC<FinalAnalysisProps> = ({ session }) => {
                     <h5 className="text-sm font-medium text-gray-900 mb-1">Overall Assessment:</h5>
                     <p className="text-sm text-gray-700">{(speaker.feedback as any).overallAssessment}</p>
                   </div>
+                  
+                  {/* Delivery Metrics */}
+                  {(speaker.feedback as any).delivery && (
+                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                      <h5 className="text-sm font-medium text-gray-900 mb-2">Delivery Metrics:</h5>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Clock className="w-4 h-4 text-blue-600" />
+                            <span className="text-xs font-medium text-gray-700">Speaking Pace</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {(speaker.feedback as any).delivery.wordsPerMinute} WPM
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {(speaker.feedback as any).delivery.paceAssessment}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Award className="w-4 h-4 text-blue-600" />
+                            <span className="text-xs font-medium text-gray-700">Filler Words</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {(speaker.feedback as any).delivery.fillerWords.count} words
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            ({(speaker.feedback as any).delivery.fillerWords.percentage.toFixed(1)}% of speech)
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {(speaker.feedback as any).delivery.fillerAssessment}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
