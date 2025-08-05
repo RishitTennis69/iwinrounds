@@ -28,13 +28,15 @@ const AppWithAuth: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'debate' | 'practice'>('dashboard');
+  const [showModeSelection, setShowModeSelection] = useState(false);
 
   console.log('🔍 AppWithAuth: Auth state:', { 
     user: !!user, 
     profile: !!profile, 
     loading,
     showLogin,
-    currentView
+    currentView,
+    showModeSelection
   });
 
   // Listen for custom navigation events from StudentDashboard
@@ -122,12 +124,26 @@ const AppWithAuth: React.FC = () => {
   // Route based on currentView and user type
   if (currentView === 'debate') {
     console.log('🔍 AppWithAuth: Rendering debate mode');
-    return <App onShowLogin={() => setShowLogin(true)} />;
+    return <App 
+      onShowLogin={() => setShowLogin(true)} 
+      onBackToModeSelection={() => {
+        setCurrentView('dashboard');
+        setShowModeSelection(true);
+        globalNavigationTarget = null;
+      }}
+    />;
   }
   
   if (currentView === 'practice') {
     console.log('🔍 AppWithAuth: Rendering practice mode');
-    return <App onShowLogin={() => setShowLogin(true)} />;
+    return <App 
+      onShowLogin={() => setShowLogin(true)} 
+      onBackToModeSelection={() => {
+        setCurrentView('dashboard');
+        setShowModeSelection(true);
+        globalNavigationTarget = null;
+      }}
+    />;
   }
 
   // Default to dashboard based on user type
@@ -137,7 +153,28 @@ const AppWithAuth: React.FC = () => {
   }
   if (profile?.user_type === 'student' || profile?.user_type === 'individual') {
     console.log('🔍 AppWithAuth: Routing to StudentDashboard');
-    return <StudentDashboard />;
+    return (
+      <>
+        <StudentDashboard />
+        {showModeSelection && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <ModeSelection 
+              onSelectMode={(mode, format) => {
+                setShowModeSelection(false);
+                if (mode === 'debate') {
+                  globalNavigationTarget = 'debate';
+                  setCurrentView('debate');
+                } else if (mode === 'practice') {
+                  globalNavigationTarget = 'practice';
+                  setCurrentView('practice');
+                }
+              }}
+              onBack={() => setShowModeSelection(false)}
+            />
+          </div>
+        )}
+      </>
+    );
   }
   
   console.log('🔍 AppWithAuth: Fallback to StudentDashboard');
@@ -145,7 +182,7 @@ const AppWithAuth: React.FC = () => {
 };
 
 // Original App Component (for debate functionality)
-const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
+const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => void }> = ({ onShowLogin, onBackToModeSelection }) => {
   console.log('🔍 App: Component rendering with onShowLogin:', !!onShowLogin);
   
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
@@ -290,18 +327,23 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
 
   const handleBackToModeSelection = () => {
     console.log('🔍 App: handleBackToModeSelection called');
-    // Navigate back to StudentDashboard instead of landing page popup
-    setMode('landing');
-    setShowModeModal(false);
-    setSession(null);
-    setSpeechNumber(1);
-    setCurrentSpeaker(null);
-    setIsAnalyzing(false);
-    setHintsUsed(0);
-    // Set global navigation target to dashboard
-    globalNavigationTarget = null;
-    // Force a page reload to return to StudentDashboard
-    window.location.reload();
+    // Call the callback to go back to mode selection
+    if (onBackToModeSelection) {
+      onBackToModeSelection();
+    } else {
+      // Fallback: navigate back to mode selection popup instantly
+      setMode('landing');
+      setShowModeModal(true);
+      setSelectedFormat(null);
+      setShowFormatSelection(false);
+      setSession(null);
+      setSpeechNumber(1);
+      setCurrentSpeaker(null);
+      setIsAnalyzing(false);
+      setHintsUsed(0);
+      // Clear global navigation target
+      globalNavigationTarget = null;
+    }
   };
 
   const handleBackToLanding = () => {
