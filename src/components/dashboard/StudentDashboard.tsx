@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DebateSessionService } from '../../utils/debateSessionService';
 import { DebateSession } from '../../lib/supabase';
-import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Zap, Star, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Zap, Star, TrendingUp, Activity, Target, BarChart3, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const StudentDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -81,120 +84,196 @@ const StudentDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex-1 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
-            <p className="text-blue-600 font-medium text-lg mt-1">Welcome back, {getFirstName()}! 👋</p>
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 px-6 py-6 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src="" />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-semibold">
+                  {getFirstName().charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Student Dashboard</h1>
+                <p className="text-blue-500 font-medium">Welcome back</p>
+              </div>
+            </div>
           </div>
           <button
             onClick={signOut}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg border border-gray-200"
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-slate-200 shadow-sm"
           >
-            <LogOut className="w-5 h-5" />
-            <span>Sign Out</span>
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Sign Out</span>
           </button>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6 border border-blue-400/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Calendar className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-lg">Total Debates</CardTitle>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Calendar className="w-5 h-5" />
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-blue-100 text-sm font-medium">Total Debates</p>
-                <p className="text-2xl font-bold">{stats.totalSessions}</p>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalSessions}</div>
+              <p className="text-blue-100 text-sm mt-1">Sessions completed</p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6 border border-green-400/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Trophy className="w-6 h-6" />
+          <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-lg">Wins</CardTitle>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Trophy className="w-5 h-5" />
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-green-100 text-sm font-medium">Wins</p>
-                <p className="text-2xl font-bold">{stats.totalWins}</p>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalWins}</div>
+              <p className="text-emerald-100 text-sm mt-1">Victories achieved</p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6 border border-purple-400/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Brain className="w-6 h-6" />
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-lg">Hints Used</CardTitle>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Brain className="w-5 h-5" />
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-purple-100 text-sm font-medium">Hints Used</p>
-                <p className="text-2xl font-bold">{stats.totalHints}</p>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalHints}</div>
+              <p className="text-purple-100 text-sm mt-1">AI assistance</p>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg p-6 border border-indigo-400/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <TrendingUp className="w-6 h-6" />
+          <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-lg">Total Time</CardTitle>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-indigo-100 text-sm font-medium">Total Time</p>
-                <p className="text-2xl font-bold">{stats.totalTimeMinutes}m</p>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalTimeMinutes}m</div>
+              <p className="text-indigo-100 text-sm mt-1">Minutes practiced</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* New Debate Button */}
+        {/* Quick Actions */}
         <div className="mb-8">
-          <button
-            onClick={() => setShowModeSelection(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            <Plus className="w-6 h-6" />
-            <span className="text-lg font-semibold">Start New Debate</span>
-          </button>
+          <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-slate-900">Quick Actions</CardTitle>
+                  <CardDescription>Start a new debate or practice session</CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    AI Powered
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <button
+                onClick={() => setShowModeSelection(true)}
+                className="flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Start New Debate</span>
+              </button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Debate History */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Debate History
-            </h2>
-          </div>
+        <Card className="bg-white/80 backdrop-blur-sm border-slate-200/50 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Target className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-slate-900">Debate History</CardTitle>
+                  <CardDescription>Your recent debate sessions and performance</CardDescription>
+                </div>
+              </div>
+              <Badge variant="outline" className="border-slate-200 text-slate-600">
+                {debateSessions.length} sessions
+              </Badge>
+            </div>
+          </CardHeader>
           
-          <div className="divide-y divide-gray-200">
+          <CardContent>
             {debateSessions.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <div className="text-gray-400 mb-4">
+              <div className="text-center py-12">
+                <div className="text-slate-300 mb-4">
                   <Zap className="w-16 h-16 mx-auto" />
                 </div>
-                <h3 className="text-xl font-medium text-gray-900 mb-2">No debates yet</h3>
-                <p className="text-gray-600">Start your first debate to see your history here</p>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">No debates yet</h3>
+                <p className="text-slate-600 mb-6">Start your first debate to see your history here</p>
+                <button
+                  onClick={() => setShowModeSelection(true)}
+                  className="inline-flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Start First Debate</span>
+                </button>
               </div>
             ) : (
-              debateSessions.map((session) => (
-                <div key={session.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                {debateSessions.map((session) => (
+                  <div key={session.id} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-lg border border-slate-200/50 hover:bg-slate-100/50 transition-colors">
                     <div className="flex-1">
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">
-                        {session.topic}
-                      </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                          {session.topic}
+                        </h3>
+                        {session.winner && (
+                          <Badge 
+                            variant={session.winner.team === 'affirmative' ? 'default' : 'secondary'}
+                            className={session.winner.team === 'affirmative' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}
+                          >
+                            {session.winner.team} won
+                          </Badge>
+                        )}
+                        {!session.end_time && (
+                          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-200">
+                            In Progress
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-6 text-sm text-slate-600">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-4 h-4" />
                           <span>{formatDate(session.created_at)}</span>
@@ -207,85 +286,77 @@ const StudentDashboard: React.FC = () => {
                           <Users className="w-4 h-4" />
                           <span>{session.speakers?.length || 0} speakers</span>
                         </div>
+                        <div className="flex items-center space-x-1">
+                          <Brain className="w-4 h-4" />
+                          <span>{session.hints_used} hints</span>
+                        </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      {session.winner && (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          session.winner.team === 'affirmative' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {session.winner.team} won
-                        </span>
-                      )}
-                      {!session.end_time && (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          In Progress
-                        </span>
-                      )}
+                      <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <BarChart3 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  
-                  {session.summary && (
-                    <p className="text-sm text-gray-600 mt-2">{session.summary}</p>
-                  )}
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Mode Selection Modal */}
       {showModeSelection && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-gray-200">
-            <button
-              onClick={() => setShowModeSelection(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-4xl relative border-slate-200/50 shadow-2xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl text-slate-900">Choose Your Mode</CardTitle>
+                  <CardDescription>Select how you'd like to practice and improve your debate skills</CardDescription>
+                </div>
+                <button
+                  onClick={() => setShowModeSelection(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </CardHeader>
             
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Mode</h2>
-              <p className="text-gray-600">Select how you'd like to practice and improve your debate skills</p>
-            </div>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button
+                  onClick={() => {
+                    setShowModeSelection(false);
+                    window.location.href = '/debate';
+                  }}
+                  className="group p-6 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left"
+                >
+                  <div className="text-4xl mb-4">🏛️</div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-blue-600">
+                    Debate Mode
+                  </h3>
+                  <p className="text-slate-600">Practice with AI opponents in structured debate formats</p>
+                </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <button
-                onClick={() => {
-                  setShowModeSelection(false);
-                  // Navigate to debate mode
-                  window.location.href = '/debate';
-                }}
-                className="bg-white border-2 border-blue-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left group"
-              >
-                <div className="text-4xl mb-4">🏛️</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
-                  Debate Mode
-                </h3>
-                <p className="text-gray-700">Practice with AI opponents in structured debate formats</p>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowModeSelection(false);
-                  // Navigate to practice mode
-                  window.location.href = '/practice';
-                }}
-                className="bg-white border-2 border-indigo-200 rounded-xl p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-200 text-left group"
-              >
-                <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-indigo-600">
-                  Practice Mode
-                </h3>
-                <p className="text-gray-700">Focus on specific skills and receive detailed feedback</p>
-              </button>
-            </div>
-          </div>
+                <button
+                  onClick={() => {
+                    setShowModeSelection(false);
+                    window.location.href = '/practice';
+                  }}
+                  className="group p-6 bg-white border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:shadow-lg transition-all duration-200 text-left"
+                >
+                  <div className="text-4xl mb-4">🎯</div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-indigo-600">
+                    Practice Mode
+                  </h3>
+                  <p className="text-slate-600">Focus on specific skills and receive detailed feedback</p>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
