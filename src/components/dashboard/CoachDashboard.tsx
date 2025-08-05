@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DebateSession, Profile } from '../../lib/supabase';
+import { EmailService } from '../../utils/emailService';
 import { Calendar, Clock, Users, Trophy, LogOut, Brain, Zap, Star, TrendingUp, Activity, Target, BarChart3, Sparkles, Plus, Mail, UserPlus, Eye, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -148,33 +149,35 @@ const CoachDashboard: React.FC = () => {
   };
 
   const sendInvite = async () => {
-    if (!inviteEmail || !profile?.organization_id) return;
+    if (!inviteEmail || !profile?.organization_id || !user) return;
 
     setInviteLoading(true);
     try {
-      // Create invite record
-      const { error } = await supabase
-        .from('invites')
-        .insert({
-          email: inviteEmail,
-          organization_id: profile.organization_id,
-          user_type: inviteType,
-          invited_by: user!.id,
-          status: 'pending'
-        });
+      console.log('🔍 CoachDashboard: Sending invite to:', inviteEmail);
+      
+      // Use EmailService to send the invite
+      const result = await EmailService.sendInviteEmail({
+        email: inviteEmail,
+        organization_id: profile.organization_id,
+        user_type: inviteType,
+        invited_by: user.id
+      });
 
-      if (error) {
-        console.error('🔍 CoachDashboard: Error creating invite:', error);
-        alert('Failed to send invite. Please try again.');
+      if (!result.success) {
+        console.error('🔍 CoachDashboard: Error sending invite:', result.error);
+        alert(`Failed to send invite: ${result.error}`);
         return;
       }
 
-      // In a real app, you would send an email here
-      console.log('🔍 CoachDashboard: Invite created for', inviteEmail);
-      alert(`Invite sent to ${inviteEmail}! They will receive an email to join your organization.`);
+      console.log('🔍 CoachDashboard: Invite sent successfully');
+      alert(`Invite sent to ${inviteEmail}! They will receive an email with instructions to join your organization.`);
       
       setInviteEmail('');
       setShowInviteModal(false);
+      
+      // Refresh organization data to show updated stats
+      fetchOrganizationData();
+      
     } catch (error) {
       console.error('🔍 CoachDashboard: Error sending invite:', error);
       alert('Failed to send invite. Please try again.');
