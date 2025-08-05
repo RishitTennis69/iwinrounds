@@ -29,15 +29,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       setIsNewUser(result.isNewUser);
       
       if (result.isNewUser) {
-        setMessage('Welcome! Check your email for the signup link to create your account.');
+        setMessage('Magic link sent! Check your email to create your account.');
       } else {
-        setMessage('Welcome back! Check your email for the login link.');
+        setMessage('Magic link sent! Check your email to sign in.');
       }
       
       setMessageType('success');
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Don't call onSuccess to keep popup open
     } catch (error) {
       setMessage('Error sending login link. Please try again.');
       setMessageType('error');
