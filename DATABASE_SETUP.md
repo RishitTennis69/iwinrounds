@@ -179,17 +179,28 @@ CREATE POLICY "Users can update their own sessions" ON debate_sessions
 ### 3. Create Functions and Triggers
 
 ```sql
--- Function to handle new user signup
+-- Function to handle new user signup (updated with better error handling)
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, user_type, organization_id)
-  VALUES (NEW.id, NEW.email, 'individual', NULL);
+  -- Check if profile already exists
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = NEW.id) THEN
+    INSERT INTO profiles (id, email, user_type, organization_id)
+    VALUES (NEW.id, NEW.email, 'individual', NULL);
+  END IF;
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log the error but don't fail the auth signup
+    RAISE LOG 'Error creating profile for user %: %', NEW.id, SQLERRM;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to create profile on user signup
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Create trigger to create profile on user signup
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
@@ -203,6 +214,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
+
 -- Triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles
@@ -211,6 +226,46 @@ CREATE TRIGGER update_profiles_updated_at
 CREATE TRIGGER update_organizations_updated_at
   BEFORE UPDATE ON organizations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
+
+## Troubleshooting
+
+If you encounter "Database error saving new user" errors, run this fix in your Supabase SQL editor:
+
+```sql
+-- Fix for trigger issues
+-- 1. Drop the existing trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- 2. Drop the function
+DROP FUNCTION IF EXISTS handle_new_user();
+
+-- 3. Recreate the function with better error handling
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Check if profile already exists
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = NEW.id) THEN
+    INSERT INTO profiles (id, email, user_type, organization_id)
+    VALUES (NEW.id, NEW.email, 'individual', NULL);
+  END IF;
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log the error but don't fail the auth signup
+    RAISE LOG 'Error creating profile for user %: %', NEW.id, SQLERRM;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 4. Recreate the trigger
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- 5. Test by checking if the trigger is working
+SELECT * FROM information_schema.triggers 
+WHERE trigger_name = 'on_auth_user_created';
 ```
 
 ## Features Implemented
