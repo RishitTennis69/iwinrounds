@@ -142,6 +142,28 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
     }
   }, []);
 
+  // Listen for custom navigation events from StudentDashboard
+  useEffect(() => {
+    const handleNavigateToMode = (event: CustomEvent) => {
+      console.log('🔍 App: Received navigateToMode event:', event.detail);
+      const { mode } = event.detail;
+      
+      if (mode === 'debate') {
+        console.log('🔍 App: Navigating to debate mode via event');
+        setMode('debate');
+      } else if (mode === 'practice') {
+        console.log('🔍 App: Navigating to practice mode via event');
+        setMode('practice');
+      }
+    };
+
+    window.addEventListener('navigateToMode', handleNavigateToMode as EventListener);
+    
+    return () => {
+      window.removeEventListener('navigateToMode', handleNavigateToMode as EventListener);
+    };
+  }, []);
+
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     console.log('🔍 App: handleModeSelect called with selectedMode:', selectedMode, 'and format:', format);
     setMode(selectedMode);

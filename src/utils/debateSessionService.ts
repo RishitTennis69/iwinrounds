@@ -1,8 +1,8 @@
 import { supabase } from '../lib/supabase';
-import { DebateSession } from '../types';
+import { DebateSession as DatabaseDebateSession } from '../lib/supabase';
 
 export class DebateSessionService {
-  static async saveSession(session: DebateSession, userId: string, organizationId?: string) {
+  static async saveSession(session: any, userId: string, organizationId?: string) {
     try {
       const { data, error } = await supabase
         .from('debate_sessions')
@@ -34,7 +34,7 @@ export class DebateSessionService {
     }
   }
 
-  static async getUserSessions(userId: string): Promise<DebateSession[]> {
+  static async getUserSessions(userId: string): Promise<DatabaseDebateSession[]> {
     try {
       console.log('🔍 DebateSessionService: Fetching sessions for user:', userId);
       
@@ -64,13 +64,13 @@ export class DebateSessionService {
     }
   }
 
-  static async updateSession(sessionId: string, updates: Partial<DebateSession>) {
+  static async updateSession(sessionId: string, updates: Partial<DatabaseDebateSession>) {
     try {
       const { data, error } = await supabase
         .from('debate_sessions')
         .update({
-          end_time: updates.endTime?.toISOString() || null,
-          hints_used: updates.hintsUsed,
+          end_time: updates.end_time || null,
+          hints_used: updates.hints_used,
           summary: updates.summary,
           winner: updates.winner,
         })
