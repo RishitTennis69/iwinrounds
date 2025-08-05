@@ -272,6 +272,17 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
 **TOPIC:** ${topic}
 **SPEAKER:** ${sp.team} ${sp.speakerNumber}
 **POSITION:** ${sp.team === 'affirmative' ? 'SUPPORTING the resolution' : 'OPPOSING the resolution'}
+**FORMAT:** ${selectedFormatData?.name || 'Custom Format'}
+**SPEECH LENGTH:** ${(() => {
+  switch(selectedFormatData?.name) {
+    case 'Public Forum': return '3-4 minutes';
+    case 'Lincoln Douglas': return '5-6 minutes';
+    case 'Policy Debate': return '8-9 minutes';
+    case 'Parliamentary': return '5-7 minutes';
+    case 'Spar Debate': return '2-3 minutes';
+    default: return '3-4 minutes';
+  }
+})()}
 
 **STRUCTURE:**
 1. **Intro:**
@@ -299,11 +310,38 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
 - ${sp.team === 'affirmative' ? 'Argue FOR the resolution' : 'Argue AGAINST the resolution'}
 - Make it clear you are the ${sp.team} side
 
+**FORMAT-SPECIFIC REQUIREMENTS:**
+${(() => {
+  switch(selectedFormatData?.name) {
+    case 'Public Forum':
+      return '- Focus on clear, accessible language for lay judges\n- Emphasize real-world impacts and evidence\n- Use concrete examples and statistics\n- Keep arguments straightforward and persuasive';
+    case 'Lincoln Douglas':
+      return '- Focus on values and philosophical principles\n- Emphasize moral and ethical reasoning\n- Use philosophical frameworks and value hierarchies\n- Balance value and criterion arguments';
+    case 'Policy Debate':
+      return '- Include detailed policy analysis and impacts\n- Emphasize solvency and advantages\n- Use specific evidence and citations\n- Address counterplans and disadvantages';
+    case 'Parliamentary':
+      return '- Use parliamentary debate style and terminology\n- Focus on government/opposition dynamics\n- Emphasize case construction and refutation\n- Include points of information and rebuttal';
+    case 'Spar Debate':
+      return '- Keep arguments concise and focused\n- Emphasize quick, clear responses\n- Use simple, direct language\n- Focus on core arguments and refutation';
+    default:
+      return '- Use clear, persuasive language\n- Emphasize logical reasoning and evidence\n- Balance argumentation and refutation';
+  }
+})()}
+
 **IMPORTANT LANGUAGE GUIDELINES:**
 - DO NOT use "this house" or "This House" in the topic sentence or resolution
 - Instead, use direct language like "we believe", "the United States should", "our team supports", etc.
 - Make the language natural and direct, not parliamentary debate style
-- Keep it concise and focused - approximately 1-2 minutes when spoken
+- Write the speech to be approximately ${(() => {
+  switch(selectedFormatData?.name) {
+    case 'Public Forum': return '3-4 minutes';
+    case 'Lincoln Douglas': return '5-6 minutes';
+    case 'Policy Debate': return '8-9 minutes';
+    case 'Parliamentary': return '5-7 minutes';
+    case 'Spar Debate': return '2-3 minutes';
+    default: return '3-4 minutes';
+  }
+})()} when spoken
 
 Write the speech in natural, flowing language that sounds like a real debate speech.
 
@@ -324,7 +362,7 @@ Respond in this exact JSON format:
               'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-              model: 'gpt-3.5-turbo',
+              model: 'gpt-4o-mini',
               messages: [{ role: 'user', content: prompt }],
               max_tokens: 600,
               temperature: 0.8
