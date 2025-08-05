@@ -74,6 +74,12 @@ export interface Database {
           name: string;
           creator_name: string | null;
           creator_email: string | null;
+          total_students: number;
+          total_coaches: number;
+          total_debate_sessions: number;
+          total_wins: number;
+          total_time_minutes: number;
+          last_activity_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -82,6 +88,12 @@ export interface Database {
           name: string;
           creator_name?: string | null;
           creator_email?: string | null;
+          total_students?: number;
+          total_coaches?: number;
+          total_debate_sessions?: number;
+          total_wins?: number;
+          total_time_minutes?: number;
+          last_activity_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -90,6 +102,12 @@ export interface Database {
           name?: string;
           creator_name?: string | null;
           creator_email?: string | null;
+          total_students?: number;
+          total_coaches?: number;
+          total_debate_sessions?: number;
+          total_wins?: number;
+          total_time_minutes?: number;
+          last_activity_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };

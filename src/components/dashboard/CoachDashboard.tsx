@@ -24,6 +24,7 @@ const CoachDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const [students, setStudents] = useState<StudentData[]>([]);
   const [coaches, setCoaches] = useState<Profile[]>([]);
+  const [organization, setOrganization] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -38,15 +39,30 @@ const CoachDashboard: React.FC = () => {
         setLoading(false);
       }, 5000); // 5 second timeout
       
-      fetchOrganizationMembers();
+      fetchOrganizationData();
       
       return () => clearTimeout(timeout);
     }
   }, [user, profile]);
 
-  const fetchOrganizationMembers = async () => {
+  const fetchOrganizationData = async () => {
     try {
-      console.log('🔍 CoachDashboard: Fetching organization members');
+      console.log('🔍 CoachDashboard: Fetching organization data');
+      
+      // Fetch organization details with stats
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', profile?.organization_id)
+        .single();
+
+      if (orgError) {
+        console.error('🔍 CoachDashboard: Error fetching organization:', orgError);
+        setLoading(false);
+        return;
+      }
+
+      setOrganization(orgData);
       
       // Get all members of the organization
       const { data: members, error } = await supabase
@@ -126,7 +142,7 @@ const CoachDashboard: React.FC = () => {
       setCoaches(coachProfiles);
       setLoading(false);
     } catch (error) {
-      console.error('🔍 CoachDashboard: Error in fetchOrganizationMembers:', error);
+      console.error('🔍 CoachDashboard: Error in fetchOrganizationData:', error);
       setLoading(false);
     }
   };
@@ -249,7 +265,7 @@ const CoachDashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{students.length}</div>
+              <div className="text-3xl font-bold">{organization?.total_students || students.length}</div>
               <p className="text-indigo-100 text-sm mt-1">Active students</p>
             </CardContent>
           </Card>
@@ -264,7 +280,7 @@ const CoachDashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{coaches.length}</div>
+              <div className="text-3xl font-bold">{organization?.total_coaches || coaches.length}</div>
               <p className="text-emerald-100 text-sm mt-1">Team coaches</p>
             </CardContent>
           </Card>
@@ -280,7 +296,7 @@ const CoachDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {students.reduce((sum, student) => sum + student.total_sessions, 0)}
+                {organization?.total_debate_sessions || students.reduce((sum, student) => sum + student.total_sessions, 0)}
               </div>
               <p className="text-purple-100 text-sm mt-1">Debate sessions</p>
             </CardContent>
@@ -297,7 +313,7 @@ const CoachDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {students.reduce((sum, student) => sum + student.total_wins, 0)}
+                {organization?.total_wins || students.reduce((sum, student) => sum + student.total_wins, 0)}
               </div>
               <p className="text-blue-100 text-sm mt-1">Student victories</p>
             </CardContent>
@@ -313,54 +329,77 @@ const CoachDashboard: React.FC = () => {
             </Badge>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {students.map((student) => (
-              <Card key={student.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src="" />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                        {student.first_name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">{student.first_name} {student.last_name}</CardTitle>
-                      <CardDescription className="text-sm">{student.email}</CardDescription>
-                    </div>
+          {students.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                    <Users className="w-8 h-8 text-slate-400" />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{student.total_sessions}</div>
-                      <div className="text-blue-600 text-xs">Sessions</div>
-                    </div>
-                    <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                      <div className="text-2xl font-bold text-emerald-600">{student.total_wins}</div>
-                      <div className="text-emerald-600 text-xs">Wins</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-slate-600">
-                    <span>Total Time: {student.total_time}m</span>
-                    <span>Last: {student.recent_activity}</span>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <button className="flex-1 flex items-center justify-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
-                      <Eye className="w-4 h-4" />
-                      <span>View Details</span>
-                    </button>
-                    <button className="flex-1 flex items-center justify-center space-x-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Send Feedback</span>
+                  <div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">No Students</h3>
+                    <p className="text-slate-600 mb-6">Start building your team by inviting students to your organization.</p>
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="flex items-center space-x-2 text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-6 py-3 rounded-lg shadow-sm mx-auto"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span className="font-medium">Invite Students</span>
                     </button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {students.map((student) => (
+                <Card key={student.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                          {student.first_name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">{student.first_name} {student.last_name}</CardTitle>
+                        <CardDescription className="text-sm">{student.email}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">{student.total_sessions}</div>
+                        <div className="text-blue-600 text-xs">Sessions</div>
+                      </div>
+                      <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                        <div className="text-2xl font-bold text-emerald-600">{student.total_wins}</div>
+                        <div className="text-emerald-600 text-xs">Wins</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-slate-600">
+                      <span>Total Time: {student.total_time}m</span>
+                      <span>Last: {student.recent_activity}</span>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <button className="flex-1 flex items-center justify-center space-x-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        <Eye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
+                      <button className="flex-1 flex items-center justify-center space-x-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Send Feedback</span>
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Coaches Section */}
