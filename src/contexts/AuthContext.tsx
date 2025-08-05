@@ -193,57 +193,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Cache the profile
         setProfileCache(prev => new Map(prev.set(userId, data)));
-        
-        // Check if there's pending user info from signup
-        const pendingInfo = localStorage.getItem('pending_user_info');
-        if (pendingInfo) {
-          console.log('🔍 AuthProvider: Found pending user info, updating profile');
-          try {
-            const { firstName, lastName, userType, organizationName, entryCode } = JSON.parse(pendingInfo);
-            
-            // Handle organization creation if needed
-            let organizationId = null;
-            if (userType === 'organization' && organizationName) {
-              console.log('🔍 AuthProvider: Creating organization:', organizationName);
-              const { data: orgData, error: orgError } = await supabase
-                .from('organizations')
-                .insert({ 
-                  name: organizationName,
-                  creator_name: `${firstName || ''} ${lastName || ''}`.trim() || null,
-                  creator_email: user?.email || null
-                })
-                .select()
-                .single();
-              
-              if (orgError) {
-                console.error('🔍 AuthProvider: Error creating organization:', orgError);
-              } else {
-                organizationId = orgData.id;
-                console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
-              }
-            }
-            
-            // Handle entry code if provided
-            if (entryCode) {
-              console.log('🔍 AuthProvider: Entry code provided:', entryCode);
-              // TODO: Implement entry code validation and organization joining
-            }
-            
-            // Update the profile with pending info
-            const updateData: Partial<Profile> = {};
-            if (firstName) updateData.first_name = firstName;
-            if (lastName) updateData.last_name = lastName;
-            if (userType) updateData.user_type = userType as 'individual' | 'business_admin' | 'coach' | 'student';
-            if (organizationId) updateData.organization_id = organizationId;
-            
-            await updateProfile(updateData);
-            localStorage.removeItem('pending_user_info');
-            console.log('🔍 AuthProvider: Profile updated with pending info');
-          } catch (error) {
-            console.error('🔍 AuthProvider: Error updating profile with pending info:', error);
-          }
-        }
-        
         setLoading(false);
       }
     } catch (error) {
@@ -258,25 +207,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const createProfile = async (userId: string, firstName?: string, lastName?: string) => {
     try {
+      console.log('🔍 AuthProvider: createProfile called with:', { userId, firstName, lastName });
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('🔍 AuthProvider: No user found, skipping profile creation');
         return;
       }
 
+      console.log('🔍 AuthProvider: Current user:', { id: user.id, email: user.email });
+
       // Check for pending user info to get the correct user_type
       const pendingInfo = localStorage.getItem('pending_user_info');
       let userType = 'individual';
       let organizationId = null;
+      
+      console.log('🔍 AuthProvider: Pending info from localStorage:', pendingInfo);
       
       if (pendingInfo) {
         try {
           const { userType: pendingUserType, organizationName } = JSON.parse(pendingInfo);
           userType = pendingUserType || 'individual';
           
+          console.log('🔍 AuthProvider: Parsed pending info:', { userType, organizationName });
+          
           // If it's an organization user, create the organization first
           if (userType === 'organization' && organizationName) {
             console.log('🔍 AuthProvider: Creating organization during profile creation:', organizationName);
+            
             const { data: orgData, error: orgError } = await supabase
               .from('organizations')
               .insert({ 
@@ -289,6 +247,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             if (orgError) {
               console.error('🔍 AuthProvider: Error creating organization:', orgError);
+              throw new Error(`Failed to create organization: ${orgError.message}`);
             } else {
               organizationId = orgData.id;
               console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
@@ -306,6 +265,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               
               if (memberError) {
                 console.error('🔍 AuthProvider: Error adding organization member:', memberError);
+                // Don't throw here, as the profile creation should still succeed
               } else {
                 console.log('🔍 AuthProvider: Organization member record created');
               }
@@ -333,6 +293,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         console.error('🔍 AuthProvider: Error creating profile:', error);
+        console.error('🔍 AuthProvider: Profile creation failed with details:', {
+          userId,
+          email: user.email,
+          firstName,
+          lastName,
+          userType,
+          organizationId,
+          error: error.message,
+          code: error.code
+        });
         // Don't throw the error, just log it and continue
         return;
       } else {
