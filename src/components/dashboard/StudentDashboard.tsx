@@ -309,7 +309,7 @@ const StudentDashboard: React.FC = () => {
       {/* Mode Selection Modal */}
       {showModeSelection && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-4xl relative border-slate-200/50 shadow-2xl">
+          <Card className="w-full max-w-4xl relative border-slate-200/50 shadow-2xl bg-white">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
