@@ -255,7 +255,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const createProfile = async (userId: string, firstName?: string, lastName?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('🔍 AuthProvider: No user found, skipping profile creation');
+        return;
+      }
 
       // Check for pending user info to get the correct user_type
       const pendingInfo = localStorage.getItem('pending_user_info');
@@ -305,6 +308,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         console.error('🔍 AuthProvider: Error creating profile:', error);
+        // Don't throw the error, just log it and continue
+        return;
       } else {
         console.log('🔍 AuthProvider: Profile created successfully:', data);
         setProfile(data);
@@ -317,6 +322,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('🔍 AuthProvider: Error in createProfile:', error);
+      // Don't throw the error, just log it and continue
     }
   };
 
