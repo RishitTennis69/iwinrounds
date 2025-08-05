@@ -134,6 +134,15 @@ const StudentDashboard: React.FC = () => {
             <LogOut className="w-4 h-4" />
             <span className="text-sm font-medium">Sign Out</span>
           </button>
+          <button
+            onClick={() => {
+              console.log('🔍 Debug: Profile data:', profile);
+              alert(`Profile Debug Info:\nUser Type: ${profile?.user_type}\nOrganization ID: ${profile?.organization_id}\nEmail: ${profile?.email}\nFirst Name: ${profile?.first_name}`);
+            }}
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-200 shadow-sm"
+          >
+            <span className="text-sm font-medium">Debug Profile</span>
+          </button>
         </div>
       </header>
 

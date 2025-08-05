@@ -147,12 +147,20 @@ const AppWithAuth: React.FC = () => {
   }
 
   // Default to dashboard based on user type
+  console.log('🔍 AppWithAuth: Profile data:', {
+    user_type: profile?.user_type,
+    organization_id: profile?.organization_id,
+    email: profile?.email,
+    first_name: profile?.first_name
+  });
+
   if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
-    console.log('🔍 AppWithAuth: Routing to CoachDashboard');
+    console.log('🔍 AppWithAuth: Routing to CoachDashboard - user_type:', profile?.user_type);
     return <CoachDashboard />;
   }
+  
   if (profile?.user_type === 'student' || profile?.user_type === 'individual') {
-    console.log('🔍 AppWithAuth: Routing to StudentDashboard');
+    console.log('🔍 AppWithAuth: Routing to StudentDashboard - user_type:', profile?.user_type);
     return (
       <>
         <StudentDashboard />
@@ -177,7 +185,7 @@ const AppWithAuth: React.FC = () => {
     );
   }
   
-  console.log('🔍 AppWithAuth: Fallback to StudentDashboard');
+  console.log('🔍 AppWithAuth: Fallback to StudentDashboard - no specific user_type detected');
   return <StudentDashboard />; // Fallback
 };
 
