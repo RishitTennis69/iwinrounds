@@ -688,18 +688,18 @@ Respond in this exact JSON format:
   if (step === 'format') {
     console.log('🔍 PracticeMode: Rendering format selection step');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-indigo-200/40">
-          {/* Back Button */}
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 animate-in fade-in duration-500">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-indigo-200/40 animate-in slide-in-from-bottom-4 duration-500">
+          {/* Back Button - moved to top right to avoid overlap */}
           <button
             onClick={onBack}
-            className="absolute top-6 left-6 flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
+            className="absolute top-6 right-6 flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Mode Selection</span>
+            <span className="font-medium">Back</span>
           </button>
           
-          <div className="text-center mb-10">
+          <div className="text-center mb-10 pt-4">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">Choose Practice Format</h1>
             <p className="text-indigo-600 text-lg">Select a standard format or customize your own settings</p>
           </div>
