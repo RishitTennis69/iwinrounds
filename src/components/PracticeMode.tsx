@@ -19,6 +19,9 @@ interface PracticeModeProps {
 }
 
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: initialFormat }) => {
+  console.log('🔍 PracticeMode: Component rendering');
+  console.log('🔍 PracticeMode: initialFormat received:', initialFormat);
+  
   const [step, setStep] = useState<'format' | 'setup' | 'prep' | 'generating' | 'practice' | 'complete'>('format');
   const [selectedFormat, setSelectedFormat] = useState<any>(initialFormat || null);
   const [topic, setTopic] = useState('');
@@ -58,25 +61,35 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [selectedFormatData, setSelectedFormatData] = useState<any>(null);
   const [prepTime, setPrepTime] = useState(0);
 
+  console.log('🔍 PracticeMode: Initial step state:', step);
+  console.log('🔍 PracticeMode: Initial selectedFormat state:', selectedFormat);
+
   // Initialize format from props
   useEffect(() => {
+    console.log('🔍 PracticeMode: useEffect triggered with initialFormat:', initialFormat);
     if (initialFormat) {
+      console.log('🔍 PracticeMode: initialFormat is truthy, setting up format');
       setSelectedFormat(initialFormat);
       setSelectedFormatData(initialFormat);
       setPeoplePerTeam(initialFormat.peoplePerTeam);
       setSpeechesPerSpeaker(initialFormat.speechesPerSpeaker);
       setFirstSpeaker(initialFormat.firstSpeaker);
       setStep('setup');
+      console.log('🔍 PracticeMode: Set step to setup');
     } else if (initialFormat === null) {
+      console.log('🔍 PracticeMode: initialFormat is null (custom format selected)');
       // Custom format selected
       setSelectedFormat(null);
       setSelectedFormatData(null);
       setStep('setup');
+      console.log('🔍 PracticeMode: Set step to setup for custom format');
     } else {
+      console.log('🔍 PracticeMode: initialFormat is undefined (navigating from dashboard)');
       // No format provided (navigating from dashboard), show format selection
       setSelectedFormat(null);
       setSelectedFormatData(null);
       setStep('format');
+      console.log('🔍 PracticeMode: Set step to format for format selection');
     }
   }, [initialFormat]);
 
@@ -680,6 +693,7 @@ Respond in this exact JSON format:
 
   // Format Selection Step
   if (step === 'format') {
+    console.log('🔍 PracticeMode: Rendering format selection step');
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
         <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-indigo-200/30">

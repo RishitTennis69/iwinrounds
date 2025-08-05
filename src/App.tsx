@@ -154,17 +154,28 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
         setSelectedFormat(null); // Reset format for debate mode
       } else if (mode === 'practice') {
         console.log('🔍 App: Navigating to practice mode via event');
+        console.log('🔍 App: Current mode before change:', mode);
+        console.log('🔍 App: Setting mode to practice');
         setMode('practice');
+        console.log('🔍 App: Setting selectedFormat to null');
         setSelectedFormat(null); // Reset format so PracticeMode shows format selection
+        console.log('🔍 App: Navigation to practice mode completed');
       }
     };
 
+    console.log('🔍 App: Adding navigateToMode event listener');
     window.addEventListener('navigateToMode', handleNavigateToMode as EventListener);
     
     return () => {
+      console.log('🔍 App: Removing navigateToMode event listener');
       window.removeEventListener('navigateToMode', handleNavigateToMode as EventListener);
     };
   }, []);
+
+  // Log mode changes
+  useEffect(() => {
+    console.log('🔍 App: Mode changed to:', mode);
+  }, [mode]);
 
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     console.log('🔍 App: handleModeSelect called with selectedMode:', selectedMode, 'and format:', format);
@@ -428,6 +439,8 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   // Practice mode
   if (mode === 'practice') {
     console.log('🔍 App: Rendering practice mode');
+    console.log('🔍 App: selectedFormat in practice mode:', selectedFormat);
+    console.log('🔍 App: About to render PracticeMode component');
     return (
       <PracticeMode 
         onBack={handleBackToModeSelection}

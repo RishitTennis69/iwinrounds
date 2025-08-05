@@ -352,13 +352,18 @@ const StudentDashboard: React.FC = () => {
 
                 <button
                   onClick={() => {
+                    console.log('🔍 StudentDashboard: Practice Mode button clicked');
                     setShowModeSelection(false);
                     // Navigate to practice mode by setting the mode in the parent App
                     localStorage.setItem('navigationTarget', 'practice');
+                    console.log('🔍 StudentDashboard: Set navigationTarget to practice in localStorage');
                     // Use a custom event to trigger navigation without page reload
-                    window.dispatchEvent(new CustomEvent('navigateToMode', { 
+                    const event = new CustomEvent('navigateToMode', { 
                       detail: { mode: 'practice' } 
-                    }));
+                    });
+                    console.log('🔍 StudentDashboard: Dispatching navigateToMode event with practice mode');
+                    window.dispatchEvent(event);
+                    console.log('🔍 StudentDashboard: Event dispatched successfully');
                   }}
                   className="group p-6 bg-white border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:shadow-lg transition-all duration-200 text-left"
                 >
