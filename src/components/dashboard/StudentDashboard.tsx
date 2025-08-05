@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DebateSessionService } from '../../utils/debateSessionService';
 import { DebateSession } from '../../lib/supabase';
-import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Target, Zap, Star, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Zap, Star, TrendingUp } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -51,17 +51,17 @@ const StudentDashboard: React.FC = () => {
     const completedSessions = debateSessions.filter(s => s.end_time).length;
     const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
     const totalWins = debateSessions.filter(s => s.winner && s.winner.team === 'affirmative').length;
-    const avgSessionTime = completedSessions > 0 
+    const totalTimeMinutes = completedSessions > 0 
       ? Math.round(debateSessions
           .filter(s => s.end_time)
           .reduce((sum, s) => {
             const start = new Date(s.start_time);
             const end = new Date(s.end_time!);
             return sum + (end.getTime() - start.getTime());
-          }, 0) / completedSessions / (1000 * 60))
+          }, 0) / (1000 * 60))
       : 0;
     
-    return { totalSessions, completedSessions, totalHints, totalWins, avgSessionTime };
+    return { totalSessions, completedSessions, totalHints, totalWins, totalTimeMinutes };
   };
 
   const stats = getSessionStats();
@@ -91,10 +91,10 @@ const StudentDashboard: React.FC = () => {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex-1 text-center">
             <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
-            <p className="text-blue-600 font-medium">Welcome back, {getFirstName()}! 👋</p>
+            <p className="text-blue-600 font-medium text-lg mt-1">Welcome back, {getFirstName()}! 👋</p>
           </div>
           <button
             onClick={signOut}
@@ -145,14 +145,14 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl shadow-lg p-6 border border-orange-400/20">
+          <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg p-6 border border-indigo-400/20">
             <div className="flex items-center">
               <div className="p-3 bg-white/20 rounded-xl">
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div className="ml-4">
-                <p className="text-orange-100 text-sm font-medium">Avg Time</p>
-                <p className="text-2xl font-bold">{stats.avgSessionTime}m</p>
+                <p className="text-indigo-100 text-sm font-medium">Total Time</p>
+                <p className="text-2xl font-bold">{stats.totalTimeMinutes}m</p>
               </div>
             </div>
           </div>
@@ -172,8 +172,7 @@ const StudentDashboard: React.FC = () => {
         {/* Debate History */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">
               Debate History
             </h2>
           </div>

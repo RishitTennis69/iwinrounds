@@ -101,6 +101,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } else {
         setProfile(data);
+        
+        // Check if there's pending user info from signup
+        const pendingInfo = localStorage.getItem('pending_user_info');
+        if (pendingInfo && !data.first_name) {
+          try {
+            const { firstName, lastName } = JSON.parse(pendingInfo);
+            await updateProfile({ first_name: firstName, last_name: lastName });
+            localStorage.removeItem('pending_user_info');
+          } catch (error) {
+            console.error('Error updating profile with pending info:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
