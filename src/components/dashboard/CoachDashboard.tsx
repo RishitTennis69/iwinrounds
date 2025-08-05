@@ -34,6 +34,7 @@ const CoachDashboard: React.FC = () => {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>('');
   const [invitedEmail, setInvitedEmail] = useState<string>('');
+  const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
 
   const checkExistingOrganization = async () => {
     console.log('🔍 CoachDashboard: Checking for existing organization');
@@ -108,6 +109,14 @@ const CoachDashboard: React.FC = () => {
       return () => clearTimeout(timeout);
     }
   }, [user, profile]);
+
+  // Add a separate useEffect to re-fetch data when profile changes
+  useEffect(() => {
+    if (profile?.organization_id && !loading) {
+      console.log('🔍 CoachDashboard: Profile organization_id changed, re-fetching data');
+      fetchOrganizationData();
+    }
+  }, [profile?.organization_id]);
 
   const fetchOrganizationData = async () => {
     try {
@@ -211,10 +220,43 @@ const CoachDashboard: React.FC = () => {
     }
   };
 
+  const refreshProfileData = async () => {
+    console.log('🔍 CoachDashboard: Refreshing profile data');
+    
+    try {
+      // Fetch the updated profile
+      const { data: updatedProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      
+      if (profileError) {
+        console.error('🔍 CoachDashboard: Error fetching updated profile:', profileError);
+        return;
+      }
+      
+      console.log('🔍 CoachDashboard: Updated profile data:', updatedProfile);
+      
+      // Force a re-render by updating the profile in the auth context
+      // This will trigger the useEffect and re-fetch organization data
+      if (updatedProfile) {
+        // We need to trigger a re-render. Since we can't directly update the auth context,
+        // we'll force a re-fetch of organization data
+        await fetchOrganizationData();
+      }
+      
+    } catch (error) {
+      console.error('🔍 CoachDashboard: Error refreshing profile data:', error);
+    }
+  };
+
   const createOrganizationForUser = async () => {
     console.log('🔍 CoachDashboard: Creating organization for user');
     console.log('🔍 CoachDashboard: Current user ID:', user?.id);
     console.log('🔍 CoachDashboard: Current profile:', profile);
+    
+    setIsCreatingOrganization(true);
     
     try {
       // First, try to create the organization
@@ -262,7 +304,7 @@ const CoachDashboard: React.FC = () => {
           
           console.log('🔍 CoachDashboard: Profile updated to business_admin');
           alert('Profile updated successfully! You can now invite members. Note: You may need to contact support to set up your organization properly.');
-          window.location.reload();
+          await refreshProfileData();
           return;
         }
         
@@ -329,12 +371,17 @@ const CoachDashboard: React.FC = () => {
       console.log('🔍 CoachDashboard: Organization setup complete');
       alert('Organization created successfully! You can now invite members.');
       
-      // Refresh the page to get updated profile
-      window.location.reload();
+      // Wait a moment for the database changes to be reflected, then refresh profile data
+      setTimeout(async () => {
+        console.log('🔍 CoachDashboard: Refreshing profile data after organization creation');
+        await refreshProfileData();
+      }, 1000);
       
     } catch (error) {
       console.error('🔍 CoachDashboard: Error in createOrganizationForUser:', error);
       alert(`Failed to create organization: ${error}`);
+    } finally {
+      setIsCreatingOrganization(false);
     }
   };
 
@@ -509,9 +556,10 @@ const CoachDashboard: React.FC = () => {
               </div>
               <button
                 onClick={createOrganizationForUser}
-                className="flex-shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors"
+                disabled={isCreatingOrganization}
+                className="flex-shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Organization
+                {isCreatingOrganization ? 'Creating...' : 'Create Organization'}
               </button>
             </div>
           </div>
