@@ -99,11 +99,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('🔍 AuthProvider: User found, fetching profile');
           fetchProfile(session.user.id);
         } else {
-          console.log('🔍 AuthProvider: No user in initial session');
+          console.log('🔍 AuthProvider: No user found, setting loading to false');
           setLoading(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('🔍 AuthProvider: Error getting initial session:', error);
         setLoading(false);
       });
@@ -290,7 +290,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: 'https://reasynai.vercel.app',
+          emailRedirectTo: window.location.origin, // Use current origin instead of hardcoded URL
         },
       });
 
