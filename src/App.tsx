@@ -151,9 +151,11 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
       if (mode === 'debate') {
         console.log('🔍 App: Navigating to debate mode via event');
         setMode('debate');
+        setSelectedFormat(null); // Reset format for debate mode
       } else if (mode === 'practice') {
         console.log('🔍 App: Navigating to practice mode via event');
         setMode('practice');
+        setSelectedFormat(null); // Reset format so PracticeMode shows format selection
       }
     };
 

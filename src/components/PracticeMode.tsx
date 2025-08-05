@@ -72,6 +72,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
       setSelectedFormat(null);
       setSelectedFormatData(null);
       setStep('setup');
+    } else {
+      // No format provided (navigating from dashboard), show format selection
+      setSelectedFormat(null);
+      setSelectedFormatData(null);
+      setStep('format');
     }
   }, [initialFormat]);
 
