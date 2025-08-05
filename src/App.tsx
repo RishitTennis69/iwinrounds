@@ -125,6 +125,23 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
     profile: !!profile
   });
 
+  // Check for navigation targets from localStorage
+  useEffect(() => {
+    const navigationTarget = localStorage.getItem('navigationTarget');
+    if (navigationTarget) {
+      console.log('🔍 App: Found navigation target:', navigationTarget);
+      localStorage.removeItem('navigationTarget'); // Clear it
+      
+      if (navigationTarget === 'debate') {
+        console.log('🔍 App: Navigating to debate mode');
+        setMode('debate');
+      } else if (navigationTarget === 'practice') {
+        console.log('🔍 App: Navigating to practice mode');
+        setMode('practice');
+      }
+    }
+  }, []);
+
   const handleModeSelect = (selectedMode: 'debate' | 'practice', format?: any) => {
     console.log('🔍 App: handleModeSelect called with selectedMode:', selectedMode, 'and format:', format);
     setMode(selectedMode);
@@ -162,6 +179,18 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   const handleHintUsed = () => {
     console.log('🔍 App: handleHintUsed called');
     setHintsUsed(h => h + 1);
+  };
+
+  const handleNavigateToDebate = () => {
+    console.log('🔍 App: handleNavigateToDebate called');
+    setMode('debate');
+    setShowModeModal(false);
+  };
+
+  const handleNavigateToPractice = () => {
+    console.log('🔍 App: handleNavigateToPractice called');
+    setMode('practice');
+    setShowModeModal(false);
   };
 
   const initializeSession = (topic: string, speakers: Speaker[], people: number, speeches: number, firstSpeaker: 'affirmative' | 'negative') => {

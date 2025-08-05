@@ -330,7 +330,10 @@ const StudentDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowModeSelection(false);
-                    window.location.href = '/debate';
+                    // Set navigation target in localStorage for parent App to read
+                    localStorage.setItem('navigationTarget', 'debate');
+                    // Trigger a page reload to let the App component handle the navigation
+                    window.location.reload();
                   }}
                   className="group p-6 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left"
                 >
@@ -344,7 +347,10 @@ const StudentDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowModeSelection(false);
-                    window.location.href = '/practice';
+                    // Set navigation target in localStorage for parent App to read
+                    localStorage.setItem('navigationTarget', 'practice');
+                    // Trigger a page reload to let the App component handle the navigation
+                    window.location.reload();
                   }}
                   className="group p-6 bg-white border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:shadow-lg transition-all duration-200 text-left"
                 >
