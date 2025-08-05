@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Speaker, DebatePoint, DebateSession } from './types';
-import { WhisperService } from './utils/whisperService';
+import { SimpleSpeechService } from './utils/simpleSpeechService';
 import { AIService } from './utils/aiService';
 import { TTSService } from './utils/ttsService';
 import { DebateSessionService } from './utils/debateSessionService';
@@ -203,7 +203,7 @@ const App: React.FC<{ onShowLogin?: () => void; onBackToModeSelection?: () => vo
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
-  const [whisperService] = useState(() => new WhisperService());
+  const [whisperService] = useState(() => new SimpleSpeechService());
   const [ttsService] = useState(() => new TTSService());
   const finalAnalysisRef = useRef<HTMLDivElement>(null);
 

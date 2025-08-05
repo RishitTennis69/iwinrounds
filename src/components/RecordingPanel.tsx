@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker } from '../types';
-import { WhisperService } from '../utils/whisperService';
+import { SimpleSpeechService } from '../utils/simpleSpeechService';
 import { Mic, AlertCircle, CheckCircle, RotateCcw, Square } from 'lucide-react';
 
 interface RecordingPanelProps {
@@ -8,7 +8,7 @@ interface RecordingPanelProps {
   speechNumber: number;
   totalSpeeches: number;
   onSpeechComplete: (transcript: string) => void;
-  speechRecognition: WhisperService;
+  speechRecognition: SimpleSpeechService;
   isAnalyzing: boolean;
 }
 

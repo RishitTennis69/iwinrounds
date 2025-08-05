@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Speaker, DebatePoint, DebateSession } from '../types';
-import { WhisperService } from '../utils/whisperService';
+import { SimpleSpeechService } from '../utils/simpleSpeechService';
 import { AIService } from '../utils/aiService';
 import { TTSService } from '../utils/ttsService';
 import RecordingPanel from './RecordingPanel';
@@ -37,7 +37,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [userSpeeches, setUserSpeeches] = useState<{ [speechNum: number]: string }>({});
   const [aiSpeeches, setAiSpeeches] = useState<{ [speechNum: number]: DebatePoint }>({});
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [whisperService] = useState(() => new WhisperService());
+  const [whisperService] = useState(() => new SimpleSpeechService());
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [currentSummary, setCurrentSummary] = useState<{ mainPoints: string[]; counterPoints: string[]; counterCounterPoints: string[]; impactWeighing: string; evidence: string[] }>({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
   const [hintsUsed, setHintsUsed] = useState(0);
