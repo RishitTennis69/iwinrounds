@@ -104,6 +104,9 @@ const CoachDashboard: React.FC = () => {
       // Check for existing organization
       checkExistingOrganization();
       
+      // Check and fix organization_id if needed
+      checkAndFixOrganizationId();
+      
       fetchOrganizationData();
       
       return () => clearTimeout(timeout);
@@ -217,6 +220,52 @@ const CoachDashboard: React.FC = () => {
     } catch (error) {
       console.error('🔍 CoachDashboard: Error in fetchOrganizationData:', error);
       setLoading(false);
+    }
+  };
+
+  const checkAndFixOrganizationId = async () => {
+    console.log('🔍 CoachDashboard: Checking and fixing organization_id');
+    
+    try {
+      // Check if user is a member of any organization
+      const { data: memberships, error: membershipError } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user?.id)
+        .limit(1);
+      
+      if (membershipError) {
+        console.error('🔍 CoachDashboard: Error checking memberships:', membershipError);
+        return;
+      }
+      
+      console.log('🔍 CoachDashboard: User memberships:', memberships);
+      
+      // If user has memberships but profile doesn't have organization_id
+      if (memberships && memberships.length > 0 && !profile?.organization_id) {
+        const organizationId = memberships[0].organization_id;
+        console.log('🔍 CoachDashboard: Found organization_id in memberships:', organizationId);
+        
+        // Update profile with the organization_id
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            organization_id: organizationId,
+            user_type: 'business_admin'
+          })
+          .eq('id', user?.id);
+        
+        if (updateError) {
+          console.error('🔍 CoachDashboard: Error updating profile with organization_id:', updateError);
+        } else {
+          console.log('🔍 CoachDashboard: Profile updated with organization_id:', organizationId);
+          // Refresh the profile data
+          await refreshProfileData();
+        }
+      }
+      
+    } catch (error) {
+      console.error('🔍 CoachDashboard: Error in checkAndFixOrganizationId:', error);
     }
   };
 
@@ -554,13 +603,21 @@ const CoachDashboard: React.FC = () => {
                   You need to create an organization to invite members and access all features.
                 </p>
               </div>
-              <button
-                onClick={createOrganizationForUser}
-                disabled={isCreatingOrganization}
-                className="flex-shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCreatingOrganization ? 'Creating...' : 'Create Organization'}
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={checkAndFixOrganizationId}
+                  className="flex-shrink-0 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Fix Organization ID
+                </button>
+                <button
+                  onClick={createOrganizationForUser}
+                  disabled={isCreatingOrganization}
+                  className="flex-shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingOrganization ? 'Creating...' : 'Create Organization'}
+                </button>
+              </div>
             </div>
           </div>
         )}
