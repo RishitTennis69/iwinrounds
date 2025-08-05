@@ -165,7 +165,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If profile doesn't exist, create one
         if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
           console.log('🔍 AuthProvider: Profile not found, creating new profile');
-          await createProfile(userId);
+          
+          // Check for pending user info before creating profile
+          const pendingInfo = localStorage.getItem('pending_user_info');
+          let firstName, lastName;
+          
+          if (pendingInfo) {
+            try {
+              const parsed = JSON.parse(pendingInfo);
+              firstName = parsed.firstName;
+              lastName = parsed.lastName;
+              console.log('🔍 AuthProvider: Found pending info for profile creation:', { firstName, lastName });
+            } catch (error) {
+              console.error('🔍 AuthProvider: Error parsing pending info:', error);
+            }
+          }
+          
+          await createProfile(userId, firstName, lastName);
         } else {
           // For other errors, still set loading to false
           console.log('🔍 AuthProvider: Profile fetch failed, setting loading to false');
@@ -180,7 +196,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Check if there's pending user info from signup
         const pendingInfo = localStorage.getItem('pending_user_info');
-        if (pendingInfo && !data.first_name) {
+        if (pendingInfo) {
           console.log('🔍 AuthProvider: Found pending user info, updating profile');
           try {
             const { firstName, lastName, userType, organizationName, entryCode } = JSON.parse(pendingInfo);
@@ -209,12 +225,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // TODO: Implement entry code validation and organization joining
             }
             
-            await updateProfile({ 
-              first_name: firstName, 
-              last_name: lastName,
-              user_type: userType || 'individual',
-              organization_id: organizationId
-            });
+            // Update the profile with pending info
+            const updateData: Partial<Profile> = {};
+            if (firstName) updateData.first_name = firstName;
+            if (lastName) updateData.last_name = lastName;
+            if (userType) updateData.user_type = userType as 'individual' | 'business_admin' | 'coach' | 'student';
+            if (organizationId) updateData.organization_id = organizationId;
+            
+            await updateProfile(updateData);
             localStorage.removeItem('pending_user_info');
             console.log('🔍 AuthProvider: Profile updated with pending info');
           } catch (error) {
