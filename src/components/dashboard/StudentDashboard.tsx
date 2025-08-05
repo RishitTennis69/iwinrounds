@@ -6,7 +6,6 @@ import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Zap, Star, Trendin
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { supabase } from '../../lib/supabase';
 
 const StudentDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -134,106 +133,6 @@ const StudentDashboard: React.FC = () => {
           >
             <LogOut className="w-4 h-4" />
             <span className="text-sm font-medium">Sign Out</span>
-          </button>
-          <button
-            onClick={() => {
-              console.log('🔍 Debug: Profile data:', profile);
-              alert(`Profile Debug Info:\nUser Type: ${profile?.user_type}\nOrganization ID: ${profile?.organization_id}\nEmail: ${profile?.email}\nFirst Name: ${profile?.first_name}`);
-            }}
-            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-200 shadow-sm"
-          >
-            <span className="text-sm font-medium">Debug Profile</span>
-          </button>
-          <button
-            onClick={async () => {
-              console.log('🔍 Debug: Profile data:', profile);
-              console.log('🔍 Debug: User data:', user);
-              
-              if (!profile) {
-                alert('Profile is undefined! This means the profile is not being loaded. Check the console for more details.');
-                return;
-              }
-              
-              try {
-                console.log('🔍 Debug: Attempting to update profile with ID:', profile.id);
-                const { data, error } = await supabase
-                  .from('profiles')
-                  .update({ user_type: 'business_admin' })
-                  .eq('id', profile.id)
-                  .select();
-                
-                if (error) {
-                  console.error('Error updating profile:', error);
-                  alert('Error updating profile: ' + error.message);
-                } else {
-                  console.log('🔍 Debug: Profile updated successfully:', data);
-                  alert('Profile updated! Refresh the page to see the CoachDashboard.');
-                  window.location.reload();
-                }
-              } catch (error) {
-                console.error('Error:', error);
-                alert('Error updating profile: ' + error);
-              }
-            }}
-            className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg border border-green-200 shadow-sm"
-          >
-            <span className="text-sm font-medium">Fix User Type (Test)</span>
-          </button>
-          <button
-            onClick={async () => {
-              if (!user) {
-                alert('No user found! Please sign in first.');
-                return;
-              }
-              
-              try {
-                console.log('🔍 Debug: Creating profile for user:', user.id);
-                
-                // First create an organization
-                const { data: orgData, error: orgError } = await supabase
-                  .from('organizations')
-                  .insert({ name: 'Test Organization' })
-                  .select()
-                  .single();
-                
-                if (orgError) {
-                  console.error('Error creating organization:', orgError);
-                  alert('Error creating organization: ' + orgError.message);
-                  return;
-                }
-                
-                console.log('🔍 Debug: Organization created with ID:', orgData.id);
-                
-                // Then create the profile
-                const { data, error } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: user.id,
-                    email: user.email!,
-                    first_name: 'Test',
-                    last_name: 'User',
-                    user_type: 'business_admin',
-                    organization_id: orgData.id
-                  })
-                  .select()
-                  .single();
-                
-                if (error) {
-                  console.error('Error creating profile:', error);
-                  alert('Error creating profile: ' + error.message);
-                } else {
-                  console.log('🔍 Debug: Profile created successfully:', data);
-                  alert('Profile created! Refresh the page to see the CoachDashboard.');
-                  window.location.reload();
-                }
-              } catch (error) {
-                console.error('Error:', error);
-                alert('Error creating profile: ' + error);
-              }
-            }}
-            className="flex items-center space-x-2 text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 hover:bg-orange-100 px-4 py-2 rounded-lg border border-orange-200 shadow-sm"
-          >
-            <span className="text-sm font-medium">Create Profile (Test)</span>
           </button>
         </div>
       </header>
