@@ -45,8 +45,6 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [requiredSpeechToListen, setRequiredSpeechToListen] = useState<number | null>(null);
   const [speechPlayStates, setSpeechPlayStates] = useState<{[key: number]: 'idle' | 'playing' | 'paused' | 'completed'}>({});
   const [speechLoadingStates, setSpeechLoadingStates] = useState<{[key: number]: boolean}>({});
-  const [speechIntervals, setSpeechIntervals] = useState<{[key: number]: number | undefined}>({});
-  const [speechTimers, setSpeechTimers] = useState<{[key: number]: number}>({});
   const [userFeedback, setUserFeedback] = useState<{
     strengths: string[];
     areasForImprovement: string[];
@@ -273,6 +271,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
 
 **TOPIC:** ${topic}
 **SPEAKER:** ${sp.team} ${sp.speakerNumber}
+**POSITION:** ${sp.team === 'affirmative' ? 'SUPPORTING the resolution' : 'OPPOSING the resolution'}
 
 **STRUCTURE:**
 1. **Intro:**
@@ -281,7 +280,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
    - Background
    - Statement of Significance (why this topic matters)
    - Resolution
-   - Side (${sp.team})
+   - Side (${sp.team === 'affirmative' ? 'SUPPORTING' : 'OPPOSING'})
    - Preview (1-2 main contentions)
 
 2. **Contentions (1-2 main arguments):**
@@ -294,12 +293,19 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
    - Weighing ("our world vs their world")
    - Zinger (memorable closing)
 
+**CRITICAL POSITION REQUIREMENTS:**
+- If ${sp.team === 'affirmative' ? 'AFFIRMATIVE' : 'NEGATIVE'}: You MUST ${sp.team === 'affirmative' ? 'SUPPORT' : 'OPPOSE'} the resolution
+- Use language that clearly shows your ${sp.team === 'affirmative' ? 'support for' : 'opposition to'} the resolution
+- ${sp.team === 'affirmative' ? 'Argue FOR the resolution' : 'Argue AGAINST the resolution'}
+- Make it clear you are the ${sp.team} side
+
 **IMPORTANT LANGUAGE GUIDELINES:**
 - DO NOT use "this house" or "This House" in the topic sentence or resolution
 - Instead, use direct language like "we believe", "the United States should", "our team supports", etc.
 - Make the language natural and direct, not parliamentary debate style
+- Keep it concise and focused - approximately 1-2 minutes when spoken
 
-Write the speech in natural, flowing language that sounds like a real debate speech. Make it approximately 2-3 minutes when spoken.
+Write the speech in natural, flowing language that sounds like a real debate speech.
 
 Respond in this exact JSON format:
 {
@@ -318,10 +324,10 @@ Respond in this exact JSON format:
               'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-              model: 'gpt-4.1-nano',
+              model: 'gpt-3.5-turbo',
               messages: [{ role: 'user', content: prompt }],
-              max_tokens: 1000,
-              temperature: 0.7
+              max_tokens: 600,
+              temperature: 0.8
             })
           });
           if (!response.ok) throw new Error('Failed to generate AI speech');
@@ -421,15 +427,15 @@ Respond in this exact JSON format:
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'paused' }));
     
     // Pause the timer
-    const interval = speechIntervals[speechNum];
-    if (interval) {
-      clearInterval(interval);
-      setSpeechIntervals(prev => {
-        const newIntervals = { ...prev };
-        delete newIntervals[speechNum];
-        return newIntervals;
-      });
-    }
+    // const interval = speechIntervals[speechNum];
+    // if (interval) {
+    //   clearInterval(interval);
+    //   setSpeechIntervals(prev => {
+    //     const newIntervals = { ...prev };
+    //     delete newIntervals[speechNum];
+    //     return newIntervals;
+    //   });
+    // }
   };
 
   // Resume AI speech
@@ -438,10 +444,10 @@ Respond in this exact JSON format:
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
     
     // Resume the timer
-    const interval = setInterval(() => {
-      setSpeechTimers((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
-    }, 1000);
-    setSpeechIntervals((prev: {[key: number]: number | undefined}) => ({ ...prev, [speechNum]: interval as unknown as number }));
+    // const interval = setInterval(() => {
+    //   setSpeechTimers((prev: {[key: number]: number}) => ({ ...prev, [speechNum]: (prev[speechNum] || 0) + 1 }));
+    // }, 1000);
+    // setSpeechIntervals((prev: {[key: number]: number | undefined}) => ({ ...prev, [speechNum]: interval as unknown as number }));
   };
 
   // Stop AI speech
@@ -459,15 +465,15 @@ Respond in this exact JSON format:
     setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
     
     // Clear the timer
-    const interval = speechIntervals[speechNum];
-    if (interval) {
-      clearInterval(interval);
-      setSpeechIntervals((prev: {[key: number]: number | undefined}) => {
-        const newIntervals = { ...prev };
-        delete newIntervals[speechNum];
-        return newIntervals;
-      });
-    }
+    // const interval = speechIntervals[speechNum];
+    // if (interval) {
+    //   clearInterval(interval);
+    //   setSpeechIntervals((prev: {[key: number]: number | undefined}) => {
+    //     const newIntervals = { ...prev };
+    //     delete newIntervals[speechNum];
+    //     return newIntervals;
+    //   });
+    // }
     
     // Mark speech as listened to
     setListenedSpeeches(prev => new Set([...prev, speechNum]));
@@ -1209,7 +1215,6 @@ Respond in this exact JSON format:
                 const isLoading = speechLoadingStates[speech.speechNumber] || false;
                 const hasBeenListened = playState === 'completed';
                 const isRequired = requiredSpeechToListen === speech.speechNumber;
-                const currentTime = speechTimers[speech.speechNumber] || 0;
                 
                 return (
                   <div key={speech.id} className={`border rounded-lg p-3 ${
@@ -1248,17 +1253,6 @@ Respond in this exact JSON format:
                     {isRequired && !hasBeenListened && (
                       <div className="mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
                         🔊 You must listen to this speech before continuing
-                      </div>
-                    )}
-                    
-                    {/* Timer display when playing or paused */}
-                    {(playState === 'playing' || playState === 'paused') && (
-                      <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-center justify-center space-x-2">
-                        <span>⏱️</span>
-                        <span className="font-mono font-medium">{formatTime(currentTime)}</span>
-                        {playState === 'playing' && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        )}
                       </div>
                     )}
                     
@@ -1317,7 +1311,7 @@ Respond in this exact JSON format:
                         <button
                           onClick={() => {
                             setSpeechPlayStates(prev => ({ ...prev, [speech.speechNumber]: 'idle' }));
-                            setSpeechTimers(prev => ({ ...prev, [speech.speechNumber]: 0 }));
+                            // setSpeechTimers(prev => ({ ...prev, [speech.speechNumber]: 0 }));
                           }}
                           className="flex-1 bg-gray-600 text-white py-1 px-2 rounded text-xs hover:bg-gray-700 transition-colors"
                         >
