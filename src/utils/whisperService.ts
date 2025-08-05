@@ -14,6 +14,13 @@ export class WhisperService {
   private readonly minChunkDurationMs: number = 5000; // Process chunks every 5 seconds for more responsive transcription
   private isProcessingChunk: boolean = false;
 
+  // Add properties to match SimpleSpeechService interface
+  public recognition: any = null; // Not used in WhisperService but required for interface compatibility
+  public isSupported: boolean = true; // MediaRecorder is widely supported
+  public initializeRecognition: () => void = () => {}; // Not needed for WhisperService
+  public setupRecognition: () => void = () => {}; // Not needed for WhisperService
+  public checkSupport: () => boolean = () => true; // MediaRecorder is supported
+
   constructor() {
     // Check if MediaRecorder is supported
     if (!window.MediaRecorder) {
