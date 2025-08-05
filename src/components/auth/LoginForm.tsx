@@ -13,6 +13,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+  const [mode, setMode] = useState<'login' | 'signup'>('signup'); // Default to signup
   const { signIn, checkUserExists } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +65,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     }
   };
 
+  const getButtonText = () => {
+    if (loading) return 'Sending magic link...';
+    if (mode === 'signup') return 'Create Account';
+    return 'Sign In';
+  };
+
+  const getDescription = () => {
+    if (mode === 'signup') {
+      return isNewUser === null 
+        ? 'Create your account to get started'
+        : isNewUser 
+          ? 'Create your account'
+          : 'Account already exists - switch to Sign In';
+    } else {
+      return isNewUser === null 
+        ? 'Sign in to your account'
+        : isNewUser 
+          ? 'Account not found - switch to Sign Up'
+          : 'Sign in to your account';
+    }
+  };
+
   return (
     <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-200 relative">
       {/* Close button */}
@@ -78,14 +101,33 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to ReasynAI</h1>
-        <p className="text-gray-600">
-          {isNewUser === null 
-            ? 'Enter your email to continue'
-            : isNewUser 
-              ? 'Create your account'
-              : 'Sign in to your account'
-          }
-        </p>
+        <p className="text-gray-600">{getDescription()}</p>
+      </div>
+
+      {/* Toggle between Login and Signup */}
+      <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+        <button
+          type="button"
+          onClick={() => setMode('signup')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            mode === 'signup'
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Sign Up
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('login')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            mode === 'login'
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Sign In
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -142,26 +184,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
               <span>Sending magic link...</span>
             </>
           ) : (
-            <span>
-              {isNewUser === null 
-                ? 'Continue with Email'
-                : isNewUser 
-                  ? 'Create Account'
-                  : 'Sign In'
-              }
-            </span>
+            <span>{getButtonText()}</span>
           )}
         </button>
       </form>
 
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-600">
-          {isNewUser === null 
-            ? 'We\'ll send you a magic link to sign in securely'
-            : isNewUser 
-              ? 'We\'ll send you a magic link to create your account'
-              : 'We\'ll send you a magic link to sign in securely'
-          }
+          We'll send you a magic link to {mode === 'signup' ? 'create your account' : 'sign in securely'}
         </p>
       </div>
     </div>
