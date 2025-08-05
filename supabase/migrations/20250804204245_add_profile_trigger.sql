@@ -43,8 +43,32 @@ CREATE POLICY "Allow trigger to insert profiles" ON profiles
 */
 
 -- Instead, ensure the profiles table has proper policies for frontend creation
-CREATE POLICY IF NOT EXISTS "Users can insert their own profile" ON profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
+-- Create or update RLS policies for profiles table
+DO $$
+BEGIN
+  -- Insert policy
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND policyname = 'Users can insert their own profile'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Users can insert their own profile" ON profiles 
+             FOR INSERT WITH CHECK (auth.uid() = id)';
+  ELSE
+    EXECUTE 'ALTER POLICY "Users can insert their own profile" ON profiles 
+             WITH CHECK (auth.uid() = id)';
+  END IF;
 
-CREATE POLICY IF NOT EXISTS "Users can update their own profile" ON profiles
-  FOR UPDATE USING (auth.uid() = id); 
+  -- Update policy
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND policyname = 'Users can update their own profile'
+  ) THEN
+    EXECUTE 'CREATE POLICY "Users can update their own profile" ON profiles 
+             FOR UPDATE USING (auth.uid() = id)';
+  ELSE
+    EXECUTE 'ALTER POLICY "Users can update their own profile" ON profiles 
+             USING (auth.uid() = id)';
+  END IF;
+END $$; 
