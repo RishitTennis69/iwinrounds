@@ -247,7 +247,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             if (orgError) {
               console.error('🔍 AuthProvider: Error creating organization:', orgError);
-              throw new Error(`Failed to create organization: ${orgError.message}`);
+              // Don't throw error, just log it and continue with profile creation
+              console.log('🔍 AuthProvider: Continuing with profile creation without organization');
             } else {
               organizationId = orgData.id;
               console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
@@ -285,7 +286,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: user.email!,
           first_name: firstName || null,
           last_name: lastName || null,
-          user_type: userType as 'individual' | 'business_admin' | 'coach' | 'student',
+          user_type: userType === 'organization' ? 'business_admin' : userType as 'individual' | 'business_admin' | 'coach' | 'student',
           organization_id: organizationId,
         })
         .select()
