@@ -333,13 +333,18 @@ const StudentDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
                   onClick={() => {
+                    console.log('🔍 StudentDashboard: Debate Mode button clicked');
                     setShowModeSelection(false);
                     // Navigate to debate mode by setting the mode in the parent App
                     localStorage.setItem('navigationTarget', 'debate');
+                    console.log('🔍 StudentDashboard: Set navigationTarget to debate in localStorage');
                     // Use a custom event to trigger navigation without page reload
-                    window.dispatchEvent(new CustomEvent('navigateToMode', { 
+                    const event = new CustomEvent('navigateToMode', { 
                       detail: { mode: 'debate' } 
-                    }));
+                    });
+                    console.log('🔍 StudentDashboard: Dispatching navigateToMode event with debate mode');
+                    window.dispatchEvent(event);
+                    console.log('🔍 StudentDashboard: Event dispatched successfully');
                   }}
                   className="group p-6 bg-white border-2 border-blue-200 rounded-xl hover:border-blue-400 hover:shadow-lg transition-all duration-200 text-left"
                 >
@@ -347,7 +352,7 @@ const StudentDashboard: React.FC = () => {
                   <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-blue-600">
                     Debate Mode
                   </h3>
-                  <p className="text-slate-600">Practice with AI opponents in structured debate formats</p>
+                  <p className="text-slate-600">Enter the actual debate stage with AI opponents and real-time scoring</p>
                 </button>
 
                 <button
@@ -371,7 +376,7 @@ const StudentDashboard: React.FC = () => {
                   <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-indigo-600">
                     Practice Mode
                   </h3>
-                  <p className="text-slate-600">Focus on specific skills and receive detailed feedback</p>
+                  <p className="text-slate-600">Practice your skills against AI with detailed feedback and coaching</p>
                 </button>
               </div>
             </CardContent>
