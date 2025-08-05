@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2, Building, User, Key } from 'lucide-react';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -15,7 +15,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
-  const [mode, setMode] = useState<'login' | 'signup'>('signup'); // Default to signup
+  const [mode, setMode] = useState<'login' | 'signup'>('signup');
+  
+  // Organization signup fields
+  const [userType, setUserType] = useState<'individual' | 'organization'>('individual');
+  const [organizationName, setOrganizationName] = useState('');
+  const [isAffiliated, setIsAffiliated] = useState<boolean | null>(null);
+  const [entryCode, setEntryCode] = useState('');
+  const [showEntryCodeInput, setShowEntryCodeInput] = useState(false);
+  
   const { signIn, checkUserExists } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +36,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       const result = await signIn(
         email, 
         mode === 'signup' ? firstName : undefined,
-        mode === 'signup' ? lastName : undefined
+        mode === 'signup' ? lastName : undefined,
+        mode === 'signup' ? userType : undefined,
+        mode === 'signup' ? organizationName : undefined,
+        mode === 'signup' ? entryCode : undefined
       );
       setIsNewUser(result.isNewUser);
       
@@ -39,7 +50,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       }
       
       setMessageType('success');
-      // Don't call onSuccess to keep popup open
     } catch (error) {
       setMessage('Error sending login link. Please try again.');
       setMessageType('error');
@@ -53,19 +63,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     
-    // Clear previous state
     setMessage('');
     setIsNewUser(null);
     
-    // Check if user exists when email is valid
     if (newEmail && newEmail.includes('@')) {
       try {
         const exists = await checkUserExists(newEmail);
         setIsNewUser(!exists);
       } catch (error) {
-        // Silently handle error - don't show to user
         console.error('Error checking user existence:', error);
       }
+    }
+  };
+
+  const handleUserTypeChange = (type: 'individual' | 'organization') => {
+    setUserType(type);
+    setOrganizationName('');
+    setIsAffiliated(null);
+    setEntryCode('');
+    setShowEntryCodeInput(false);
+  };
+
+  const handleAffiliationChange = (affiliated: boolean) => {
+    setIsAffiliated(affiliated);
+    if (affiliated) {
+      setShowEntryCodeInput(true);
+    } else {
+      setShowEntryCodeInput(false);
+      setEntryCode('');
     }
   };
 
@@ -91,9 +116,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     }
   };
 
+  const isFormValid = () => {
+    if (mode === 'login') return email;
+    
+    // Signup validation
+    if (!email || !firstName || !lastName) return false;
+    
+    if (userType === 'organization' && !organizationName) return false;
+    
+    if (userType === 'individual' && isAffiliated === true && !entryCode) return false;
+    
+    return true;
+  };
+
   return (
     <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-200 relative">
-      {/* Close button */}
       {onClose && (
         <button
           onClick={onClose}
@@ -108,7 +145,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
         <p className="text-gray-600">{getDescription()}</p>
       </div>
 
-      {/* Toggle between Login and Signup */}
       <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
         <button
           type="button"
@@ -144,9 +180,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="firstName"
@@ -166,9 +200,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="lastName"
@@ -182,6 +214,125 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* User Type Selection - only in signup mode */}
+        {mode === 'signup' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              I am a:
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleUserTypeChange('individual')}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  userType === 'individual'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <User className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium">Individual</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUserTypeChange('organization')}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  userType === 'organization'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Building className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium">Organization</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Organization Name - only for organization signup */}
+        {mode === 'signup' && userType === 'organization' && (
+          <div>
+            <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-2">
+              Organization Name
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Building className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="organizationName"
+                type="text"
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter organization name"
+                required={userType === 'organization'}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Affiliation Question - only for individual signup */}
+        {mode === 'signup' && userType === 'individual' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Are you affiliated with any organizations that use ReasynAI?
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleAffiliationChange(true)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  isAffiliated === true
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <span className="text-sm font-medium">Yes</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAffiliationChange(false)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  isAffiliated === false
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <span className="text-sm font-medium">No</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Entry Code Input - only for affiliated individuals */}
+        {mode === 'signup' && userType === 'individual' && showEntryCodeInput && (
+          <div>
+            <label htmlFor="entryCode" className="block text-sm font-medium text-gray-700 mb-2">
+              Organization Entry Code
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Key className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="entryCode"
+                type="text"
+                value={entryCode}
+                onChange={(e) => setEntryCode(e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter your organization code"
+                required={showEntryCodeInput}
+                disabled={loading}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              You can also join an organization later from your dashboard
+            </p>
           </div>
         )}
 
@@ -205,7 +356,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
             />
           </div>
           
-          {/* Show user status indicator */}
           {isNewUser !== null && email && (
             <div className="mt-2 text-sm">
               {isNewUser ? (
@@ -229,7 +379,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
 
         <button
           type="submit"
-          disabled={loading || !email || (mode === 'signup' && (!firstName || !lastName))}
+          disabled={loading || !isFormValid()}
           className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (

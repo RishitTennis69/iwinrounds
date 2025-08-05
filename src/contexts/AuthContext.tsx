@@ -8,7 +8,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, firstName?: string, lastName?: string) => Promise<{ isNewUser: boolean }>;
+  signIn: (email: string, firstName?: string, lastName?: string, userType?: 'individual' | 'organization', organizationName?: string, entryCode?: string) => Promise<{ isNewUser: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   checkUserExists: (email: string) => Promise<boolean>;
@@ -106,8 +106,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const pendingInfo = localStorage.getItem('pending_user_info');
         if (pendingInfo && !data.first_name) {
           try {
-            const { firstName, lastName } = JSON.parse(pendingInfo);
-            await updateProfile({ first_name: firstName, last_name: lastName });
+            const { firstName, lastName, userType, organizationName, entryCode } = JSON.parse(pendingInfo);
+            
+            // Handle organization creation if needed
+            let organizationId = null;
+            if (userType === 'organization' && organizationName) {
+              const { data: orgData, error: orgError } = await supabase
+                .from('organizations')
+                .insert({ name: organizationName })
+                .select()
+                .single();
+              
+              if (orgError) {
+                console.error('Error creating organization:', orgError);
+              } else {
+                organizationId = orgData.id;
+              }
+            }
+            
+            // Handle entry code if provided
+            if (entryCode) {
+              // TODO: Implement entry code validation and organization joining
+              console.log('Entry code provided:', entryCode);
+            }
+            
+            await updateProfile({ 
+              first_name: firstName, 
+              last_name: lastName,
+              user_type: userType || 'individual',
+              organization_id: organizationId
+            });
             localStorage.removeItem('pending_user_info');
           } catch (error) {
             console.error('Error updating profile with pending info:', error);
@@ -167,7 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string, firstName?: string, lastName?: string): Promise<{ isNewUser: boolean }> => {
+  const signIn = async (email: string, firstName?: string, lastName?: string, userType?: 'individual' | 'organization', organizationName?: string, entryCode?: string): Promise<{ isNewUser: boolean }> => {
     try {
       // Check if user already exists
       const userExists = await checkUserExists(email);
@@ -183,10 +211,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
 
-      // If it's a new user, we'll need to update their profile with first/last name later
-      // For now, we'll store this info in localStorage to use when they first log in
+      // If it's a new user, store additional info for profile creation
       if (!userExists && firstName && lastName) {
-        localStorage.setItem('pending_user_info', JSON.stringify({ firstName, lastName }));
+        const pendingInfo = {
+          firstName,
+          lastName,
+          userType: userType || 'individual',
+          organizationName,
+          entryCode
+        };
+        localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
       }
 
       return { isNewUser: !userExists };
