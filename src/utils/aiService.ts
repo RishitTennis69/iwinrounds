@@ -106,6 +106,13 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
           }
         }
         
+        // Clean up common JSON formatting issues
+        jsonContent = jsonContent
+          .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+          .replace(/\n/g, ' ') // Remove newlines
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+        
         const analysis = JSON.parse(jsonContent);
         return {
           mainPoints: analysis.mainPoints || [],
@@ -117,6 +124,32 @@ Keep each point concise but informative. If a category doesn't apply, use an emp
       } catch (parseError) {
         console.error('Failed to parse API response:', parseError);
         console.error('Raw content:', content);
+        
+        // Try to extract JSON using a more lenient approach
+        try {
+          // Look for JSON-like structure and try to fix common issues
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            let fixedJson = jsonMatch[0]
+              .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+              .replace(/,(\s*})/g, '$1') // Remove trailing commas before closing braces
+              .replace(/\n/g, ' ') // Remove newlines
+              .replace(/\s+/g, ' ') // Normalize whitespace
+              .trim();
+            
+            const analysis = JSON.parse(fixedJson);
+            return {
+              mainPoints: analysis.mainPoints || [],
+              counterPoints: analysis.counterPoints || [],
+              counterCounterPoints: analysis.counterCounterPoints || [],
+              impactWeighing: analysis.impactWeighing || 'No impact weighing provided',
+              evidence: analysis.evidence || []
+            };
+          }
+        } catch (fallbackError) {
+          console.error('Fallback parsing also failed:', fallbackError);
+        }
+        
         throw new Error('Invalid response format from API');
       }
     } catch (error) {
