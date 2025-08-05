@@ -20,6 +20,7 @@ import CoachDashboard from './components/dashboard/CoachDashboard';
 // Main App Component with Authentication
 const AppWithAuth: React.FC = () => {
   const { user, profile, loading, supabaseConfigured } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
 
   if (loading) {
     return (
@@ -34,8 +35,12 @@ const AppWithAuth: React.FC = () => {
     return <App />;
   }
 
+  // If user is not logged in, show landing page with option to login
   if (!user) {
-    return <LoginForm />;
+    if (showLogin) {
+      return <LoginForm onSuccess={() => setShowLogin(false)} />;
+    }
+    return <App onShowLogin={() => setShowLogin(true)} />;
   }
 
   // Route based on user type
@@ -52,7 +57,7 @@ const AppWithAuth: React.FC = () => {
 };
 
 // Original App Component (for debate functionality)
-const App: React.FC = () => {
+const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
   const { user, profile } = useAuth();
   const [mode, setMode] = useState<'landing' | 'selection' | 'debate' | 'practice'>('landing');
   const [showModeModal, setShowModeModal] = useState(false);
@@ -288,6 +293,7 @@ const App: React.FC = () => {
         <HeroSection 
           setShowModal={handleShowModal}
           features={features}
+          onShowLogin={onShowLogin}
         />
         {showModeModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

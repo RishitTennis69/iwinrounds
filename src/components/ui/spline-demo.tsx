@@ -11,9 +11,10 @@ interface HeroSectionProps {
     title: string;
     desc: string;
   }>;
+  onShowLogin?: () => void;
 }
  
-export function HeroSection({ setShowModal, features }: HeroSectionProps) {
+export function HeroSection({ setShowModal, features, onShowLogin }: HeroSectionProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
@@ -42,6 +43,14 @@ export function HeroSection({ setShowModal, features }: HeroSectionProps) {
             >
               Features
             </a>
+            {onShowLogin && (
+              <button
+                onClick={onShowLogin}
+                className="px-4 py-2 text-blue-600 hover:text-blue-800 transition-all duration-300 hover:scale-105"
+              >
+                Sign In
+              </button>
+            )}
             <button
               onClick={() => setShowModal(true)}
               className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
