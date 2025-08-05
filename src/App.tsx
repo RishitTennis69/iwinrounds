@@ -119,6 +119,19 @@ const AppWithAuth: React.FC = () => {
     );
   }
 
+  // If user is logged in but profile is not loaded yet, show loading
+  if (!profile) {
+    console.log('🔍 AppWithAuth: User logged in but profile not loaded, showing loading');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-slate-600">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   console.log('🔍 AppWithAuth: User logged in, checking currentView:', currentView);
 
   // Route based on currentView and user type
@@ -185,8 +198,21 @@ const AppWithAuth: React.FC = () => {
     );
   }
   
-  console.log('🔍 AppWithAuth: Fallback to StudentDashboard - no specific user_type detected');
-  return <StudentDashboard />; // Fallback
+  // If profile exists but user_type is not recognized, show error or redirect to landing
+  console.log('🔍 AppWithAuth: Unknown user_type, redirecting to landing page');
+  return (
+    <>
+      <App onShowLogin={() => setShowLogin(true)} />
+      {showLogin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <LoginForm 
+            onSuccess={() => setShowLogin(false)} 
+            onClose={() => setShowLogin(false)}
+          />
+        </div>
+      )}
+    </>
+  );
 };
 
 // Original App Component (for debate functionality)

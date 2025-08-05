@@ -363,19 +363,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, firstName?: string, lastName?: string, userType?: 'individual' | 'organization', organizationName?: string, entryCode?: string): Promise<{ isNewUser: boolean }> => {
     try {
+      console.log('🔍 AuthProvider: signIn called with email:', email);
+      
       // Check if user already exists
       const userExists = await checkUserExists(email);
+      console.log('🔍 AuthProvider: User exists check result:', userExists);
       
-      const { error } = await supabase.auth.signInWithOtp({
+      // Prepare the redirect URL
+      const redirectUrl = window.location.origin;
+      console.log('🔍 AuthProvider: Using redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin, // Use current origin instead of hardcoded URL
+          emailRedirectTo: redirectUrl,
+          shouldCreateUser: true, // Allow creating new users
         },
       });
 
       if (error) {
+        console.error('🔍 AuthProvider: Error in signInWithOtp:', error);
         throw error;
       }
+
+      console.log('🔍 AuthProvider: Magic link sent successfully:', data);
 
       // If it's a new user, store additional info for profile creation
       if (!userExists && firstName && lastName) {
@@ -387,6 +398,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           entryCode
         };
         localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
+        console.log('🔍 AuthProvider: Stored pending user info:', pendingInfo);
       }
 
       return { isNewUser: !userExists };

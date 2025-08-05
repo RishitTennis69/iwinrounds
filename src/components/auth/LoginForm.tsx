@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { testMagicLink } from '../../utils/testEmail';
 import { Mail, Loader2, Building, User, Key } from 'lucide-react';
 
 interface LoginFormProps {
@@ -26,6 +27,36 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   
   const { signIn, checkUserExists } = useAuth();
 
+  const testMagicLinkFunction = async () => {
+    if (!email) {
+      setMessage('Please enter an email first');
+      setMessageType('error');
+      return;
+    }
+    
+    setLoading(true);
+    setMessage('');
+    
+    try {
+      console.log('🔍 LoginForm: Testing magic link for:', email);
+      const result = await testMagicLink(email);
+      
+      if (result.success) {
+        setMessage('Test magic link sent successfully! Check your email.');
+        setMessageType('success');
+      } else {
+        setMessage(`Test failed: ${result.error}`);
+        setMessageType('error');
+      }
+    } catch (error) {
+      console.error('🔍 LoginForm: Test error:', error);
+      setMessage(`Test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -33,6 +64,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     setIsNewUser(null);
 
     try {
+      console.log('🔍 LoginForm: Starting sign in process');
+      console.log('🔍 LoginForm: Email:', email);
+      console.log('🔍 LoginForm: Mode:', mode);
+      console.log('🔍 LoginForm: User type:', userType);
+      console.log('🔍 LoginForm: Organization name:', organizationName);
+      
       const result = await signIn(
         email, 
         mode === 'signup' ? firstName : undefined,
@@ -41,6 +78,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
         mode === 'signup' ? organizationName : undefined,
         mode === 'signup' ? entryCode : undefined
       );
+      
+      console.log('🔍 LoginForm: Sign in result:', result);
       setIsNewUser(result.isNewUser);
       
       if (result.isNewUser) {
@@ -51,9 +90,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       
       setMessageType('success');
     } catch (error) {
-      setMessage('Error sending login link. Please try again.');
+      console.error('🔍 LoginForm: Error in handleSubmit:', error);
+      setMessage(`Error sending login link: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setMessageType('error');
-      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -405,6 +444,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
           ) : (
             <span>{getButtonText()}</span>
           )}
+        </button>
+
+        {/* Test button for debugging */}
+        <button
+          type="button"
+          onClick={testMagicLinkFunction}
+          disabled={loading || !email}
+          className="w-full flex items-center justify-center space-x-2 bg-gray-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Test Magic Link
         </button>
       </form>
 
