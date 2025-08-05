@@ -17,18 +17,23 @@ import LoginForm from './components/auth/LoginForm';
 import StudentDashboard from './components/dashboard/StudentDashboard';
 import CoachDashboard from './components/dashboard/CoachDashboard';
 
+// Global navigation state
+let globalNavigationTarget: 'debate' | 'practice' | null = null;
+
 // Main App Component with Authentication
 const AppWithAuth: React.FC = () => {
   console.log('🔍 AppWithAuth: Component rendering');
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'debate' | 'practice'>('dashboard');
 
   console.log('🔍 AppWithAuth: Auth state:', { 
     user: !!user, 
     profile: !!profile, 
     loading,
-    showLogin 
+    showLogin,
+    currentView
   });
 
   // Listen for custom navigation events from StudentDashboard
@@ -41,16 +46,12 @@ const AppWithAuth: React.FC = () => {
       
       if (mode === 'debate') {
         console.log('🔍 AppWithAuth: Navigating to debate mode via event');
-        // Set navigation target for App component to pick up
-        localStorage.setItem('navigationTarget', 'debate');
-        // Force a page reload to let App component handle the navigation
-        window.location.reload();
+        globalNavigationTarget = 'debate';
+        setCurrentView('debate');
       } else if (mode === 'practice') {
         console.log('🔍 AppWithAuth: Navigating to practice mode via event');
-        // Set navigation target for App component to pick up
-        localStorage.setItem('navigationTarget', 'practice');
-        // Force a page reload to let App component handle the navigation
-        window.location.reload();
+        globalNavigationTarget = 'practice';
+        setCurrentView('practice');
       }
     };
 
@@ -115,9 +116,20 @@ const AppWithAuth: React.FC = () => {
     );
   }
 
-  console.log('🔍 AppWithAuth: User logged in, checking profile:', profile);
+  console.log('🔍 AppWithAuth: User logged in, checking currentView:', currentView);
 
-  // Route based on user type (if logged in)
+  // Route based on currentView and user type
+  if (currentView === 'debate') {
+    console.log('🔍 AppWithAuth: Rendering debate mode');
+    return <App onShowLogin={() => setShowLogin(true)} />;
+  }
+  
+  if (currentView === 'practice') {
+    console.log('🔍 AppWithAuth: Rendering practice mode');
+    return <App onShowLogin={() => setShowLogin(true)} />;
+  }
+
+  // Default to dashboard based on user type
   if (profile?.user_type === 'business_admin' || profile?.user_type === 'coach') {
     console.log('🔍 AppWithAuth: Routing to CoachDashboard');
     return <CoachDashboard />;
@@ -172,6 +184,33 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
         console.log('🔍 App: Navigating to practice mode');
         setMode('practice');
       }
+    }
+  }, []);
+
+  // Check if we should start in a specific mode based on URL or other indicators
+  useEffect(() => {
+    // Check if we're coming from AppWithAuth navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMode = urlParams.get('view');
+    
+    if (viewMode === 'practice') {
+      console.log('🔍 App: Starting in practice mode from URL');
+      setMode('practice');
+      setSelectedFormat(null);
+    } else if (viewMode === 'debate') {
+      console.log('🔍 App: Starting in debate mode from URL');
+      setMode('debate');
+      setSelectedFormat(null);
+    }
+  }, []);
+
+  // Check global navigation target
+  useEffect(() => {
+    if (globalNavigationTarget) {
+      console.log('🔍 App: Found global navigation target:', globalNavigationTarget);
+      setMode(globalNavigationTarget);
+      setSelectedFormat(null);
+      globalNavigationTarget = null; // Clear it after use
     }
   }, []);
 
