@@ -10,6 +10,7 @@ export interface TTSOptions {
 export class TTSService {
   private currentAudio: HTMLAudioElement | null = null;
   public onAudioReady: (() => void) | null = null;
+  public onAudioStarted: (() => void) | null = null;
   public onAudioEnded: (() => void) | null = null;
   public onAudioError: ((error: any) => void) | null = null;
 
@@ -74,6 +75,13 @@ export class TTSService {
         // Audio can start playing - this is when we should show controls
         if (this.onAudioReady) {
           this.onAudioReady();
+        }
+      };
+      
+      this.currentAudio.onplay = () => {
+        // Audio has actually started playing
+        if (this.onAudioStarted) {
+          this.onAudioStarted();
         }
       };
       

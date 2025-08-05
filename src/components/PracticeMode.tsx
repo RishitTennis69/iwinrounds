@@ -426,7 +426,12 @@ Respond in this exact JSON format:
 
     // Set up TTS event handlers
     ttsService.onAudioReady = () => {
-      // Audio is ready to play - show controls
+      // Audio is ready to play - keep loading until it actually starts
+      // Don't change state here, wait for onAudioStarted
+    };
+
+    ttsService.onAudioStarted = () => {
+      // Audio has actually started playing - hide loading and show controls
       setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'playing' }));
     };
@@ -454,6 +459,7 @@ Respond in this exact JSON format:
     } finally {
       // Clean up event handlers
       ttsService.onAudioReady = null;
+      ttsService.onAudioStarted = null;
       ttsService.onAudioEnded = null;
       ttsService.onAudioError = null;
     }
