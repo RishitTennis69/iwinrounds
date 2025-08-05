@@ -35,6 +35,51 @@ const CoachDashboard: React.FC = () => {
   const [inviteCode, setInviteCode] = useState<string>('');
   const [invitedEmail, setInvitedEmail] = useState<string>('');
 
+  const checkExistingOrganization = async () => {
+    console.log('🔍 CoachDashboard: Checking for existing organization');
+    
+    // Check if user is a member of any organization
+    const { data: memberships, error: membershipError } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        role,
+        organizations!inner(
+          id,
+          name,
+          creator_name,
+          creator_email
+        )
+      `)
+      .eq('user_id', user?.id);
+    
+    if (membershipError) {
+      console.error('🔍 CoachDashboard: Error checking memberships:', membershipError);
+    } else {
+      console.log('🔍 CoachDashboard: User memberships:', memberships);
+    }
+    
+    // Check if user has organization_id in profile
+    if (profile?.organization_id) {
+      console.log('🔍 CoachDashboard: User has organization_id in profile:', profile.organization_id);
+      
+      // Get organization details
+      const { data: orgDetails, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', profile.organization_id)
+        .single();
+      
+      if (orgError) {
+        console.error('🔍 CoachDashboard: Error fetching organization details:', orgError);
+      } else {
+        console.log('🔍 CoachDashboard: Organization details:', orgDetails);
+      }
+    } else {
+      console.log('🔍 CoachDashboard: User has no organization_id in profile');
+    }
+  };
+
   useEffect(() => {
     if (user && profile) {
       // Add timeout to prevent infinite loading
@@ -42,6 +87,21 @@ const CoachDashboard: React.FC = () => {
         console.log('🔍 CoachDashboard: Loading timeout reached, forcing loading to false');
         setLoading(false);
       }, 5000); // 5 second timeout
+      
+      console.log('🔍 CoachDashboard: User and profile found, fetching organization data');
+      console.log('🔍 CoachDashboard: Profile details:', {
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        user_type: profile.user_type,
+        organization_id: profile.organization_id,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at
+      });
+      
+      // Check for existing organization
+      checkExistingOrganization();
       
       fetchOrganizationData();
       
@@ -153,54 +213,91 @@ const CoachDashboard: React.FC = () => {
 
   const createOrganizationForUser = async () => {
     console.log('🔍 CoachDashboard: Creating organization for user');
+    console.log('🔍 CoachDashboard: Current user ID:', user?.id);
+    console.log('🔍 CoachDashboard: Current profile:', profile);
     
     try {
       // Create organization
-      const { data: orgData, error: orgError } = await supabase
+      const orgData = {
+        name: `${profile?.first_name || 'My'}'s Organization`,
+        creator_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || null,
+        creator_email: profile?.email || null
+      };
+      
+      console.log('🔍 CoachDashboard: Organization data to create:', orgData);
+      
+      const { data: orgResult, error: orgError } = await supabase
         .from('organizations')
-        .insert({ 
-          name: `${profile?.first_name || 'My'}'s Organization`,
-          creator_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || null,
-          creator_email: profile?.email || null
-        })
+        .insert(orgData)
         .select()
         .single();
       
       if (orgError) {
         console.error('🔍 CoachDashboard: Error creating organization:', orgError);
-        alert('Failed to create organization. Please try again.');
+        console.error('🔍 CoachDashboard: Error details:', {
+          code: orgError.code,
+          message: orgError.message,
+          details: orgError.details,
+          hint: orgError.hint
+        });
+        alert(`Failed to create organization: ${orgError.message}`);
         return;
       }
 
-      console.log('🔍 CoachDashboard: Organization created:', orgData);
+      console.log('🔍 CoachDashboard: Organization created successfully:', orgResult);
 
       // Update user's profile with organization_id
+      const profileUpdate = {
+        organization_id: orgResult.id,
+        user_type: 'business_admin' // Change to business admin
+      };
+      
+      console.log('🔍 CoachDashboard: Updating profile with:', profileUpdate);
+      
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ 
-          organization_id: orgData.id,
-          user_type: 'business_admin' // Change to business admin
-        })
+        .update(profileUpdate)
         .eq('id', user?.id);
 
       if (profileError) {
         console.error('🔍 CoachDashboard: Error updating profile:', profileError);
-        alert('Failed to update profile. Please try again.');
+        console.error('🔍 CoachDashboard: Profile error details:', {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint
+        });
+        alert(`Failed to update profile: ${profileError.message}`);
         return;
       }
 
+      console.log('🔍 CoachDashboard: Profile updated successfully');
+
       // Add user as organization member
+      const memberData = {
+        organization_id: orgResult.id,
+        user_id: user?.id,
+        role: 'business_admin'
+      };
+      
+      console.log('🔍 CoachDashboard: Adding organization member:', memberData);
+      
       const { error: memberError } = await supabase
         .from('organization_members')
-        .insert({
-          organization_id: orgData.id,
-          user_id: user?.id,
-          role: 'business_admin'
-        });
+        .insert(memberData);
 
       if (memberError) {
         console.error('🔍 CoachDashboard: Error adding organization member:', memberError);
+        console.error('🔍 CoachDashboard: Member error details:', {
+          code: memberError.code,
+          message: memberError.message,
+          details: memberError.details,
+          hint: memberError.hint
+        });
         // Don't fail here as the profile is already updated
+        console.log('🔍 CoachDashboard: Member creation failed but continuing...');
+      } else {
+        console.log('🔍 CoachDashboard: Organization member created successfully');
       }
 
       console.log('🔍 CoachDashboard: Organization setup complete');
@@ -211,7 +308,7 @@ const CoachDashboard: React.FC = () => {
       
     } catch (error) {
       console.error('🔍 CoachDashboard: Error in createOrganizationForUser:', error);
-      alert('Failed to create organization. Please try again.');
+      alert(`Failed to create organization: ${error}`);
     }
   };
 
