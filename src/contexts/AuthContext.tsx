@@ -161,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}`,
+          emailRedirectTo: 'https://reasynai.vercel.app',
         },
       });
 
