@@ -151,6 +151,70 @@ const CoachDashboard: React.FC = () => {
     }
   };
 
+  const createOrganizationForUser = async () => {
+    console.log('🔍 CoachDashboard: Creating organization for user');
+    
+    try {
+      // Create organization
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .insert({ 
+          name: `${profile?.first_name || 'My'}'s Organization`,
+          creator_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || null,
+          creator_email: profile?.email || null
+        })
+        .select()
+        .single();
+      
+      if (orgError) {
+        console.error('🔍 CoachDashboard: Error creating organization:', orgError);
+        alert('Failed to create organization. Please try again.');
+        return;
+      }
+
+      console.log('🔍 CoachDashboard: Organization created:', orgData);
+
+      // Update user's profile with organization_id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          organization_id: orgData.id,
+          user_type: 'business_admin' // Change to business admin
+        })
+        .eq('id', user?.id);
+
+      if (profileError) {
+        console.error('🔍 CoachDashboard: Error updating profile:', profileError);
+        alert('Failed to update profile. Please try again.');
+        return;
+      }
+
+      // Add user as organization member
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert({
+          organization_id: orgData.id,
+          user_id: user?.id,
+          role: 'business_admin'
+        });
+
+      if (memberError) {
+        console.error('🔍 CoachDashboard: Error adding organization member:', memberError);
+        // Don't fail here as the profile is already updated
+      }
+
+      console.log('🔍 CoachDashboard: Organization setup complete');
+      alert('Organization created successfully! You can now invite members.');
+      
+      // Refresh the page to get updated profile
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('🔍 CoachDashboard: Error in createOrganizationForUser:', error);
+      alert('Failed to create organization. Please try again.');
+    }
+  };
+
   const sendInvite = async () => {
     console.log('🔍 CoachDashboard: sendInvite function called');
     console.log('🔍 CoachDashboard: inviteEmail:', inviteEmail);
@@ -166,7 +230,10 @@ const CoachDashboard: React.FC = () => {
       
       // Check if user needs to create an organization
       if (!profile?.organization_id) {
-        alert('You need to create an organization first before you can invite members. Please contact support to set up your organization.');
+        const shouldCreate = confirm('You need to create an organization first before you can invite members. Would you like to create one now?');
+        if (shouldCreate) {
+          createOrganizationForUser();
+        }
         return;
       }
       
@@ -302,6 +369,31 @@ const CoachDashboard: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Organization Warning */}
+        {!profile?.organization_id && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-yellow-800">Organization Required</h3>
+                <p className="text-sm text-yellow-700 mt-1">
+                  You need to create an organization to invite members and access all features.
+                </p>
+              </div>
+              <button
+                onClick={createOrganizationForUser}
+                className="flex-shrink-0 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors"
+              >
+                Create Organization
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-0 shadow-lg">
