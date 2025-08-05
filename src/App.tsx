@@ -22,6 +22,7 @@ const AppWithAuth: React.FC = () => {
   console.log('🔍 AppWithAuth: Component rendering');
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   console.log('🔍 AppWithAuth: Auth state:', { 
     user: !!user, 
@@ -30,13 +31,35 @@ const AppWithAuth: React.FC = () => {
     showLogin 
   });
 
-  if (loading) {
+  // Fallback timeout for loading
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.log('🔍 AppWithAuth: Loading timeout reached, forcing fallback');
+        setLoadingTimeout(true);
+      }, 8000); // 8 second timeout
+
+      return () => clearTimeout(timeout);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [loading]);
+
+  if (loading && !loadingTimeout) {
     console.log('🔍 AppWithAuth: Showing loading spinner');
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
+        </div>
       </div>
     );
+  }
+
+  // If loading times out, show the app anyway
+  if (loadingTimeout) {
+    console.log('🔍 AppWithAuth: Loading timed out, showing app anyway');
   }
 
   console.log('🔍 AppWithAuth: Loading complete, checking user state');

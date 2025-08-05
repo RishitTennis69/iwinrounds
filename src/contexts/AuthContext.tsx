@@ -34,30 +34,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
-  console.log('🔍 AuthProvider: Initial state:', { user: !!user, profile: !!profile, loading });
+  console.log('🔍 AuthProvider: Initial state:', { user: !!user, profile: !!profile, loading, profileLoading });
 
   useEffect(() => {
     console.log('🔍 AuthProvider: useEffect running');
     
+    // Set a timeout to prevent endless loading
+    const loadingTimeout = setTimeout(() => {
+      console.log('🔍 AuthProvider: Loading timeout reached, forcing loading to false');
+      setLoading(false);
+    }, 10000); // 10 second timeout
+    
     // Handle auth callback from magic link
     const handleAuthCallback = async () => {
       console.log('🔍 AuthProvider: Handling auth callback');
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (session) {
-        console.log('🔍 AuthProvider: Session found in callback');
-        setSession(session);
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      } else {
-        console.log('🔍 AuthProvider: No session in callback');
-      }
-      
-      // Clear URL parameters after processing
-      if (window.location.hash.includes('access_token')) {
-        console.log('🔍 AuthProvider: Clearing URL parameters');
-        window.history.replaceState({}, document.title, window.location.pathname);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (session) {
+          console.log('🔍 AuthProvider: Session found in callback');
+          setSession(session);
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else {
+          console.log('🔍 AuthProvider: No session in callback');
+        }
+        
+        // Clear URL parameters after processing
+        if (window.location.hash.includes('access_token')) {
+          console.log('🔍 AuthProvider: Clearing URL parameters');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (error) {
+        console.error('🔍 AuthProvider: Error in handleAuthCallback:', error);
+        setLoading(false);
       }
     };
 
@@ -79,8 +91,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchProfile(session.user.id);
       } else {
         console.log('🔍 AuthProvider: No user in initial session');
+        setLoading(false);
       }
-      setLoading(false);
     }).catch(error => {
       console.error('🔍 AuthProvider: Error getting initial session:', error);
       setLoading(false);
@@ -100,25 +112,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         console.log('🔍 AuthProvider: No user in auth state change, clearing profile');
         setProfile(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => {
-      console.log('🔍 AuthProvider: Cleaning up subscription');
+      console.log('🔍 AuthProvider: Cleaning up subscription and timeout');
       subscription.unsubscribe();
+      clearTimeout(loadingTimeout);
     };
   }, []);
 
   const fetchProfile = async (userId: string) => {
     console.log('🔍 AuthProvider: fetchProfile called for userId:', userId);
+    setProfileLoading(true);
+    
     try {
-      const { data, error } = await supabase
+      // Add timeout to the profile fetch
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('🔍 AuthProvider: Error fetching profile:', error);
@@ -126,6 +147,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (error && typeof error === 'object' && 'code' in error && error.code === 'PGRST116') {
           console.log('🔍 AuthProvider: Profile not found, creating new profile');
           await createProfile(userId);
+        } else {
+          // For other errors, still set loading to false
+          console.log('🔍 AuthProvider: Profile fetch failed, setting loading to false');
+          setLoading(false);
         }
       } else {
         console.log('🔍 AuthProvider: Profile fetched successfully:', data);
@@ -174,9 +199,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.error('🔍 AuthProvider: Error updating profile with pending info:', error);
           }
         }
+        
+        setLoading(false);
       }
     } catch (error) {
       console.error('🔍 AuthProvider: Error in fetchProfile:', error);
+      // Even if profile fetch fails, set loading to false
+      setLoading(false);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
