@@ -9,7 +9,8 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -132,28 +133,52 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Username field - only show in signup mode */}
+        {/* Name fields - only show in signup mode */}
         {mode === 'signup' && (
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                First Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="First name"
+                  required={mode === 'signup'}
+                  disabled={loading}
+                />
               </div>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Choose a username"
-                required={mode === 'signup'}
-                disabled={loading}
-              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Last name"
+                  required={mode === 'signup'}
+                  disabled={loading}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -202,7 +227,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
 
         <button
           type="submit"
-          disabled={loading || !email || (mode === 'signup' && !username)}
+          disabled={loading || !email || (mode === 'signup' && (!firstName || !lastName))}
           className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
