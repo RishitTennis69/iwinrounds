@@ -236,6 +236,28 @@ const CoachDashboard: React.FC = () => {
       
       if (membershipError) {
         console.error('🔍 CoachDashboard: Error checking memberships:', membershipError);
+        
+        // If it's a 500 error or RLS issue, try a different approach
+        if (membershipError.message.includes('500') || membershipError.message.includes('policy')) {
+          console.log('🔍 CoachDashboard: RLS issue detected, trying to update profile directly');
+          
+          // Try to update the profile to business_admin without organization_id
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ 
+              user_type: 'business_admin'
+            })
+            .eq('id', user?.id);
+          
+          if (updateError) {
+            console.error('🔍 CoachDashboard: Error updating profile:', updateError);
+            alert('Failed to update profile. Please contact support.');
+          } else {
+            console.log('🔍 CoachDashboard: Profile updated to business_admin');
+            alert('Profile updated to business admin. You can now invite members.');
+            await refreshProfileData();
+          }
+        }
         return;
       }
       
@@ -257,15 +279,37 @@ const CoachDashboard: React.FC = () => {
         
         if (updateError) {
           console.error('🔍 CoachDashboard: Error updating profile with organization_id:', updateError);
+          alert('Failed to update profile with organization ID. Please contact support.');
         } else {
           console.log('🔍 CoachDashboard: Profile updated with organization_id:', organizationId);
+          alert('Organization ID fixed successfully!');
           // Refresh the profile data
+          await refreshProfileData();
+        }
+      } else if (!memberships || memberships.length === 0) {
+        console.log('🔍 CoachDashboard: No memberships found, updating to business_admin');
+        
+        // Update profile to business_admin without organization_id
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            user_type: 'business_admin'
+          })
+          .eq('id', user?.id);
+        
+        if (updateError) {
+          console.error('🔍 CoachDashboard: Error updating profile:', updateError);
+          alert('Failed to update profile. Please contact support.');
+        } else {
+          console.log('🔍 CoachDashboard: Profile updated to business_admin');
+          alert('Profile updated to business admin. You can now invite members.');
           await refreshProfileData();
         }
       }
       
     } catch (error) {
       console.error('🔍 CoachDashboard: Error in checkAndFixOrganizationId:', error);
+      alert('Failed to check organization ID. Please contact support.');
     }
   };
 
@@ -333,7 +377,7 @@ const CoachDashboard: React.FC = () => {
         });
         
         // If organization creation fails due to RLS, try a different approach
-        if (orgError.message.includes('infinite recursion') || orgError.message.includes('policy')) {
+        if (orgError.message.includes('infinite recursion') || orgError.message.includes('policy') || orgError.message.includes('500')) {
           console.log('🔍 CoachDashboard: RLS policy issue detected, trying alternative approach');
           
           // Try to update the profile directly with a default organization ID
