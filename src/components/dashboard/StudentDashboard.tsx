@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DebateSessionService } from '../../utils/debateSessionService';
 import { DebateSession } from '../../lib/supabase';
-import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Target, Zap } from 'lucide-react';
+import { Calendar, Clock, Users, Trophy, Plus, LogOut, Brain, Target, Zap, Star, TrendingUp } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -50,14 +50,27 @@ const StudentDashboard: React.FC = () => {
     const totalSessions = debateSessions.length;
     const completedSessions = debateSessions.filter(s => s.end_time).length;
     const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
+    const totalWins = debateSessions.filter(s => s.winner && s.winner.team === 'affirmative').length;
+    const avgSessionTime = completedSessions > 0 
+      ? Math.round(debateSessions
+          .filter(s => s.end_time)
+          .reduce((sum, s) => {
+            const start = new Date(s.start_time);
+            const end = new Date(s.end_time!);
+            return sum + (end.getTime() - start.getTime());
+          }, 0) / completedSessions / (1000 * 60))
+      : 0;
     
-    return { totalSessions, completedSessions, totalHints };
+    return { totalSessions, completedSessions, totalHints, totalWins, avgSessionTime };
   };
 
   const stats = getSessionStats();
 
-  // Extract first name from email (fallback to email if no @ found)
+  // Get first name from profile or fallback to email
   const getFirstName = () => {
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
     if (!profile?.email) return 'User';
     const email = profile.email;
     const atIndex = email.indexOf('@');
@@ -68,16 +81,16 @@ const StudentDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-200/50 px-6 py-4 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
@@ -85,7 +98,7 @@ const StudentDashboard: React.FC = () => {
           </div>
           <button
             onClick={signOut}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200"
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg border border-gray-200"
           >
             <LogOut className="w-5 h-5" />
             <span>Sign Out</span>
@@ -95,7 +108,7 @@ const StudentDashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6 border border-blue-400/20">
             <div className="flex items-center">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -114,8 +127,8 @@ const StudentDashboard: React.FC = () => {
                 <Trophy className="w-6 h-6" />
               </div>
               <div className="ml-4">
-                <p className="text-green-100 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold">{stats.completedSessions}</p>
+                <p className="text-green-100 text-sm font-medium">Wins</p>
+                <p className="text-2xl font-bold">{stats.totalWins}</p>
               </div>
             </div>
           </div>
@@ -128,6 +141,18 @@ const StudentDashboard: React.FC = () => {
               <div className="ml-4">
                 <p className="text-purple-100 text-sm font-medium">Hints Used</p>
                 <p className="text-2xl font-bold">{stats.totalHints}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl shadow-lg p-6 border border-orange-400/20">
+            <div className="flex items-center">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-orange-100 text-sm font-medium">Avg Time</p>
+                <p className="text-2xl font-bold">{stats.avgSessionTime}m</p>
               </div>
             </div>
           </div>
@@ -145,15 +170,15 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Debate History */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50">
-          <div className="px-6 py-4 border-b border-gray-200/50">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
               <Target className="w-5 h-5 mr-2 text-blue-600" />
               Debate History
             </h2>
           </div>
           
-          <div className="divide-y divide-gray-200/50">
+          <div className="divide-y divide-gray-200">
             {debateSessions.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <div className="text-gray-400 mb-4">
@@ -164,7 +189,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             ) : (
               debateSessions.map((session) => (
-                <div key={session.id} className="px-6 py-4 hover:bg-gray-50/50 transition-colors">
+                <div key={session.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="text-lg font-medium text-gray-900 mb-1">

@@ -8,7 +8,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string) => Promise<{ isNewUser: boolean }>;
+  signIn: (email: string, firstName?: string, lastName?: string) => Promise<{ isNewUser: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   checkUserExists: (email: string) => Promise<boolean>;
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const createProfile = async (userId: string) => {
+  const createProfile = async (userId: string, firstName?: string, lastName?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -117,6 +117,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .insert({
           id: userId,
           email: user.email!,
+          first_name: firstName || null,
+          last_name: lastName || null,
           user_type: 'individual',
           organization_id: null,
         })
@@ -153,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string): Promise<{ isNewUser: boolean }> => {
+  const signIn = async (email: string, firstName?: string, lastName?: string): Promise<{ isNewUser: boolean }> => {
     try {
       // Check if user already exists
       const userExists = await checkUserExists(email);
@@ -167,6 +169,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         throw error;
+      }
+
+      // If it's a new user, we'll need to update their profile with first/last name later
+      // For now, we'll store this info in localStorage to use when they first log in
+      if (!userExists && firstName && lastName) {
+        localStorage.setItem('pending_user_info', JSON.stringify({ firstName, lastName }));
       }
 
       return { isNewUser: !userExists };

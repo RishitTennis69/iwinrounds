@@ -23,6 +23,8 @@ Run these SQL commands in your Supabase SQL editor:
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
   user_type TEXT NOT NULL CHECK (user_type IN ('individual', 'business_admin', 'coach', 'student')),
   organization_id UUID REFERENCES organizations(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -185,8 +187,8 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Check if profile already exists
   IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = NEW.id) THEN
-    INSERT INTO profiles (id, email, user_type, organization_id)
-    VALUES (NEW.id, NEW.email, 'individual', NULL);
+    INSERT INTO profiles (id, email, first_name, last_name, user_type, organization_id)
+    VALUES (NEW.id, NEW.email, NULL, NULL, 'individual', NULL);
   END IF;
   RETURN NEW;
 EXCEPTION
@@ -246,8 +248,8 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Check if profile already exists
   IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = NEW.id) THEN
-    INSERT INTO profiles (id, email, user_type, organization_id)
-    VALUES (NEW.id, NEW.email, 'individual', NULL);
+    INSERT INTO profiles (id, email, first_name, last_name, user_type, organization_id)
+    VALUES (NEW.id, NEW.email, NULL, NULL, 'individual', NULL);
   END IF;
   RETURN NEW;
 EXCEPTION

@@ -25,7 +25,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onClose }) => {
     setIsNewUser(null);
 
     try {
-      const result = await signIn(email);
+      const result = await signIn(
+        email, 
+        mode === 'signup' ? firstName : undefined,
+        mode === 'signup' ? lastName : undefined
+      );
       setIsNewUser(result.isNewUser);
       
       if (result.isNewUser) {

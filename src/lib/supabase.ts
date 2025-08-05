@@ -22,6 +22,8 @@ export interface Database {
         Row: {
           id: string;
           email: string;
+          first_name: string | null;
+          last_name: string | null;
           user_type: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id: string | null;
           created_at: string;
@@ -30,6 +32,8 @@ export interface Database {
         Insert: {
           id: string;
           email: string;
+          first_name?: string | null;
+          last_name?: string | null;
           user_type: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id?: string | null;
           created_at?: string;
@@ -38,6 +42,8 @@ export interface Database {
         Update: {
           id?: string;
           email?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           user_type?: 'individual' | 'business_admin' | 'coach' | 'student';
           organization_id?: string | null;
           created_at?: string;
