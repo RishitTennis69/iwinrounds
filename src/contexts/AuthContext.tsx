@@ -365,9 +365,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('🔍 AuthProvider: signIn called with email:', email);
       
-      // Check if user already exists
-      const userExists = await checkUserExists(email);
-      console.log('🔍 AuthProvider: User exists check result:', userExists);
+      // Temporarily skip user existence check due to RLS issues
+      // const userExists = await checkUserExists(email);
+      // console.log('🔍 AuthProvider: User exists check result:', userExists);
+      const userExists = false; // Assume new user for now
+      console.log('🔍 AuthProvider: Skipping user existence check due to RLS issues');
       
       // Prepare the redirect URL
       const redirectUrl = window.location.origin;
