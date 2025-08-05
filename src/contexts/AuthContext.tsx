@@ -292,6 +292,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } else {
               organizationId = orgData.id;
               console.log('🔍 AuthProvider: Organization created with ID:', organizationId);
+              // Change user type to business_admin for organization creators
+              userType = 'business_admin';
+              
+              // Add the creator as a member of the organization
+              const { error: memberError } = await supabase
+                .from('organization_members')
+                .insert({
+                  organization_id: organizationId,
+                  user_id: userId,
+                  role: 'business_admin'
+                });
+              
+              if (memberError) {
+                console.error('🔍 AuthProvider: Error adding organization member:', memberError);
+              } else {
+                console.log('🔍 AuthProvider: Organization member record created');
+              }
             }
           }
         } catch (error) {

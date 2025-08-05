@@ -97,4 +97,16 @@ CREATE POLICY "Users can insert organizations" ON organizations
 -- Add policy for organizations to allow updating (for organization updates)
 DROP POLICY IF EXISTS "Users can update organizations" ON organizations;
 CREATE POLICY "Users can update organizations" ON organizations
-  FOR UPDATE USING (true); 
+  FOR UPDATE USING (true);
+
+-- Add policy to allow organization creators to add themselves as first member
+DROP POLICY IF EXISTS "Allow organization creators to add themselves" ON organization_members;
+CREATE POLICY "Allow organization creators to add themselves" ON organization_members
+  FOR INSERT WITH CHECK (
+    -- Allow if user is creating themselves as a member and they own the organization
+    auth.uid() = user_id AND
+    organization_id IN (
+      SELECT id FROM organizations 
+      WHERE creator_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+    )
+  ); 
