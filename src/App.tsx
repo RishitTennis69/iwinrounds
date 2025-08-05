@@ -31,6 +31,39 @@ const AppWithAuth: React.FC = () => {
     showLogin 
   });
 
+  // Listen for custom navigation events from StudentDashboard
+  useEffect(() => {
+    console.log('🔍 AppWithAuth: Setting up navigateToMode event listener');
+    
+    const handleNavigateToMode = (event: CustomEvent) => {
+      console.log('🔍 AppWithAuth: Received navigateToMode event:', event.detail);
+      const { mode } = event.detail;
+      
+      if (mode === 'debate') {
+        console.log('🔍 AppWithAuth: Navigating to debate mode via event');
+        // Set navigation target for App component to pick up
+        localStorage.setItem('navigationTarget', 'debate');
+        // Force a page reload to let App component handle the navigation
+        window.location.reload();
+      } else if (mode === 'practice') {
+        console.log('🔍 AppWithAuth: Navigating to practice mode via event');
+        // Set navigation target for App component to pick up
+        localStorage.setItem('navigationTarget', 'practice');
+        // Force a page reload to let App component handle the navigation
+        window.location.reload();
+      }
+    };
+
+    console.log('🔍 AppWithAuth: Adding navigateToMode event listener to window');
+    window.addEventListener('navigateToMode', handleNavigateToMode as EventListener);
+    console.log('🔍 AppWithAuth: Event listener added successfully');
+    
+    return () => {
+      console.log('🔍 AppWithAuth: Removing navigateToMode event listener');
+      window.removeEventListener('navigateToMode', handleNavigateToMode as EventListener);
+    };
+  }, []);
+
   // Fallback timeout for loading
   useEffect(() => {
     if (loading) {
@@ -140,36 +173,6 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
         setMode('practice');
       }
     }
-  }, []);
-
-  // Listen for custom navigation events from StudentDashboard
-  useEffect(() => {
-    const handleNavigateToMode = (event: CustomEvent) => {
-      console.log('🔍 App: Received navigateToMode event:', event.detail);
-      const { mode } = event.detail;
-      
-      if (mode === 'debate') {
-        console.log('🔍 App: Navigating to debate mode via event');
-        setMode('debate');
-        setSelectedFormat(null); // Reset format for debate mode
-      } else if (mode === 'practice') {
-        console.log('🔍 App: Navigating to practice mode via event');
-        console.log('🔍 App: Current mode before change:', mode);
-        console.log('🔍 App: Setting mode to practice');
-        setMode('practice');
-        console.log('🔍 App: Setting selectedFormat to null');
-        setSelectedFormat(null); // Reset format so PracticeMode shows format selection
-        console.log('🔍 App: Navigation to practice mode completed');
-      }
-    };
-
-    console.log('🔍 App: Adding navigateToMode event listener');
-    window.addEventListener('navigateToMode', handleNavigateToMode as EventListener);
-    
-    return () => {
-      console.log('🔍 App: Removing navigateToMode event listener');
-      window.removeEventListener('navigateToMode', handleNavigateToMode as EventListener);
-    };
   }, []);
 
   // Log mode changes
