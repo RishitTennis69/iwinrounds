@@ -53,6 +53,13 @@ export class DebateSessionService {
 
       if (error) {
         console.error('🔍 DebateSessionService: Error fetching sessions:', error);
+        
+        // If it's a policy error, return empty array instead of failing
+        if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          console.log('🔍 DebateSessionService: Policy error detected, returning empty array');
+          return [];
+        }
+        
         return [];
       }
 
@@ -60,6 +67,13 @@ export class DebateSessionService {
       return data || [];
     } catch (error) {
       console.error('🔍 DebateSessionService: Error in getUserSessions:', error);
+      
+      // If it's a timeout or network error, return empty array
+      if (error instanceof Error && error.message.includes('timeout')) {
+        console.log('🔍 DebateSessionService: Timeout error, returning empty array');
+        return [];
+      }
+      
       return [];
     }
   }

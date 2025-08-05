@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loadingTimeout = setTimeout(() => {
       console.log('🔍 AuthProvider: Loading timeout reached, forcing loading to false');
       setLoading(false);
-    }, 5000); // Reduced to 5 seconds
+    }, 3000); // Reduced to 3 seconds
     
     // Handle auth callback from magic link
     const handleAuthCallback = async () => {
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session with timeout
     const sessionPromise = supabase.auth.getSession();
     const sessionTimeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Session fetch timeout')), 3000)
+      setTimeout(() => reject(new Error('Session fetch timeout')), 2000) // Reduced to 2 seconds
     );
 
     Promise.race([sessionPromise, sessionTimeout])
@@ -155,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000) // Reduced to 3 seconds
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 2000) // Reduced to 2 seconds
       );
 
       const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
@@ -226,7 +226,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('🔍 AuthProvider: Error in fetchProfile:', error);
-      // Even if profile fetch fails, set loading to false
+      // Even if profile fetch fails, set loading to false and continue
+      console.log('🔍 AuthProvider: Profile fetch failed, setting loading to false and continuing');
       setLoading(false);
     } finally {
       setProfileLoading(false);
