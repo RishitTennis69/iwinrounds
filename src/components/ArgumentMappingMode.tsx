@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Speaker, DebateSession, DebatePoint, ArgumentMap } from '../types';
 import { AIService } from '../utils/aiService';
-import { WhisperService } from '../utils/whisperService';
+import { SimpleSpeechService } from '../utils/simpleSpeechService';
 import SetupPanel from './SetupPanel';
 import RecordingPanel from './RecordingPanel';
 import ArgumentMapPanel from './ArgumentMapPanel';
@@ -17,7 +17,7 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
   const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
   const [speechNumber, setSpeechNumber] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [whisperService] = useState(() => new WhisperService());
+  const [speechService] = useState(() => new SimpleSpeechService());
   const [peoplePerTeam, setPeoplePerTeam] = useState(2);
   const [speechesPerSpeaker, setSpeechesPerSpeaker] = useState(2);
   const [argumentMap, setArgumentMap] = useState<ArgumentMap | null>(null);
@@ -314,7 +314,7 @@ const ArgumentMappingMode: React.FC<ArgumentMappingModeProps> = ({ onBack }) => 
               speechNumber={speechNumber}
               totalSpeeches={peoplePerTeam * 2 * speechesPerSpeaker}
               onSpeechComplete={handleSpeechComplete}
-              speechRecognition={whisperService}
+              speechRecognition={speechService}
               isAnalyzing={isAnalyzing}
             />
           </div>
