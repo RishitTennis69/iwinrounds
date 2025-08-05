@@ -386,7 +386,7 @@ const StudentDashboard: React.FC = () => {
                   <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-blue-600">
                     Debate Mode
                   </h3>
-                  <p className="text-slate-600">Enter the actual debate stage with AI opponents and real-time scoring</p>
+                  <p className="text-slate-600">Record a debate</p>
                 </button>
 
                 <button
@@ -410,7 +410,7 @@ const StudentDashboard: React.FC = () => {
                   <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-indigo-600">
                     Practice Mode
                   </h3>
-                  <p className="text-slate-600">Practice your skills against AI with detailed feedback and coaching</p>
+                  <p className="text-slate-600">Practice your skills against AI</p>
                 </button>
               </div>
             </CardContent>
