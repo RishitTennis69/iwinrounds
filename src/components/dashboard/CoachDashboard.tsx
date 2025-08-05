@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DebateSession, Profile } from '../../lib/supabase';
 import { EmailService } from '../../utils/emailService';
-import { Calendar, Clock, Users, Trophy, LogOut, Brain, Zap, Star, TrendingUp, Activity, Target, BarChart3, Sparkles, Plus, Mail, UserPlus, Eye, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, Users, Trophy, LogOut, Brain, Zap, Star, TrendingUp, Activity, Target, BarChart3, Sparkles, Plus, Mail, UserPlus, Eye, MessageSquare, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -31,6 +31,9 @@ const CoachDashboard: React.FC = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteType, setInviteType] = useState<'student' | 'coach'>('student');
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string>('');
+  const [invitedEmail, setInvitedEmail] = useState<string>('');
 
   useEffect(() => {
     if (user && profile) {
@@ -170,7 +173,25 @@ const CoachDashboard: React.FC = () => {
       }
 
       console.log('🔍 CoachDashboard: Invite sent successfully');
-      alert(`Invite sent to ${inviteEmail}! They will receive an email with instructions to join your organization.`);
+      
+      // Get the invite code from the database
+      const { data: inviteRecord } = await supabase
+        .from('invites')
+        .select('code')
+        .eq('email', inviteEmail)
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (inviteRecord) {
+        setInviteCode(inviteRecord.code);
+        setInvitedEmail(inviteEmail);
+        setShowSuccessPopup(true);
+      } else {
+        alert(`Invite sent to ${inviteEmail}! They will receive an email with instructions to join your organization.`);
+      }
       
       setInviteEmail('');
       setShowInviteModal(false);
@@ -491,6 +512,40 @@ const CoachDashboard: React.FC = () => {
                 className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {inviteLoading ? 'Sending...' : 'Send Invite'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Invite Sent Successfully!</h3>
+              <p className="text-slate-600 mb-4">
+                An email has been sent to <strong>{invitedEmail}</strong> with instructions to join your organization.
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-blue-800 mb-2">Invite Code</h4>
+                <div className="bg-white border border-blue-300 rounded-lg p-3">
+                  <code className="text-2xl font-mono font-bold text-blue-600">{inviteCode}</code>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  You can share this code with the invitee if they don't receive the email.
+                </p>
+              </div>
+              
+              <button
+                onClick={() => setShowSuccessPopup(false)}
+                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

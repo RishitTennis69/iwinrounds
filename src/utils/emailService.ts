@@ -49,9 +49,8 @@ export class EmailService {
         .eq('id', inviteData.invited_by)
         .single();
 
-      // For now, we'll use a simple approach that logs the email content
-      // In production, you would integrate with a proper email service
-      const emailContent = this.generateInviteEmailContent({
+      // Generate email HTML
+      const emailHTML = this.generateInviteEmailHTML({
         inviteCode,
         organizationName: organization?.name || 'our organization',
         inviterName: inviter ? `${inviter.first_name} ${inviter.last_name}`.trim() : 'A team member',
@@ -59,16 +58,41 @@ export class EmailService {
         inviteUrl: `${window.location.origin}/join?code=${inviteCode}`
       });
 
-      // Log the email content for development
-      console.log('🔍 EmailService: Email content (development mode):', {
-        to: inviteData.email,
-        subject: `You're invited to join ${organization?.name || 'our organization'}!`,
-        content: emailContent
+      // Send email using Supabase Edge Function
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invite-email`;
+      
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          to: inviteData.email,
+          subject: `You're invited to join ${organization?.name || 'our organization'}!`,
+          html: emailHTML,
+          inviteCode,
+          organizationName: organization?.name || 'our organization',
+          inviterName: inviter ? `${inviter.first_name} ${inviter.last_name}`.trim() : 'A team member',
+          userType: inviteData.user_type
+        }),
       });
 
-      // In a real implementation, you would send the email here
-      // For now, we'll simulate success
-      console.log('🔍 EmailService: Invite email sent successfully');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('🔍 EmailService: Edge function error:', errorData);
+        
+        // If email fails, delete the invite record
+        await supabase
+          .from('invites')
+          .delete()
+          .eq('id', inviteRecord.id);
+        
+        return { success: false, error: 'Failed to send email' };
+      }
+
+      const result = await response.json();
+      console.log('🔍 EmailService: Email sent successfully:', result);
       return { success: true };
       
     } catch (error) {
@@ -87,7 +111,7 @@ export class EmailService {
     return result;
   }
 
-  private static generateInviteEmailContent(data: {
+  private static generateInviteEmailHTML(data: {
     inviteCode: string;
     organizationName: string;
     inviterName: string;
@@ -95,31 +119,73 @@ export class EmailService {
     inviteUrl: string;
   }): string {
     return `
-🎉 You're Invited!
-
-Hi there!
-
-${data.inviterName} has invited you to join ${data.organizationName} as a ${data.userType}.
-
-You can join using either of these methods:
-
-Method 1: Use the invite link
-${data.inviteUrl}
-
-Method 2: Use the invite code
-Your invite code is: ${data.inviteCode}
-
-To join:
-1. Go to ${window.location.origin}
-2. Sign up or sign in
-3. Enter the code above when prompted
-
-This invite expires in 7 days.
-
-If you have any questions, please contact ${data.inviterName}.
-
-Best regards,
-The Debate Platform Team
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>You're invited to join ${data.organizationName}!</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; }
+          .content { padding: 40px 30px; background: #f9f9f9; }
+          .code { background: #667eea; color: white; padding: 20px; border-radius: 10px; text-align: center; font-size: 28px; font-weight: bold; margin: 30px 0; font-family: monospace; }
+          .button { display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+          .footer { text-align: center; margin-top: 40px; color: #666; font-size: 14px; padding: 20px; }
+          .section { margin: 30px 0; }
+          .highlight { background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 32px;">🎉 You're Invited!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px;">Join ${data.organizationName} on our debate platform</p>
+          </div>
+          <div class="content">
+            <p>Hi there!</p>
+            <p><strong>${data.inviterName}</strong> has invited you to join <strong>${data.organizationName}</strong> as a <strong>${data.userType}</strong>.</p>
+            
+            <div class="section">
+              <h3 style="color: #667eea; margin-bottom: 15px;">You can join using either of these methods:</h3>
+              
+              <div style="margin: 20px 0;">
+                <h4 style="color: #333; margin-bottom: 10px;">Method 1: Use the invite link</h4>
+                <a href="${data.inviteUrl}" class="button">Join Organization</a>
+              </div>
+              
+              <div style="margin: 20px 0;">
+                <h4 style="color: #333; margin-bottom: 10px;">Method 2: Use the invite code</h4>
+                <p>Your invite code is:</p>
+                <div class="code">${data.inviteCode}</div>
+              </div>
+            </div>
+            
+            <div class="section">
+              <h3 style="color: #333; margin-bottom: 15px;">To join manually:</h3>
+              <ol style="padding-left: 20px;">
+                <li>Go to <a href="${window.location.origin}" style="color: #667eea;">${window.location.origin}</a></li>
+                <li>Sign up or sign in</li>
+                <li>Enter the code above when prompted</li>
+              </ol>
+            </div>
+            
+            <div class="highlight">
+              <p style="margin: 0;"><strong>⚠️ This invite expires in 7 days.</strong></p>
+            </div>
+            
+            <div class="section">
+              <p>If you have any questions, please contact <strong>${data.inviterName}</strong>.</p>
+              <p>Best regards,<br>The Debate Platform Team</p>
+            </div>
+          </div>
+          <div class="footer">
+            <p>This email was sent by the debate platform. If you didn't expect this invite, you can safely ignore this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
   }
 } 
