@@ -8,29 +8,11 @@ console.log('Environment variables check:');
 console.log('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
 console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
 
-// Create a mock client if environment variables are missing
-const createMockClient = () => {
-  console.warn('Supabase environment variables not found. Using mock client.');
-  return {
-    auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signInWithOtp: () => Promise.resolve({ error: new Error('Supabase not configured') }),
-      signOut: () => Promise.resolve({ error: new Error('Supabase not configured') }),
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-    },
-    from: () => ({
-      select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }) }) }),
-      insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }) }) }),
-      update: () => ({ eq: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }) }) }) }),
-      delete: () => ({ eq: () => Promise.resolve({ error: new Error('Supabase not configured') }) }),
-    }),
-  };
-};
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : createMockClient();
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database types
 export interface Database {

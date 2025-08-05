@@ -53,7 +53,7 @@ const CoachDashboard: React.FC = () => {
       } else {
         // Fetch debate sessions for each student
         const studentsWithStats = await Promise.all(
-          (studentsData || []).map(async (student) => {
+          (studentsData || []).map(async (student: any) => {
             const { data: sessions } = await supabase
               .from('debate_sessions')
               .select('*')
@@ -62,8 +62,8 @@ const CoachDashboard: React.FC = () => {
 
             const debateSessions = sessions || [];
             const totalSessions = debateSessions.length;
-            const completedSessions = debateSessions.filter(s => s.end_time).length;
-            const totalHints = debateSessions.reduce((sum, s) => sum + s.hints_used, 0);
+            const completedSessions = debateSessions.filter((s: any) => s.end_time).length;
+            const totalHints = debateSessions.reduce((sum: number, s: any) => sum + s.hints_used, 0);
             const lastActivity = debateSessions.length > 0 ? debateSessions[0].created_at : null;
 
             return {

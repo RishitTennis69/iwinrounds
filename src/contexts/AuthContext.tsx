@@ -12,7 +12,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   checkUserExists: (email: string) => Promise<boolean>;
-  supabaseConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,20 +33,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [supabaseConfigured, setSupabaseConfigured] = useState(true);
 
   useEffect(() => {
-    // Check if Supabase is configured
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.warn('Supabase not configured. Authentication features will be disabled.');
-      setSupabaseConfigured(false);
-      setLoading(false);
-      return;
-    }
-
     // Handle auth callback from magic link
     const handleAuthCallback = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -232,7 +219,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     updateProfile,
     checkUserExists,
-    supabaseConfigured,
   };
 
   return (
