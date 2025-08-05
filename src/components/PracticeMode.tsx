@@ -1397,7 +1397,7 @@ Respond in this exact JSON format:
               </button>
             </div>
           )}
-          {!requiredSpeechToListen ? (
+          {!requiredSpeechToListen && (
             <RecordingPanel
               currentSpeaker={getCurrentSpeaker()}
               speechNumber={userSpeechNums[currentSpeechIdx]}
@@ -1406,101 +1406,88 @@ Respond in this exact JSON format:
               speechRecognition={whisperService}
               isAnalyzing={isSummarizing}
             />
-          ) : (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎧</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Listen First</h3>
-                <p className="text-gray-600 mb-4">
-                  You need to listen to Speech #{requiredSpeechToListen} before you can record your response.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Click the "Listen" button in the Previous Speeches section to hear the AI's arguments.
-                </p>
-              </div>
-            </div>
           )}
         </div>
 
         {/* Right Column - Analysis & Hints */}
-        <div className="lg:col-span-1 space-y-4">
-          {currentTranscript && !requiredSpeechToListen && (
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Speech Analysis</h3>
-              {isSummarizing ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600">Analyzing speech...</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {currentSummary.mainPoints.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Main Points:</h4>
-                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                        {currentSummary.mainPoints.map((point, idx) => (
-                          <li key={idx}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {currentSummary.counterPoints.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Counter Points:</h4>
-                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                        {currentSummary.counterPoints.map((point, idx) => (
-                          <li key={idx}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {currentSummary.evidence.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Evidence:</h4>
-                      <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                        {currentSummary.evidence.map((evidence, idx) => (
-                          <li key={idx}>{evidence}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  <form onSubmit={handleSubmitSummary}>
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {isLoading ? 'Processing...' : 'Submit & Continue'}
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
+        {!requiredSpeechToListen && (
+          <div className="lg:col-span-1 space-y-4">
+            {currentTranscript && (
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Speech Analysis</h3>
+                {isSummarizing ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">Analyzing speech...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {currentSummary.mainPoints.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Main Points:</h4>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                          {currentSummary.mainPoints.map((point, idx) => (
+                            <li key={idx}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {currentSummary.counterPoints.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Counter Points:</h4>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                          {currentSummary.counterPoints.map((point, idx) => (
+                            <li key={idx}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {currentSummary.evidence.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Evidence:</h4>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                          {currentSummary.evidence.map((evidence, idx) => (
+                            <li key={idx}>{evidence}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <form onSubmit={handleSubmitSummary}>
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isLoading ? 'Processing...' : 'Submit & Continue'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {getCurrentSpeaker() && !requiredSpeechToListen && (
-            <HintPanel
-              currentSpeaker={getCurrentSpeaker()!}
-              session={createMockSession()}
-              onHintUsed={handleHintUsed}
-              hintsUsed={hintsUsed}
-            />
-          )}
+            {getCurrentSpeaker() && (
+              <HintPanel
+                currentSpeaker={getCurrentSpeaker()!}
+                session={createMockSession()}
+                onHintUsed={handleHintUsed}
+                hintsUsed={hintsUsed}
+              />
+            )}
 
-          {/* Prep Time Component */}
-          {selectedFormatData && selectedFormatData.prepTimeType === 'flexible' && selectedFormatData.prepTime > 0 && (
-            <PrepTime
-              totalPrepTime={selectedFormatData.prepTime}
-              prepTimeType={selectedFormatData.prepTimeType}
-              onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
-            />
-          )}
-        </div>
+            {/* Prep Time Component */}
+            {selectedFormatData && selectedFormatData.prepTimeType === 'flexible' && selectedFormatData.prepTime > 0 && (
+              <PrepTime
+                totalPrepTime={selectedFormatData.prepTime}
+                prepTimeType={selectedFormatData.prepTimeType}
+                onPrepTimeUsed={(time) => setPrepTimeUsed(time)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Debate Flow Table Summary */}
