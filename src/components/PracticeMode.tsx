@@ -19,9 +19,6 @@ interface PracticeModeProps {
 }
 
 const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: initialFormat }) => {
-  console.log('🔍 PracticeMode: Component rendering');
-  console.log('🔍 PracticeMode: initialFormat received:', initialFormat);
-  
   const [step, setStep] = useState<'format' | 'setup' | 'prep' | 'generating' | 'practice' | 'complete'>('format');
   const [selectedFormat, setSelectedFormat] = useState<any>(initialFormat || null);
   const [topic, setTopic] = useState('');
@@ -60,30 +57,28 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   const [prepTime, setPrepTime] = useState(0);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
-  console.log('🔍 PracticeMode: Initial step state:', step);
-  console.log('🔍 PracticeMode: Initial selectedFormat state:', selectedFormat);
-
   // Initialize format from props
   useEffect(() => {
-    console.log('🔍 PracticeMode: useEffect triggered with initialFormat:', initialFormat);
     if (initialFormat) {
-      console.log('🔍 PracticeMode: initialFormat is truthy, setting up format');
       setSelectedFormat(initialFormat);
       setSelectedFormatData(initialFormat);
       setPeoplePerTeam(initialFormat.peoplePerTeam);
       setSpeechesPerSpeaker(initialFormat.speechesPerSpeaker);
       setFirstSpeaker(initialFormat.firstSpeaker);
       setStep('setup');
-      console.log('🔍 PracticeMode: Set step to setup');
     } else {
-      console.log('🔍 PracticeMode: initialFormat is null/undefined (navigating from dashboard or custom format)');
-      // Always show format selection first, regardless of initialFormat value
       setSelectedFormat(null);
       setSelectedFormatData(null);
       setStep('format');
-      console.log('🔍 PracticeMode: Set step to format for format selection');
     }
   }, [initialFormat]);
+
+  // Auto-play required speech when it's set
+  useEffect(() => {
+    if (requiredSpeechToListen && aiSpeeches[requiredSpeechToListen]) {
+      playAISpeech(requiredSpeechToListen);
+    }
+  }, [requiredSpeechToListen, aiSpeeches]);
 
   // Debate formats for practice mode
   const DEBATE_FORMATS = [
@@ -265,10 +260,45 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
     })
     .filter((n) => n !== null) as number[];
 
-  console.log('First user speech:', userSpeechNums[0]);
-  console.log('User speech numbers:', userSpeechNums);
-  console.log('User team:', targetTeam, 'Position in team:', positionInTeam);
-  console.log('Debate order:', debateOrder.map((s, i) => `${i+1}: ${s.team} ${s.speakerNumber}`));
+  // Enhanced auto-play required speech when it's set
+  useEffect(() => {
+    if (requiredSpeechToListen && aiSpeeches[requiredSpeechToListen]) {
+      playAISpeech(requiredSpeechToListen);
+    } else if (requiredSpeechToListen && !aiSpeeches[requiredSpeechToListen]) {
+      console.error(`🎵 Required speech ${requiredSpeechToListen} is set but not found in aiSpeeches`);
+      console.error(`🎵 Available aiSpeeches:`, Object.keys(aiSpeeches));
+    } else if (!requiredSpeechToListen) {
+      // Check if there are any unlistened AI speeches that should be required
+      const currentUserSpeech = userSpeechNums[currentSpeechIdx];
+      if (currentUserSpeech) {
+        const aiSpeechesToListen = Object.keys(aiSpeeches)
+          .map(Number)
+          .filter(speechNum => speechNum < currentUserSpeech)
+          .filter(speechNum => !listenedSpeeches.has(speechNum));
+        
+        if (aiSpeechesToListen.length > 0) {
+          setRequiredSpeechToListen(aiSpeechesToListen[0]);
+        }
+      }
+    }
+  }, [requiredSpeechToListen, aiSpeeches, userSpeechNums, currentSpeechIdx, listenedSpeeches]);
+
+  // Check for required speech when component first loads with AI speeches
+  useEffect(() => {
+    if (step === 'practice' && Object.keys(aiSpeeches).length > 0 && !requiredSpeechToListen) {
+      const currentUserSpeech = userSpeechNums[currentSpeechIdx];
+      if (currentUserSpeech) {
+        const aiSpeechesToListen = Object.keys(aiSpeeches)
+          .map(Number)
+          .filter(speechNum => speechNum < currentUserSpeech)
+          .filter(speechNum => !listenedSpeeches.has(speechNum));
+        
+        if (aiSpeechesToListen.length > 0) {
+          setRequiredSpeechToListen(aiSpeechesToListen[0]);
+        }
+      }
+    }
+  }, [step, aiSpeeches, userSpeechNums, currentSpeechIdx, requiredSpeechToListen, listenedSpeeches]);
 
   // Helper: get the next user speech number after a given speech
   const getNextUserSpeechNum = (after: number) => {
@@ -278,16 +308,11 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ onBack, selectedFormat: ini
   // Generate AI speeches up to (but not including) the next user speech
   const generateAISpeechesUpTo = async (from: number, to: number) => {
     setIsLoading(true);
-    console.log(`Generating AI speeches from ${from} to ${to}`);
     const aiSpeechMap = { ...aiSpeeches };
     // Start from 1 if from is 0, otherwise from + 1
     const startFrom = from === 0 ? 1 : from + 1;
-    console.log(`Starting from speech ${startFrom}, going to ${to}`);
     for (let i = startFrom; i < to; i++) {
-      console.log(`Checking speech ${i}: userSpeechNums includes ${i}?`, userSpeechNums.includes(i));
-      console.log(`Already have aiSpeech for ${i}?`, !!aiSpeechMap[i]);
       if (!userSpeechNums.includes(i) && !aiSpeechMap[i]) {
-        console.log(`Generating AI speech for speech ${i}`);
         const sp = debateOrder[i - 1];
         const prompt = `You are an expert debater. Write a realistic ${sp.team} speech for a practice debate following this exact structure:
 
@@ -416,6 +441,7 @@ Respond in this exact JSON format:
             transcript: aiSpeech.transcript || '[No transcript provided]',
           };
         } catch (err) {
+          console.error(`Error generating AI speech ${i}:`, err);
           aiSpeechMap[i] = {
             id: `ai-${i}`,
             speakerId: `ai-${i}`,
@@ -440,7 +466,10 @@ Respond in this exact JSON format:
   // Play AI speech using TTS
   const playAISpeech = async (speechNum: number) => {
     const speech = aiSpeeches[speechNum];
-    if (!speech || !speech.transcript) return;
+    if (!speech || !speech.transcript) {
+      console.error('No speech or transcript available for speech number:', speechNum);
+      return;
+    }
 
     // Set loading state
     setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: true }));
@@ -448,8 +477,7 @@ Respond in this exact JSON format:
 
     // Set up TTS event handlers
     ttsService.onAudioReady = () => {
-      // Audio is ready to play - keep loading until it actually starts
-      // Don't change state here, wait for onAudioStarted
+      // Keep loading state until audio actually starts playing
     };
 
     ttsService.onAudioStarted = () => {
@@ -463,7 +491,8 @@ Respond in this exact JSON format:
       handleSpeechCompleted(speechNum);
     };
 
-    ttsService.onAudioError = () => {
+    ttsService.onAudioError = (error) => {
+      console.error(`🎵 Audio error for speech ${speechNum}:`, error);
       // Audio error - reset state
       setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
@@ -473,9 +502,20 @@ Respond in this exact JSON format:
       // Choose voice based on team (male voices for affirmative, female for negative)
       const voice = speech.team === 'affirmative' ? 'echo' : 'nova';
       
+      // Add a timeout to ensure loading doesn't get stuck
+      const loadingTimeout = setTimeout(() => {
+        console.warn(`🎵 Loading timeout for speech ${speechNum} - forcing state reset`);
+        setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
+        setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
+      }, 30000); // 30 second timeout
+      
       await ttsService.speak(speech.transcript, { voice, speed: 0.9 });
+      
+      // Clear timeout if audio started successfully
+      clearTimeout(loadingTimeout);
+      
     } catch (error) {
-      console.error('Error playing AI speech:', error);
+      console.error(`🎵 Error playing AI speech ${speechNum}:`, error);
       setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
       setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'idle' }));
     } finally {
@@ -530,19 +570,17 @@ Respond in this exact JSON format:
     setSpeechPlayStates(prev => ({ ...prev, [speechNum]: 'completed' }));
     setSpeechLoadingStates(prev => ({ ...prev, [speechNum]: false }));
     
-    // Clear the timer
-    // const interval = speechIntervals[speechNum];
-    // if (interval) {
-    //   clearInterval(interval);
-    //   setSpeechIntervals((prev: {[key: number]: number | undefined}) => {
-    //     const newIntervals = { ...prev };
-    //     delete newIntervals[speechNum];
-    //     return newIntervals;
-    //   });
-    // }
+    // Mark as listened
+    setListenedSpeeches(prev => {
+      const newSet = new Set(prev);
+      newSet.add(speechNum);
+      return newSet;
+    });
     
-    // Mark speech as listened to
-    setListenedSpeeches(prev => new Set([...prev, speechNum]));
+    // If this was the required speech to listen to, clear it
+    if (requiredSpeechToListen === speechNum) {
+      setRequiredSpeechToListen(null);
+    }
     
     // Add the AI speech to the flow chart now that it's been listened to
     const speech = aiSpeeches[speechNum];
@@ -551,11 +589,6 @@ Respond in this exact JSON format:
         ...prev,
         [speechNum]: speech
       }));
-    }
-    
-    // Clear required speech if this was the one that needed to be listened to
-    if (requiredSpeechToListen === speechNum) {
-      setRequiredSpeechToListen(null);
     }
   };
 
@@ -612,13 +645,23 @@ Respond in this exact JSON format:
         .filter(speechNum => speechNum > speechNum && (nextUserSpeech ? speechNum < nextUserSpeech : true))
         .filter(speechNum => !listenedSpeeches.has(speechNum));
       
+      console.log(`🎵 AI speeches to listen check:`, {
+        allAiSpeeches: Object.keys(aiSpeeches).map(Number),
+        currentSpeechNum: speechNum,
+        nextUserSpeech,
+        listenedSpeeches: Array.from(listenedSpeeches),
+        aiSpeechesToListen
+      });
+      
       if (aiSpeechesToListen.length > 0) {
         // Set the first unlistened speech as required
+        console.log(`🎵 Setting required speech to: ${aiSpeechesToListen[0]}`);
         setRequiredSpeechToListen(aiSpeechesToListen[0]);
         setStep('practice');
         setCurrentTranscript('');
         setCurrentSummary({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
       } else {
+        console.log(`🎵 No required speeches to listen to, proceeding to next user speech`);
         // All AI speeches have been listened to, proceed to next user speech
         setCurrentTranscript('');
         setCurrentSummary({ mainPoints: [], counterPoints: [], counterCounterPoints: [], impactWeighing: '', evidence: [] });
@@ -738,14 +781,11 @@ Respond in this exact JSON format:
   // Get AI speeches to display
   const getAISpeechesToShow = () => {
     const currentUserSpeech = userSpeechNums[currentSpeechIdx];
-    console.log('Current user speech:', currentUserSpeech);
-    console.log('AI speeches available:', Object.keys(aiSpeeches));
     if (!currentUserSpeech) return [];
     
     const speechesToShow = Object.values(aiSpeeches)
       .filter(speech => speech.speechNumber < currentUserSpeech)
       .sort((a, b) => a.speechNumber - b.speechNumber);
-    console.log('AI speeches to show:', speechesToShow.map(s => `Speech ${s.speechNumber}: ${s.speakerName}`));
     return speechesToShow;
   };
 
@@ -759,7 +799,6 @@ Respond in this exact JSON format:
 
   // Format Selection Step
   if (step === 'format') {
-    console.log('🔍 PracticeMode: Rendering format selection step');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 animate-in fade-in duration-500">
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-5xl relative border border-slate-200/40 animate-in slide-in-from-bottom-4 duration-500">
@@ -1413,6 +1452,8 @@ Respond in this exact JSON format:
                   const speech = Object.values(aiSpeeches).find(s => s.speechNumber === requiredSpeechToListen);
                   if (speech) {
                     playAISpeech(requiredSpeechToListen);
+                  } else {
+                    console.error(`🎵 No speech found for required speech ${requiredSpeechToListen}`);
                   }
                 }}
                 className="bg-orange-600 text-white py-2 px-4 rounded text-sm hover:bg-orange-700 transition-colors"

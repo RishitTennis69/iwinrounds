@@ -31,19 +31,21 @@ export class TTSService {
     this.stop();
 
     try {
+      const requestBody = {
+        model: 'tts-1',
+        input: text,
+        voice: options.voice || 'alloy',
+        speed: options.speed || 1.0,
+        response_format: options.format || 'mp3'
+      };
+      
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
-        body: JSON.stringify({
-          model: 'tts-1',
-          input: text,
-          voice: options.voice || 'alloy',
-          speed: options.speed || 1.0,
-          response_format: options.format || 'mp3'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -61,6 +63,11 @@ export class TTSService {
 
       // Get audio blob
       const audioBlob = await response.blob();
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Received empty audio blob from TTS API');
+      }
+      
       const audioUrl = URL.createObjectURL(audioBlob);
 
       // Create and play audio
@@ -93,15 +100,48 @@ export class TTSService {
       };
 
       this.currentAudio.onerror = (error) => {
-        console.error('Audio playback error:', error);
+        console.error('🎵 TTS: Audio playback error:', error);
+        console.error('🎵 TTS: Audio error details:', {
+          error: error,
+          currentSrc: this.currentAudio?.currentSrc,
+          readyState: this.currentAudio?.readyState,
+          networkState: this.currentAudio?.networkState
+        });
         this.cleanup();
         if (this.onAudioError) {
           this.onAudioError(error);
         }
       };
 
+      // Add more event listeners for debugging
+      this.currentAudio.onload = () => {
+        // Audio loaded successfully
+      };
+      
+      this.currentAudio.oncanplaythrough = () => {
+        // Audio can play through without buffering
+      };
+      
+      this.currentAudio.onstalled = () => {
+        console.warn('🎵 TTS: Audio stalled');
+      };
+      
+      this.currentAudio.onwaiting = () => {
+        console.warn('🎵 TTS: Audio waiting for data');
+      };
+
       // Play the audio
       await this.currentAudio.play();
+      
+      // Check if audio is actually playing
+      setTimeout(() => {
+        if (this.currentAudio) {
+          // If audio ended immediately, it might be an issue
+          if (this.currentAudio.ended || this.currentAudio.currentTime === 0) {
+            console.warn('🎵 TTS: Audio ended immediately or didn\'t start properly');
+          }
+        }
+      }, 1000); // Check after 1 second
 
     } catch (error) {
       console.error('TTS error:', error);

@@ -1,0 +1,61 @@
+-- Fix the current user to be an organizer
+-- This will update the most recent profile to be an organizer
+
+-- First, let's see what profiles exist
+SELECT id, email, user_type, first_name, last_name, created_at FROM profiles ORDER BY created_at DESC;
+
+-- Update the most recent profile to be an organizer
+UPDATE profiles 
+SET user_type = 'organizer'
+WHERE id = (
+    SELECT id FROM profiles 
+    ORDER BY created_at DESC 
+    LIMIT 1
+);
+
+-- Create an organization for this user
+INSERT INTO organizations (name, creator_name, creator_email)
+SELECT 
+    'Testorg2' as name,
+    COALESCE(first_name || ' ' || last_name, 'Organizer') as creator_name,
+    email as creator_email
+FROM profiles 
+WHERE id = (
+    SELECT id FROM profiles 
+    ORDER BY created_at DESC 
+    LIMIT 1
+)
+ON CONFLICT (creator_email) DO NOTHING;
+
+-- Add the user as an organizer to the organization
+INSERT INTO organization_members (organization_id, user_id, role)
+SELECT 
+    o.id as organization_id,
+    p.id as user_id,
+    'organizer' as role
+FROM organizations o
+JOIN profiles p ON p.email = o.creator_email
+WHERE p.id = (
+    SELECT id FROM profiles 
+    ORDER BY created_at DESC 
+    LIMIT 1
+)
+ON CONFLICT (organization_id, user_id) DO NOTHING;
+
+-- Verify the changes
+SELECT 
+    p.id,
+    p.email,
+    p.user_type,
+    p.first_name,
+    p.last_name,
+    o.name as organization_name,
+    om.role as member_role
+FROM profiles p
+LEFT JOIN organization_members om ON om.user_id = p.id
+LEFT JOIN organizations o ON o.id = om.organization_id
+WHERE p.id = (
+    SELECT id FROM profiles 
+    ORDER BY created_at DESC 
+    LIMIT 1
+); 

@@ -544,17 +544,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔍 AuthProvider: New user created successfully');
         
         // Store additional info for profile creation
-        if (firstName && lastName) {
-          const pendingInfo = {
-            firstName,
-            lastName,
-            userType: userType || 'student',
-            organizationName,
-            inviteCode
-          };
-          localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
-          console.log('🔍 AuthProvider: Stored pending user info:', pendingInfo);
-        }
+        const pendingInfo = {
+          firstName: firstName || '',
+          lastName: lastName || '',
+          userType: userType || 'student',
+          organizationName,
+          inviteCode
+        };
+        localStorage.setItem('pending_user_info', JSON.stringify(pendingInfo));
+        console.log('🔍 AuthProvider: Stored pending user info:', pendingInfo);
         
         return { isNewUser: true };
       }
