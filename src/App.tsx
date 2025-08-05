@@ -228,13 +228,18 @@ const App: React.FC<{ onShowLogin?: () => void }> = ({ onShowLogin }) => {
 
   const handleBackToModeSelection = () => {
     console.log('🔍 App: handleBackToModeSelection called');
+    // Navigate back to StudentDashboard instead of landing page popup
     setMode('landing');
-    setShowModeModal(true);
+    setShowModeModal(false);
     setSession(null);
     setSpeechNumber(1);
     setCurrentSpeaker(null);
     setIsAnalyzing(false);
     setHintsUsed(0);
+    // Set global navigation target to dashboard
+    globalNavigationTarget = null;
+    // Force a page reload to return to StudentDashboard
+    window.location.reload();
   };
 
   const handleBackToLanding = () => {
